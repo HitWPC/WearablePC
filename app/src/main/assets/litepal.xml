@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+    <litepal>
+        <dbname value="WearablePC"></dbname>
+
+        <version value="2"></version>
+
+    <list>
+        <mapping class="cn.hitftcl.wearablepc.Model.UserIPInfo"/>
+        <mapping class="cn.hitftcl.wearablepc.Model.Msg"/>
+        <mapping class="cn.hitftcl.wearablepc.Model.Secret"/>
+        <mapping class="cn.hitftcl.wearablepc.Model.Expression"/>
+
+    </list>
+</litepal>
