@@ -8,7 +8,6 @@ import com.bumptech.glide.Glide;
 
 /**
  * 解决RecyclerView有图片卡顿问题
- * Created by hzf on 2017/6/1.
  */
 
 public class MyRecyclerView extends RecyclerView {

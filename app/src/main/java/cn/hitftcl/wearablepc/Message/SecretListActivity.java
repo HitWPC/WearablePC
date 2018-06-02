@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -40,6 +41,7 @@ public class SecretListActivity extends AppCompatActivity {
         //设置ToolBar
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_secret_list);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         initDatas();
         mAdapter = new SecretListAdapter(SecretListActivity.this, R.layout.secret_item_secret, mDatas);
@@ -62,26 +64,25 @@ public class SecretListActivity extends AppCompatActivity {
             }
         });
         //长按事件
-//        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//                Secret clicked = mDatas.get(position);
-//                //删除
-//                clicked.delete();
-//                //更新UI
-//                mDatas.remove(position);
-//                mAdapter.notifyDataSetChanged();
-//                return true;
-//            }
-//        });
+        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Secret clicked = mDatas.get(position);
+                //删除
+                clicked.delete();
+                //更新UI
+                mDatas.remove(position);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            }
+        });
         //按钮点击事件
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //进入广播通信界面
-//                Intent intent = new Intent(SecretListActivity.this, GroupActivity.class);
-//                startActivity(intent);
-                //finish
+                Intent intent = new Intent(SecretListActivity.this, GroupActivity.class);
+                startActivity(intent);
                 finish();
             }
         });
@@ -126,5 +127,20 @@ public class SecretListActivity extends AppCompatActivity {
             TextView content;
             TextView time;
         }
+    }
+
+    /**
+     * toolbar返回按钮响应事件
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return true;
     }
 }

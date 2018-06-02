@@ -60,6 +60,11 @@
         <activity android:name=".Group.UserIPEditActivity"/>
         <activity android:name=".Group.UserIPListActivity"/>
         <activity android:name=".Message.SecretActivity"/>
+        <activity android:name=".Message.ExpressionListActivity"/>
+        <activity android:name=".Message.ExpressionAddActivity"/>
+        <activity android:name=".Message.ExpressionEditActivity"/>
+        <activity android:name=".Message.SecretListActivity"/>
+        <activity android:name=".Message.GroupActivity"/>
 
 
     </application>

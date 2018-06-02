@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
+import cn.hitftcl.wearablepc.Message.SecretListActivity;
 import cn.hitftcl.wearablepc.R;
 
 public class IndexActivity extends AppCompatActivity {
@@ -62,8 +63,8 @@ public class IndexActivity extends AppCompatActivity {
 //                        startActivity(intent3);
                         break;
                     case 4:
-//                        Intent intent4 = new Intent(IndexActivity.this, SecretListActivity.class);
-//                        startActivity(intent4);
+                        Intent intent4 = new Intent(IndexActivity.this, SecretListActivity.class);
+                        startActivity(intent4);
                         break;
                     case 5:
                         Intent intent5 = new Intent(IndexActivity.this, UserIPListActivity.class);

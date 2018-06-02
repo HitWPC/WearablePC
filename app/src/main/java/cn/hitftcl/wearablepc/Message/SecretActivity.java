@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -32,6 +33,7 @@ import cn.hitftcl.wearablepc.Model.Msg;
 import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.R;
 
 public class SecretActivity extends AppCompatActivity {
@@ -88,6 +90,7 @@ public class SecretActivity extends AppCompatActivity {
         //设置ToolBar
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_secret);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //获取上一个Intent传入的数据
         Intent intent = getIntent();
@@ -136,15 +139,15 @@ public class SecretActivity extends AppCompatActivity {
 
         //Button：录音按钮
         mRecorderButton = (AudioRecorderButton) findViewById(R.id.id_recorder_button);
-       initBlue(userId);
+//       initBlue(userId);
         //ListView点击事件
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String clicked = mDataExpressions.get(position);
                 if(clicked.equals("+ 编辑常用短语")){
-//                    Intent intent = new Intent(SecretActivity.this, ExpressionListActivity.class);
-//                    startActivity(intent);
+                    Intent intent = new Intent(SecretActivity.this, ExpressionListActivity.class);
+                    startActivity(intent);
                 }else{
                     mEditText.setText(clicked);
                 }
@@ -177,8 +180,13 @@ public class SecretActivity extends AppCompatActivity {
                         addSecret.save();
                     }
                     //发送数据
-//                    NetworkUtil networkUtil = new NetworkUtil();
-//                    networkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), "text", content);
+                    NetworkUtil networkUtil = new NetworkUtil();
+                    networkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), "text", content);
+                    mDataMsgs.add(msg);
+                    //view更新数据
+                    mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
+                    //设置位置
+                    mRecyclerView.scrollToPosition(mDataMsgs.size() - 1);
 
 
 //                    boolean ret = mConnectionManager.sendData(content.getBytes());
@@ -353,26 +361,26 @@ public class SecretActivity extends AppCompatActivity {
         }
         mDataExpressions.add("+ 编辑常用短语");
     }
-    /**
-        初始化蓝牙
-     */
-    private void initBlue(final int userId){
-        //蓝牙初始化
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if(!bluetoothAdapter.isEnabled()){
-            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivity(intent);
-            finish();
-            return;
-        }
+//    /**
+//        初始化蓝牙
+//     */
+//    private void initBlue(final int userId){
+//        //蓝牙初始化
+//        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//        if(!bluetoothAdapter.isEnabled()){
+//            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//            startActivity(intent);
+//            finish();
+//            return;
+//        }
 
-        //设置可被其他蓝牙设备发现
-        if(bluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            //设置为一直开启
-            intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-            startActivity(intent);
-        }
+//        //设置可被其他蓝牙设备发现
+//        if(bluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+//            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+//            //设置为一直开启
+//            intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+//            startActivity(intent);
+//        }
 //        mConnectionListener = new ConnectionListener() {
 //            @Override
 //            public void onConnectStateChange(int oldState, int State) {
@@ -399,46 +407,61 @@ public class SecretActivity extends AppCompatActivity {
 //                mHandler.obtainMessage(MSG_RECEIVE_DATA,  data).sendToTarget();
 //            }
 //        };
-        //给主线程服务的Handler
-        mHandler = new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-
-                switch (msg.what) {
-                    case MSG_SENT_DATA: {
-                        //UI线程处理发送成功的数据，
-                        //把文字内容展示到主界面上
-                        //获取发送的文字内容
-                    }
-                    break;
-
-                    case MSG_RECEIVE_DATA: {
-                        //UI线程处理接收到的对方发送的数据，
-                        //把文字内容展示到主界面上
-                        byte [] data = (byte []) msg.obj;
-                        if(data != null) {
-                            long current = System.currentTimeMillis();
-                            Msg mwssage = new Msg(userId,self.getId(), new String(data), current, Msg.TYPE_RECEIVED, Msg.CATAGORY_TEXT);
-                            mDataMsgs.add(mwssage);
-                            //view更新数据
-                            mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
-                            //设置位置
-                            mRecyclerView.scrollToPosition(mDataMsgs.size() - 1);
-                        }
-                    }
-                    break;
-
-                    case MSG_UPDATE_UI: {
-                        //更新界面上的菜单等显示状态
-                    }
-                    break;
-                }
-            }
-        };
+//        //给主线程服务的Handler
+//        mHandler = new Handler(){
+//            @Override
+//            public void handleMessage(Message msg) {
+//
+//                switch (msg.what) {
+//                    case MSG_SENT_DATA: {
+//                        //UI线程处理发送成功的数据，
+//                        //把文字内容展示到主界面上
+//                        //获取发送的文字内容
+//                    }
+//                    break;
+//
+//                    case MSG_RECEIVE_DATA: {
+//                        //UI线程处理接收到的对方发送的数据，
+//                        //把文字内容展示到主界面上
+//                        byte [] data = (byte []) msg.obj;
+//                        if(data != null) {
+//                            long current = System.currentTimeMillis();
+//                            Msg mwssage = new Msg(userId,self.getId(), new String(data), current, Msg.TYPE_RECEIVED, Msg.CATAGORY_TEXT);
+//                            mDataMsgs.add(mwssage);
+//                            //view更新数据
+//                            mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
+//                            //设置位置
+//                            mRecyclerView.scrollToPosition(mDataMsgs.size() - 1);
+//                        }
+//                    }
+//                    break;
+//
+//                    case MSG_UPDATE_UI: {
+//                        //更新界面上的菜单等显示状态
+//                    }
+//                    break;
+//                }
+//            }
+//        };
 //        mConnectionManager = new ConnectionManager(mConnectionListener);
 //        mConnectionManager.startListen();
 //        UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
 //        mConnectionManager.connect(userIPInfo.getBlueMac());
+//    }
+
+    /**
+     * toolbar返回按钮响应事件
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return true;
     }
 
 }
