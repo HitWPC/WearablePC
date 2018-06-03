@@ -77,6 +77,7 @@ public class UserIPAddActivity extends AppCompatActivity {
                             isMacExisted = true;
                         }
                     }
+                    isMacExisted = true;
                     if(isMacExisted){
                         UserIPInfo userIPInfo = new UserIPInfo(username, ip, port,macAdress);
                         userIPInfo.save();

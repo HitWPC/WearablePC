@@ -88,6 +88,7 @@ public class UserIPEditActivity extends AppCompatActivity {
                 }
                 if(mBluetoothAdapter.getAddress().equals(BlueMac))
                     isMacExisted = true;
+                isMacExisted = true;
                 Log.d("本机蓝牙地址",""+ isMacExisted);
                 if(isMacExisted){
                     userIPInfo.setBlueMac(BlueMac);
