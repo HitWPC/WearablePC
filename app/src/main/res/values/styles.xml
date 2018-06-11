@@ -13,6 +13,10 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="IndexBarStyle" parent="Theme.AppCompat.Light.DarkActionBar">
+
+    </style>
+
     <!-- android:windowBackground换窗口默认背景-->
     <!-- android:windowFrame设置Dialog的windowFrame框为无（去掉白色边框）-->
     <!-- android:windowIsFloating是否浮现在activity之上-->

@@ -6,8 +6,8 @@
         android:orderInCategory="100"
         app:showAsAction="never" />
     <item
-        android:id="@+id/settings"
-        android:title="设置"
+        android:id="@+id/btset"
+        android:title="蓝牙设置"
         app:showAsAction="never"/>
     <item
         android:id="@+id/voicetest"

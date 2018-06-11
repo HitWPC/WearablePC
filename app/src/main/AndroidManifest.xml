@@ -48,6 +48,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
 
+        <!-- 高德开放平台申请的API KEY -->
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="545eb5cb2f33241fbe78e5349b8f3bc9" />
+
+        <service
+            android:name=".Bluetooth.BluetoothLeService"
+            android:enabled="true" />
+
         <activity android:name=".Login.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -55,17 +64,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".IndexGrid.IndexActivity" />
+        <activity
+            android:name=".IndexGrid.IndexActivity"
+            android:theme="@style/IndexBarStyle" />
         <activity android:name=".Group.UserIPAddActivity" />
-        <activity android:name=".Group.UserIPEditActivity"/>
-        <activity android:name=".Group.UserIPListActivity"/>
-        <activity android:name=".Message.SecretActivity"/>
-        <activity android:name=".Message.ExpressionListActivity"/>
-        <activity android:name=".Message.ExpressionAddActivity"/>
-        <activity android:name=".Message.ExpressionEditActivity"/>
-        <activity android:name=".Message.SecretListActivity"/>
-        <activity android:name=".Message.GroupActivity"/>
-
+        <activity android:name=".Group.UserIPEditActivity" />
+        <activity android:name=".Group.UserIPListActivity" />
+        <activity android:name=".Message.SecretActivity" />
+        <activity android:name=".Message.ExpressionListActivity" />
+        <activity android:name=".Message.ExpressionAddActivity" />
+        <activity android:name=".Message.ExpressionEditActivity" />
+        <activity android:name=".Message.SecretListActivity" />
+        <activity android:name=".Message.GroupActivity" />
+        <activity android:name=".BDMap.MapActivity" />
+        <activity
+            android:name=".BDMap.offlinemap.OfflineMapActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".Bluetooth.BTSettingActivity"/>
 
     </application>
 
