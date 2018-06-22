@@ -1,20 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="cn.hitftcl.wearablepc.Bluetooth.BTSettingActivity">
-    
-    <Button
-        android:id="@+id/startScan"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"/>
-    <Button
-        android:id="@+id/stopScan"
-        android:layout_width="0dp"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/startScan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="开始扫描"
+            android:layout_weight="1"/>
+        <Button
+            android:id="@+id/stopScan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="停止扫描"
+            android:layout_weight="1"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"/>
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="扫描结果"
+                android:gravity="center_horizontal"
+                android:textSize="@dimen/font_32"/>
+            <ListView
+                android:id="@+id/mDeviceList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="已连接设备"
+                android:gravity="center_horizontal"
+                android:textSize="@dimen/font_32"/>
+            <ListView
+                android:id="@+id/connDevicesList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

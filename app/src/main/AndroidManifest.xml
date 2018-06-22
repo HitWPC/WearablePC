@@ -53,10 +53,6 @@
             android:name="com.amap.api.v2.apikey"
             android:value="545eb5cb2f33241fbe78e5349b8f3bc9" />
 
-        <service
-            android:name=".Bluetooth.BluetoothLeService"
-            android:enabled="true" />
-
         <activity android:name=".Login.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -80,8 +76,12 @@
         <activity
             android:name=".BDMap.offlinemap.OfflineMapActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".Bluetooth.BTSettingActivity"/>
+        <activity android:name=".Bluetooth.BTSettingActivity" />
 
+        <service
+            android:name=".Bluetooth.SensorDataService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

@@ -18,42 +18,19 @@ import android.widget.TextView;
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
 import cn.hitftcl.wearablepc.Bluetooth.BTSettingActivity;
-import cn.hitftcl.wearablepc.Bluetooth.BluetoothLeService;
+import cn.hitftcl.wearablepc.Bluetooth.SensorDataService;
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
 import cn.hitftcl.wearablepc.R;
 
 public class IndexActivity extends AppCompatActivity {
     private final static String TAG = "debug001";
+    private Intent sensorDataService = null;
 
     MyGridLayout grid;
     int[] srcs = { R.drawable.actions_booktag, R.drawable.actions_about, R.drawable.actions_comment,
             R.drawable.actions_account, R.drawable.actions_message, R.drawable.actions_account,};
     String titles[] = { "地图", "感知", "通信", "无线", "条密", "小组"};
-
-    private BluetoothLeService mBluetoothLeService;
-
-
-    /**
-     * 管理蓝牙服务的生命周期
-     */
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder service) {
-            mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
-            if (!mBluetoothLeService.initialize()) {
-                Log.e(TAG, "Unable to initialize Bluetooth");
-                finish();
-            }
-            Log.e(TAG, "mBluetoothLeService is okay");
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mBluetoothLeService = null;
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,10 +88,8 @@ public class IndexActivity extends AppCompatActivity {
                 }
             }
         });
-
-        Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
-        Log.d(TAG, "Try to bindService=" + bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE));
-
+        sensorDataService = new Intent(this, SensorDataService.class);
+        startService(sensorDataService);
     }
 
     @Override
@@ -135,7 +110,7 @@ public class IndexActivity extends AppCompatActivity {
 //                return true;
             case R.id.btset:
                 Intent btset_intent = new Intent(IndexActivity.this, BTSettingActivity.class);
-                btset_intent.putExtra("bleService",mBluetoothLeService);
+//                btset_intent.putExtra("bleService",mBluetoothLeService);
                 startActivity(btset_intent);
                 return true;
 //            case R.id.voicetest:
@@ -145,4 +120,9 @@ public class IndexActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(sensorDataService);
+    }
 }
