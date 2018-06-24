@@ -35,5 +35,5 @@ dependencies {
     //to deal with circle image
     compile 'com.android.support:recyclerview-v7:26.0.0'
     implementation files('libs/AMap3DMap_6.2.0_AMapSearch_6.1.0_20180427.jar')
-    compile project(path: ':ble')
+    implementation project(path: ':ble')
 }
