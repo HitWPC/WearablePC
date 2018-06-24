@@ -81,7 +81,9 @@
         <service
             android:name=".Bluetooth.SensorDataService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity android:name=".Bluetooth.BluetoothActivity"></activity>
     </application>
 
 </manifest>

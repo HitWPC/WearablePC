@@ -2,6 +2,7 @@ package cn.hitftcl.wearablepc.Bluetooth;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -18,11 +19,13 @@ import java.util.List;
  * Time: 2017/2/13 11:23
  */
 public class DeviceListAdapter extends BaseAdapter {
+    public final static String TAG = "debug001";
 
-    private List<BluetoothDevice> bluetoothDevices = new ArrayList<BluetoothDevice>();
+    private List<BluetoothDevice> bluetoothDevices = new ArrayList<>();
     private Context mContext;
 
     public DeviceListAdapter(Context context, List<BluetoothDevice> bluetoothDevices) {
+        Log.d(TAG, "DeviceListAdapter的构造函数");
         mContext = context;
         this.bluetoothDevices = bluetoothDevices;
     }
@@ -34,7 +37,7 @@ public class DeviceListAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int i) {
-        return null;
+        return bluetoothDevices.get(i);
     }
 
     @Override
@@ -48,7 +51,7 @@ public class DeviceListAdapter extends BaseAdapter {
                 getViewHolder(mContext, convertView, viewGroup, R.layout.item_device_list, position);
         TextView name = holder.getView(R.id.mDeviceName);
         TextView address = holder.getView(R.id.mDeviceMacAddress);
-        name.setText(bluetoothDevices.get(position).getName());
+        name.setText(bluetoothDevices.get(position).getName()==null?"未知设备":bluetoothDevices.get(position).getName());
         address.setText(bluetoothDevices.get(position).getAddress());
         return holder.getConvertView();
     }

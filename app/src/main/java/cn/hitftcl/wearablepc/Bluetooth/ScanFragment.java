@@ -1,74 +1,110 @@
 package cn.hitftcl.wearablepc.Bluetooth;
 
-import android.app.ListActivity;
 import android.app.ProgressDialog;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.PermissionChecker;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.callback.ConnectCallback;
 import cn.hitftcl.ble.callback.ScanCallback;
 import cn.hitftcl.wearablepc.R;
 
-public class BTSettingActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+/**
+ * Created by Administrator on 2018/6/22.
+ */
+
+public class ScanFragment extends Fragment {
+
     public static final String TAG = "debug001";
     private ProgressDialog progressDialog;
-    private Button scanBtn, stopScanBtn;
+    private Button scanBtn;
     private ListView scanDevices;
     //搜索结果列表
     private List<BluetoothDevice> bluetoothDevices = new ArrayList<>();
-    private static List<BluetoothDevice> connedDevices = new ArrayList<>();
+    private List<Map<String, String>> btDevices = new ArrayList<>();
     //BLE 模块
     private BleController mBleController;
+//    private DeviceListAdapter deviceListAdapter;
+    private SimpleAdapter adapter;
 
-
-
-
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_btsetting);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_scan, container,false);
 
         // TODO 第一步：检查BLE兼容性，申请权限
         checkBLE();
 
         // TODO 第二步：初始化
-        mBleController = BleController.getInstance().init(this);
+        mBleController = BleController.getInstance().init(getContext());
 
         // TODO 获取控件，监听按钮点击事件
-        scanDevices = findViewById(R.id.mDeviceList1);
-
-        scanBtn = findViewById(R.id.startScan);
-        stopScanBtn = findViewById(R.id.stopScan);
-
+        scanBtn = v.findViewById(R.id.startScan);
         scanBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 scanDevices();
             }
         });
+
+        scanDevices = v.findViewById(R.id.mDeviceList);
+        adapter = new SimpleAdapter(getContext(), btDevices, android.R.layout.simple_list_item_2,new String[]{"名称","地址"},new int[]{android.R.id.text1,android.R.id.text2});
+        scanDevices.setAdapter(adapter);
+
+        scanDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                showProgressDialog("请稍后", "正在连接设备");
+
+                // TODO 点击条目后,获取地址，根据地址连接设备
+                final String address = btDevices.get(i).get("地址");
+                final int position = i;
+                mBleController.connect(0, address, new ConnectCallback() {
+                    @Override
+                    public void onConnSuccess() {
+                        hideProgressDialog();
+                        Toast.makeText(getContext(), "连接成功", Toast.LENGTH_SHORT).show();
+                        bluetoothDevices.remove(position);
+                        btDevices.remove(position);
+                        adapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onConnFailed() {
+                        hideProgressDialog();
+                        Toast.makeText(getContext(), "连接超时，请重试", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+        return v;
+
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
     }
 
     /**'
@@ -85,10 +121,8 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
 
                 if (bluetoothDevices.size() > 0) {
                     Log.d(TAG, "设备数量"+bluetoothDevices.size());
-                    scanDevices.setAdapter(new DeviceListAdapter(BTSettingActivity.this, bluetoothDevices));
-                    scanDevices.setOnItemClickListener(BTSettingActivity.this);
                 } else {
-                    Toast.makeText(BTSettingActivity.this, "未搜索到Ble设备", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "未搜索到Ble设备", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -96,16 +130,23 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
             public void onScanning(BluetoothDevice device, int rssi, byte[] scanRecord) {
                 if (!bluetoothDevices.contains(device)) {
                     bluetoothDevices.add(device);
+                    Map<String, String> map = new HashMap<>();
+                    map.put("名称", device.getName()==null?"未知设备":device.getName());
+                    map.put("地址",device.getAddress());
+                    btDevices.add(map);
                     Log.d(TAG,"NAME: "+device.getName()+"  ADDR: "+device.getAddress());
+                    adapter.notifyDataSetChanged();
+
                 }
 
             }
         });
     }
 
+
     public void showProgressDialog(String title, String message) {
         if (progressDialog == null) {
-            progressDialog = ProgressDialog.show(this, title, message, true, false);
+            progressDialog = ProgressDialog.show(getContext(), title, message, true, false);
         } else if (progressDialog.isShowing()) {
             progressDialog.setTitle(title);
             progressDialog.setMessage(message);
@@ -120,16 +161,15 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
         }
     }
 
-
     /**
      * 检查BLE，申请权限
      */
     private void checkBLE() {
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-            finish();
+        if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(getContext(), R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
+            getActivity().finish();
         }
         requestLocationPermission();
     }
@@ -140,34 +180,12 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
     private void requestLocationPermission(){
         Log.d(TAG, "requestLocationPermission: 申请权限");
         if (Build.VERSION.SDK_INT >= 23){
-            int check = ContextCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_COARSE_LOCATION);
+            int check = ContextCompat.checkSelfPermission(getContext(),android.Manifest.permission.ACCESS_COARSE_LOCATION);
             if (check != PermissionChecker.PERMISSION_GRANTED){
                 requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},0);
             }else{
                 return;
             }
         }
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        showProgressDialog("请稍后", "正在连接设备");
-
-        // TODO 点击条目后,获取地址，根据地址连接设备
-        String address = bluetoothDevices.get(i).getAddress();
-        mBleController.connect(0, address, new ConnectCallback() {
-            @Override
-            public void onConnSuccess() {
-                hideProgressDialog();
-                Toast.makeText(BTSettingActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
-//                startActivity(new Intent(MainActivity.this,SendAndReciveActivity.class));
-            }
-
-            @Override
-            public void onConnFailed() {
-                hideProgressDialog();
-                Toast.makeText(BTSettingActivity.this, "连接超时，请重试", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 }

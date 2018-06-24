@@ -18,6 +18,7 @@ import android.widget.TextView;
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
 import cn.hitftcl.wearablepc.Bluetooth.BTSettingActivity;
+import cn.hitftcl.wearablepc.Bluetooth.BluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.SensorDataService;
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
@@ -109,7 +110,8 @@ public class IndexActivity extends AppCompatActivity {
 //            case R.id.about_us:
 //                return true;
             case R.id.btset:
-                Intent btset_intent = new Intent(IndexActivity.this, BTSettingActivity.class);
+//                Intent btset_intent = new Intent(IndexActivity.this, BTSettingActivity.class);
+                Intent btset_intent = new Intent(IndexActivity.this, BluetoothActivity.class);
 //                btset_intent.putExtra("bleService",mBluetoothLeService);
                 startActivity(btset_intent);
                 return true;

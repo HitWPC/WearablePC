@@ -11,16 +11,23 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.ScrollView;
 
+import com.amap.api.maps.CoordinateConverter;
+import com.amap.api.maps.model.LatLng;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Pattern;
 
 import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.UUIDs;
+import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
 public class SensorDataService extends Service {
     public final static  String TAG = "debug001";
+
+    public static StringBuilder temp_bd_data = new StringBuilder();
 //    ThreadPoolExecutor ThreadExecutor = null;
     @Override
     public IBinder onBind(Intent intent) {
@@ -85,12 +92,54 @@ public class SensorDataService extends Service {
                 deal_environment(data);
                 break;
             case UUIDs.UUID_BD:
-                Log.d(TAG, new String(data));
+//                Log.d(TAG, new String(data));
+                temp_bd_data.append(new String(data));
+                if(ifHasDataNeeded(temp_bd_data)){
+                    Log.d(TAG,temp_bd_data.toString());
+//                    getFormatLatlng(temp_bd_data);
+                    temp_bd_data.delete(0, temp_bd_data.length());
+                }
                 break;
         }
+    }
 
+    private static boolean ifHasDataNeeded(StringBuilder sb){
+        Pattern p;
+        if(sb != null){
+//            p = Pattern.compile("\\$GNRMC,.+,[A|V],.+,[N|S],.+,[W|E],.*");
+            p = Pattern.compile("\\$GNRMC");
+            if(p.matcher(sb.toString()).find())
+                return true;
+            return false;
+        }
+        return false;
+    }
 
+    private static LatLng getFormatLatlng(StringBuilder sb){
+        LatLng latLng;
+        String str = sb.substring(sb.lastIndexOf("$GNRMC"),sb.length());
+        Log.d(TAG,sb.substring(sb.lastIndexOf("$GNRMC"),sb.length()));
+        String[] strArr = str.split(",");
+        String lat = strArr[3];
+        String NorS = strArr[4];
+        String lng = strArr[5];
+        String EorW = strArr[6];
+        double lat_double = Double.parseDouble(lat.substring(0,2))+(Double.parseDouble(lat.substring(2,lat.length()))/60.0);
+        double lng_double = Double.parseDouble(lng.substring(0,3))+(Double.parseDouble(lng.substring(3,lng.length()))/60.0);
+        Log.d(TAG, ""+lat_double + "   "+lng_double);
+        if(NorS.equals("S"))
+            lat_double = -lat_double;
+        if(EorW.equals("W"))
+            lng_double = -lng_double;
 
+        latLng = new LatLng(lat_double, lng_double);
+        //坐标转换
+        CoordinateConverter converter = new CoordinateConverter(MyApplication.getContext());
+        converter.from(CoordinateConverter.CoordType.GPS);
+        converter.coord(latLng);
+        latLng = converter.convert();
+//        locateAndMark(latLng);
+        return latLng;
     }
 
     private static void deal_environment(byte[] data) {

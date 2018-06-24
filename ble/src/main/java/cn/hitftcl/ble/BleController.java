@@ -11,10 +11,11 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.nfc.Tag;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-
+import android.widget.Toast;
 
 
 import java.util.Arrays;
@@ -48,7 +49,7 @@ public class BleController {
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mAdapter;
-    private HashMap<BluetoothDevice,BluetoothGatt> bluetoothGattHashMap = new HashMap<>();
+    private HashMap<BluetoothDevice,BluetoothGatt> ConnectedDvices = new HashMap<>();
     private BluetoothGatt mBluetoothGatt;
     private BluetoothGattCharacteristic gattCharacteristic;
 
@@ -58,7 +59,7 @@ public class BleController {
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
     //发起连接是否有响应
-    private boolean isConnectResponse = false;
+//    private boolean isConnectResponse = false;
     //获取到所有服务的集合
     private HashMap<String, Map<String, BluetoothGattCharacteristic>> servicesMap = new HashMap<>();
     //默认扫描时间：5s
@@ -66,7 +67,7 @@ public class BleController {
     //默认连接超时时间:6s
     private static final int CONNECTION_TIME_OUT = 10000;
     //是否是用户手动断开
-    private boolean isBreakByMyself = false;
+//    private boolean isBreakByMyself = false;
     //连接结果的回调
     private ConnectCallback connectCallback;
     //读操作请求队列
@@ -80,6 +81,8 @@ public class BleController {
             "com.example.bluetooth.le.EXTRA_DATA";
     public final static String EXTRA_UUID =
             "com.example.bluetooth.le.EXTRA_UUID";
+    public final static String ACTION_CONNDEVICE_CHANGE =
+            "com.example.bluetooth.le.ACTION_CONNDEVICE_CHANGE";
 
 
     //-----------------------------  对外公开的方法 ----------------------------------------------
@@ -147,6 +150,7 @@ public class BleController {
         mAdapter.startLeScan(bleDeviceScanCallback);
     }
 
+
     /**
      * 连接设备
      *
@@ -166,13 +170,14 @@ public class BleController {
 //            mBluetoothGatt.close();
 //        }
         reset();
-        if (!bluetoothGattHashMap.containsKey(remoteDevice)){
+        if (!ConnectedDvices.containsKey(remoteDevice)){
             mBluetoothGatt = remoteDevice.connectGatt(mContext, false, mGattCallback);
         }
-        else mBluetoothGatt = bluetoothGattHashMap.get(remoteDevice);
-        bluetoothGattHashMap.put(remoteDevice,mBluetoothGatt);
+        else
+            mBluetoothGatt = ConnectedDvices.get(remoteDevice);
+        ConnectedDvices.put(remoteDevice,mBluetoothGatt);
         Log.e(LOGTAG, "connecting mac-address:" + devicesAddress);
-        delayConnectResponse(connectionTimeOut);
+        delayConnectResponse(connectionTimeOut,remoteDevice);
     }
 
 
@@ -210,6 +215,14 @@ public class BleController {
     }
 
     /**
+     * 返回已连接设备的HashMap
+     * @return
+     */
+    public HashMap<BluetoothDevice,BluetoothGatt> getConnectedDvices(){
+        return  ConnectedDvices;
+    }
+
+    /**
      * 设置读取数据的监听
      *
      * @param requestKey
@@ -231,11 +244,11 @@ public class BleController {
     /**
      * 手动断开Ble连接
      */
-    public void closeBleConn() {
-        disConnection();
-        isBreakByMyself = true;
+    public void closeBleConn(BluetoothDevice bluetoothDevice) {
+        disConnection(bluetoothDevice);
+//        isBreakByMyself = true;
         gattCharacteristic = null;
-        mBluetoothManager = null;
+//        mBluetoothManager = null;
     }
 
 
@@ -281,7 +294,7 @@ public class BleController {
      * 复位
      */
     private void reset() {
-        isConnectResponse = false;
+//        isConnectResponse = false;
         servicesMap.clear();
     }
 
@@ -290,18 +303,18 @@ public class BleController {
      *
      * @param connectionTimeOut
      */
-    private void delayConnectResponse(int connectionTimeOut) {
+    private void delayConnectResponse(int connectionTimeOut, final BluetoothDevice bluetoothDevice) {
         mHandler.removeCallbacksAndMessages(null);
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (!isConnectResponse && !isBreakByMyself) {
-                    Log.e(LOGTAG, "connect timeout");
-                    disConnection();
-                    reConnect();
-                } else {
-                    isBreakByMyself = false;
-                }
+//                if (!isConnectResponse && !isBreakByMyself) {
+//                    Log.e(LOGTAG, "connect timeout");
+//                    disConnection(bluetoothDevice);
+//                    reConnect();
+//                } else {
+//                    isBreakByMyself = false;
+//                }
             }
         }, connectionTimeOut <= 0 ? CONNECTION_TIME_OUT : connectionTimeOut);
     }
@@ -310,14 +323,16 @@ public class BleController {
     /**
      * 断开连接
      */
-    private void disConnection() {
+    private void disConnection(BluetoothDevice bluetoothDevice) {
         if (null == mAdapter || null == mBluetoothGatt) {
             Log.e(LOGTAG, "disconnection error maybe no init");
             return;
         }
-        mBluetoothGatt.disconnect();
+        ConnectedDvices.get(bluetoothDevice).disconnect();
         reset();
     }
+
+
 
 
     /**
@@ -328,15 +343,24 @@ public class BleController {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 
             if (newState == BluetoothProfile.STATE_CONNECTED) { //连接成功
-                isBreakByMyself = false;
+//                isBreakByMyself = false;
                 Log.d(LOGTAG,"onConnectionStateChange  success");
                 mBluetoothGatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {   //断开连接
-                if (!isBreakByMyself) {
-                    reConnect();
+                //断开连接后从已连接列表中删除该Device
+                for(Map.Entry<BluetoothDevice, BluetoothGatt> entry : ConnectedDvices.entrySet()){
+                    if(entry.getValue().equals(gatt)){
+                        entry.getValue().close();
+                        ConnectedDvices.remove(entry.getKey());
+                        break;
+                    }
                 }
+//                if (!isBreakByMyself) {
+//                    reConnect();
+//                }
                 reset();
             }
+            broadcastUpdate(ACTION_CONNDEVICE_CHANGE);
         }
 
         //服务被发现了
@@ -359,7 +383,7 @@ public class BleController {
                         if (characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT)
                                 || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD)) {
                             if (enableNotification(true, characteristics.get(j))) {
-                                isConnectResponse = true;
+//                                isConnectResponse = true;
                                 connSuccess();
                             } else {
                                 reConnect();
