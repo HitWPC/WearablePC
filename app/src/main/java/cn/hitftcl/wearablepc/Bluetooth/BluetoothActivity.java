@@ -10,6 +10,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
+import android.widget.SimpleCursorAdapter;
 
 import java.util.ArrayList;
 
@@ -37,6 +38,7 @@ public class BluetoothActivity extends AppCompatActivity  {
     public void initView() {
         fragments.add(new ScanFragment());
         fragments.add(new ConnectedFragment());
+        fragments.add(new ScanDataFragment());
         FragmentAdapter fragmentAdapter= new FragmentAdapter(getSupportFragmentManager(), fragments);//实例化adapter，得到fragment
         vp=(ViewPager)findViewById(R.id.viewpager);
         vp.setAdapter(fragmentAdapter);//建立连接
@@ -50,6 +52,9 @@ public class BluetoothActivity extends AppCompatActivity  {
                         break;
                     case R.id.two:
                         vp.setCurrentItem(1);
+                        break;
+                    case R.id.three:
+                        vp.setCurrentItem(2);
                         break;
                 }
                 return true;

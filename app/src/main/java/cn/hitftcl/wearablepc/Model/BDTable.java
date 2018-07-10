@@ -8,11 +8,29 @@ import java.util.Date;
  * Created by anyihao on 2017/11/25.
  */
 public class BDTable extends DataSupport {
+    private int id;
     private double longitude;//经度
     private double latitude; //纬度
     private Date recordDate; //接收日期
 //    private int NorS;   //0表示北纬  1表示南纬
 //    private int WorE;  //0表示西经   1表示东经
+
+    public BDTable() {
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public BDTable(double longitude, double latitude, Date recordDate) {
+        this.longitude = longitude;
+        this.latitude = latitude;
+        this.recordDate = recordDate;
+    }
 
     public void setLongitude(double longitude){
         this.longitude = longitude;

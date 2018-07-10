@@ -7,8 +7,7 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/btset"
-        android:title="蓝牙设置"
-        app:showAsAction="never"/>
+        android:title="蓝牙设置" />
     <item
         android:id="@+id/voicetest"
         android:title="语音测试"

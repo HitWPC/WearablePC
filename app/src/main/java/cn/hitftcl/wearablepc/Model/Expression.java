@@ -6,6 +6,9 @@ public class Expression extends DataSupport {
     private int id;
     private String content;
 
+    public Expression() {
+    }
+
     public int getId() {
         return id;
     }

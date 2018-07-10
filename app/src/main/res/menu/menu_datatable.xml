@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/Temperature"
+        android:title="温度"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/BDdata"
+        android:title="北斗定位数据" />
+    <item
+        android:id="@+id/GasData"
+        android:title="气体数据" />
+    <item android:id="@+id/about_data"
+        android:title="关于"
+        android:orderInCategory="100"
+        app:showAsAction="never" />   
+</menu>

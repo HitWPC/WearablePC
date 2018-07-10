@@ -12,6 +12,7 @@ public class UserIPInfo extends DataSupport {
     public static final int TYPE_COMMON = 1;//普通用户
     public static final int TYPE_CAPTAIN = 2;//编队长官
 
+
     private int id;
     private String username;
     private String password;

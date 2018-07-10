@@ -145,6 +145,12 @@ public class ConnectedFragment extends Fragment{
         Log.d(TAG, "onResume2");
     }
 
+    @Override
+    public void onDestroy() {
+        getContext().unregisterReceiver(Receiver);
+        super.onDestroy();
+    }
+
     private final BroadcastReceiver Receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {

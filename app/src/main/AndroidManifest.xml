@@ -73,6 +73,8 @@
         <activity android:name=".Message.SecretListActivity" />
         <activity android:name=".Message.GroupActivity" />
         <activity android:name=".BDMap.MapActivity" />
+        <activity android:name=".Bluetooth.GeoDataActivity" />
+        <activity android:name=".Bluetooth.EnviromentDataActivity" />
         <activity
             android:name=".BDMap.offlinemap.OfflineMapActivity"
             android:screenOrientation="portrait" />

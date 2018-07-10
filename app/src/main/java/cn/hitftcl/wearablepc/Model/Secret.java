@@ -17,6 +17,9 @@ public class Secret extends DataSupport {
 
     private long time;//消息时间
 
+    public Secret() {
+    }
+
     public Secret(int user_id, String username, String content, long time) {
         this.user_id = user_id;
         this.username = username;
