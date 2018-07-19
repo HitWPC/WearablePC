@@ -63,7 +63,10 @@ public class AudioManager {
             isPrepare = false;
             File dir = new File(mDir);
             if (!dir.exists()) {
-                dir.mkdirs();//文件夹不存在，则创建文件夹
+                if (!dir.mkdirs())//文件夹不存在，则创建文件夹
+                {
+                    Log.d("创建文件夹：","失败");
+                }
             }
             String fileName = generateFileName();
             File file = new File(dir, fileName);

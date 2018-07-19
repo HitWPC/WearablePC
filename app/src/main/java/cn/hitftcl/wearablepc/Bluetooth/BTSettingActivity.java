@@ -31,6 +31,8 @@ import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.callback.ConnectCallback;
 import cn.hitftcl.ble.callback.ScanCallback;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.Utils.PERMISSION;
+import cn.hitftcl.wearablepc.Utils.RequestPermission;
 
 public class BTSettingActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
     public static final String TAG = "debug001";
@@ -131,23 +133,10 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
             finish();
         }
-        requestLocationPermission();
+        RequestPermission.requestPermission(this, PERMISSION.BLUETOOTH);
     }
 
-    /**
-     * 动态申请位置权限
-     */
-    private void requestLocationPermission(){
-        Log.d(TAG, "requestLocationPermission: 申请权限");
-        if (Build.VERSION.SDK_INT >= 23){
-            int check = ContextCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_COARSE_LOCATION);
-            if (check != PermissionChecker.PERMISSION_GRANTED){
-                requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},0);
-            }else{
-                return;
-            }
-        }
-    }
+
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {

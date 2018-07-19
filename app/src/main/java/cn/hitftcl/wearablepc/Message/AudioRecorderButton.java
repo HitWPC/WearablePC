@@ -5,6 +5,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.support.v7.widget.AppCompatButton;
@@ -90,6 +91,7 @@ public class AudioRecorderButton extends AppCompatButton {
         mDialogManager = new DialogManager(context);
         //录音文件存放地址
         String dir = Environment.getExternalStorageDirectory() + "/HitWearable/voice";
+        Log.d("usdifvhuiv",dir);
         mAudioManager = AudioManager.getInstance(dir);
         mAudioManager.setOnAudioStateListener(new AudioManager.AudioStateListener() {
             public void wellPrepared() {

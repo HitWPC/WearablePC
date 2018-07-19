@@ -116,9 +116,8 @@ public class NetworkUtil {
                     // 设置读流超时时间，必须在获取流之前设置
                     mSocket.setSoTimeout(INPUT_STREAM_READ_TIMEOUT);
                     DataOutputStream dataOutputStream = new DataOutputStream(mSocket.getOutputStream());
-                    dataOutputStream.writeBytes(typeName);
-                    dataOutputStream.writeBytes(" ");
-                    dataOutputStream.write(content.getBytes());
+                    dataOutputStream.writeUTF(typeName);
+                    dataOutputStream.writeUTF(content);
 
                     //发送文件类型
                     if(typeName.equals(TransType.FILE_TYPE)){

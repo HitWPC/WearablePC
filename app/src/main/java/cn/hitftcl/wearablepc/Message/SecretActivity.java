@@ -5,8 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -36,6 +39,8 @@ import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.NetWork.TransType;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.Utils.PERMISSION;
+import cn.hitftcl.wearablepc.Utils.RequestPermission;
 
 public class SecretActivity extends AppCompatActivity {
     public static final String TAG = "debug001";
@@ -142,6 +147,9 @@ public class SecretActivity extends AppCompatActivity {
 
         //Button：录音按钮
         mRecorderButton = (AudioRecorderButton) findViewById(R.id.id_recorder_button);
+        //动态申请录音权限
+        RequestPermission.requestPermission(this, PERMISSION.AUDIO);
+
 //       initBlue(userId);
         //ListView点击事件
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -226,8 +234,7 @@ public class SecretActivity extends AppCompatActivity {
                     addSecret.save();
                 }
                 //发送数据
-//                NetworkUtil networkUtil = new NetworkUtil();
-//                networkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), "file", filePath);
+                NetworkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), TransType.FILE_TYPE, filePath);
 
                 mDataMsgs.add(msg);
                 //view更新数据

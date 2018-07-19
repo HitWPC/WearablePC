@@ -25,6 +25,8 @@ import cn.hitftcl.wearablepc.Login.LoginActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
 import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.Utils.PERMISSION;
+import cn.hitftcl.wearablepc.Utils.RequestPermission;
 
 public class IndexActivity extends AppCompatActivity {
     private final static String TAG = "debug001";
@@ -99,7 +101,12 @@ public class IndexActivity extends AppCompatActivity {
         //TODO 开启传感器数据接收服务
         sensorDataService = new Intent(this, SensorDataService.class);
         startService(sensorDataService);
+
+        //TODO 申请存储器权限
+        RequestPermission.requestPermission(this, PERMISSION.STORGE);
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){

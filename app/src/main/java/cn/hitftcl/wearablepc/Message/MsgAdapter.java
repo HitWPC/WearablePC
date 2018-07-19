@@ -56,75 +56,75 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
         holder.leftLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Log.d("MagAdapter", "left onClick() has executed...");
-//                int position = holder.getAdapterPosition();
-//                switch (mMsgList.get(position).getCatagory()) {
-//                    case Msg.CATAGORY_VOICE:
-//                        Toast.makeText(MyApplication.getContext(), "开始播放录音", Toast.LENGTH_SHORT).show();
-//                        MediaPlayerManager.playSound(mMsgList.get(position).getPath(), new MediaPlayer.OnCompletionListener() {
-//                            @Override
-//                            public void onCompletion(MediaPlayer mp) {
-//
-//                            }
-//                        });
-//                        break;
-//                    case Msg.CATAGORY_TEXT:
-//                        String text =  mMsgList.get(position).getPath();
-//                        Log.d("122223e34q", text);
-//
+                Log.d("MagAdapter", "left onClick() has executed...");
+                int position = holder.getAdapterPosition();
+                switch (mMsgList.get(position).getCatagory()) {
+                    case Msg.CATAGORY_VOICE:
+                        Toast.makeText(MyApplication.getContext(), "开始播放录音", Toast.LENGTH_SHORT).show();
+                        MediaPlayerManager.playSound(mMsgList.get(position).getPath(), new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mp) {
+
+                            }
+                        });
+                        break;
+                    case Msg.CATAGORY_TEXT:
+                        String text =  mMsgList.get(position).getPath();
+                        Log.d("122223e34q", text);
+
 //                        SpeechSynthesisUtil.getUtil().start(text);
-//                    default:
-//             }
+                    default:
+             }
             }
         });
         holder.rightLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Log.d("MagAdapter", "right onClick() has executed...");
-//                final int position = holder.getAdapterPosition();
-//                switch (mMsgList.get(position).getCatagory()) {
-//                    case Msg.CATAGORY_VOICE:
-//                        Toast.makeText(MyApplication.getContext(), "开始播放录音", Toast.LENGTH_SHORT).show();
-//                        MediaPlayerManager.playSound(mMsgList.get(position).getPath(), new MediaPlayer.OnCompletionListener() {
-//                            @Override
-//                            public void onCompletion(MediaPlayer mp) {
-//
-//                            }
-//                        });
-//                        break;
-//                    case Msg.CATAGORY_IMAGE:
-//                        //调用系统自带的播放器
-//                        File outputImage = new File(mMsgList.get(position).getPath());
-//                        Uri imageUri;
-//                        if(Build.VERSION.SDK_INT >= 24){
-//                            imageUri = FileProvider.getUriForFile(MyApplication.getContext(), "com.hitwearable.fileprovider", outputImage);
-//                        }else {
-//                            imageUri = Uri.fromFile(outputImage);
-//                        }
-//                        Intent imageIntent = new Intent(Intent.ACTION_VIEW);
-//                        imageIntent.setDataAndType(imageUri, "image/jpeg");
-//                        mContext.startActivity(imageIntent);
-//                        break;
-//                    case Msg.CATAGORY_VIDEO:
-//                        //调用系统自带的播放器
-//                        Log.d("MsgAdapter", mMsgList.get(position).getPath());
-//                        File outputVideo = new File(mMsgList.get(position).getPath());
-//                        Uri videoUri;
-//                        if(Build.VERSION.SDK_INT >= 24){
-//                            videoUri = FileProvider.getUriForFile(MyApplication.getContext(), "com.hitwearable.fileprovider", outputVideo);
-//                        }else {
-//                            videoUri = Uri.fromFile(outputVideo);
-//                        }
-//                        Intent intent = new Intent(Intent.ACTION_VIEW);
-//                        intent.setDataAndType(videoUri, "video/mp4");
-//                        mContext.startActivity(intent);
-//                    case Msg.CATAGORY_TEXT:
-//                        String text =  mMsgList.get(position).getPath();
-//                        Log.d("122223e34q", text);
-//
+                Log.d("MagAdapter", "right onClick() has executed...");
+                final int position = holder.getAdapterPosition();
+                switch (mMsgList.get(position).getCatagory()) {
+                    case Msg.CATAGORY_VOICE:
+                        Toast.makeText(MyApplication.getContext(), "开始播放录音", Toast.LENGTH_SHORT).show();
+                        MediaPlayerManager.playSound(mMsgList.get(position).getPath(), new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mp) {
+
+                            }
+                        });
+                        break;
+                    case Msg.CATAGORY_IMAGE:
+                        //调用系统自带的播放器
+                        File outputImage = new File(mMsgList.get(position).getPath());
+                        Uri imageUri;
+                        if(Build.VERSION.SDK_INT >= 24){
+                            imageUri = FileProvider.getUriForFile(MyApplication.getContext(), "com.hitwearable.fileprovider", outputImage);
+                        }else {
+                            imageUri = Uri.fromFile(outputImage);
+                        }
+                        Intent imageIntent = new Intent(Intent.ACTION_VIEW);
+                        imageIntent.setDataAndType(imageUri, "image/jpeg");
+                        mContext.startActivity(imageIntent);
+                        break;
+                    case Msg.CATAGORY_VIDEO:
+                        //调用系统自带的播放器
+                        Log.d("MsgAdapter", mMsgList.get(position).getPath());
+                        File outputVideo = new File(mMsgList.get(position).getPath());
+                        Uri videoUri;
+                        if(Build.VERSION.SDK_INT >= 24){
+                            videoUri = FileProvider.getUriForFile(MyApplication.getContext(), "com.hitwearable.fileprovider", outputVideo);
+                        }else {
+                            videoUri = Uri.fromFile(outputVideo);
+                        }
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(videoUri, "video/mp4");
+                        mContext.startActivity(intent);
+                    case Msg.CATAGORY_TEXT:
+                        String text =  mMsgList.get(position).getPath();
+                        Log.d("122223e34q", text);
+
 //                        SpeechSynthesisUtil.getUtil().start(text);
-//                    default:
-//                }
+                    default:
+                }
             }
         });
         //长按删除

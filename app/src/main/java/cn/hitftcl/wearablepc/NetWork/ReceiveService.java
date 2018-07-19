@@ -5,11 +5,17 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.litepal.crud.DataSupport;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -19,6 +25,7 @@ import java.net.Socket;
 import cn.hitftcl.wearablepc.Model.Msg;
 import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
+import cn.hitftcl.wearablepc.MyApplication;
 
 /**
  * Created by Administrator on 2018/7/11.
@@ -30,7 +37,7 @@ public class ReceiveService extends Service {
 
     public final static String ACTION_MESSAGE_RECEIVE =
             "com.hitwearable.LOCAL_BROADCAST_SECRET";
-
+    private final LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(MyApplication.getContext());
     @Override
     public void onCreate() {
         Log.d(TAG,"onCreate - Thread ID = " + Thread.currentThread().getId());
@@ -67,30 +74,69 @@ public class ReceiveService extends Service {
                         UserIPInfo sender = DataSupport.where("ip = ?", senderAddr).findFirst(UserIPInfo.class);
                         Log.d(TAG,"New connection accepted " + socket.getInetAddress()+":" + socket.getPort());
                         //获取输入流
-                        inputStream=socket.getInputStream();        //得到一个输入流，接收客户端传递的信息
-                        inputStreamReader=new InputStreamReader(inputStream); //提高效率，将自己字节流转为字符流
-                        bufferedReader=new BufferedReader(inputStreamReader);    //加入缓冲区
+                        DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
                         //获得输入
-                        String temp=null;
-                        String info="";
-                        while((temp=bufferedReader.readLine())!=null){
-                            info+=temp;
-                        }
-                        //打印信息收到的信息
-                        Log.d(TAG, info);
-                        String[] infos = info.split(" ");
-                        if(infos[0].equals(TransType.TEXT_TYPE.name())){
+
+                        String  type = dataInputStream.readUTF();
+                        Msg msg=null;
+                        if(type.equals(TransType.TEXT_TYPE.name())){
                             //TODO 接收到文本信息
-                            saveMsg(self, sender, infos[1]);
+                            String content = dataInputStream.readUTF();
+                            msg=saveMsg(self, sender, content, Msg.CATAGORY_TEXT);
                             broadcastUpdate(ACTION_MESSAGE_RECEIVE);
                             Vibrator vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
                             vibrator.vibrate(500);
-                        }else if(infos[0].equals(TransType.SENSOR_TYPE.name())){
+                        }else if(type.equals(TransType.SENSOR_TYPE.name())){
                             //TODO 接收到传感器数据
-                        }else if(infos[0].equals(TransType.FILE_TYPE.name())){
+                        }else if(type.equals(TransType.FILE_TYPE.name())){
                             //TODO 接收到文件类型数据
+                            String fileName = dataInputStream.readUTF();
+                            Log.d(TAG, "接收到文件类型数据 "+ fileName);
+                            String prefix=fileName.substring(fileName.lastIndexOf(".")+1);
+                            Log.d(TAG, "prefix of received file: "+ prefix);
+                            int catagory = 0;
+                            String content = "";
+                            String dirName = "";
+                            switch(prefix){
+                                case "amr":
+                                    catagory = Msg.CATAGORY_VOICE;
+                                    content = "[语音]";
+                                    dirName = "/voice";
+                                    break;
+                                case "jpg":
+                                    catagory = Msg.CATAGORY_IMAGE;
+                                    content = "[图片]";
+                                    dirName = "/image";
+                                    break;
+                                case "mp4":
+                                case "avi":
+                                    catagory = Msg.CATAGORY_VIDEO;
+                                    content = "[视频]";
+                                    dirName = "/video";
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                            Log.d(TAG, "savePath: " + fileName);
+                            DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(new BufferedOutputStream(new FileOutputStream(fileName))));
+
+                            int bufferSize = 1024;
+                            byte[] buf = new byte[bufferSize];
+                            while (true) {
+                                int read = 0;
+                                if (dataInputStream != null) {
+                                    read = dataInputStream.read(buf);
+                                }
+                                if (read == -1) {
+                                    break;
+                                }
+                                dataOutputStream.write(buf, 0, read);
+                            }
+                            msg=saveMsg(self, sender, fileName, catagory);
                             broadcastUpdate(ACTION_MESSAGE_RECEIVE);
                         }
+                        updateUI(msg);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }finally {
@@ -117,6 +163,23 @@ public class ReceiveService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+    private void updateUI(Msg msg) {
+        //通知更新UI
+        if(msg.getCatagory() == Msg.CATAGORY_TEXT || msg.getCatagory() == Msg.CATAGORY_VOICE) {
+            Log.d(TAG, "broadcast to secret activity");
+            Intent intent = new Intent("com.hitwearable.LOCAL_BROADCAST_SECRET");
+            intent.putExtra("msg", msg);
+            localBroadcastManager.sendBroadcast(intent);
+        }else{
+            Log.d(TAG, "broadcast to image activity");
+            Intent intent = new Intent("com.hitwearable.LOCAL_BROADCAST_IMAGE");
+            intent.putExtra("msg", msg);
+            localBroadcastManager.sendBroadcast(intent);
+        }
+
+        Log.d(TAG, "接受完毕");
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -136,7 +199,7 @@ public class ReceiveService extends Service {
      * @param sender
      * @param content
      */
-    private void saveMsg(UserIPInfo self, UserIPInfo sender, String content){
+    private Msg saveMsg(UserIPInfo self, UserIPInfo sender, String content, int type){
         Msg msg = new Msg();
         long current = System.currentTimeMillis();
         msg.setSender(sender.getId());
@@ -144,7 +207,7 @@ public class ReceiveService extends Service {
         msg.setPath(content);
         msg.setTime(current);
         msg.setType(Msg.TYPE_RECEIVED);
-        msg.setCatagory(Msg.CATAGORY_TEXT);
+        msg.setCatagory(type);
         msg.save();
         //secret表update
         Secret secret = DataSupport.where("user_id = ?", String.valueOf(sender.getId())).findFirst(Secret.class);
@@ -156,6 +219,7 @@ public class ReceiveService extends Service {
             Secret addSecret = new Secret(sender.getId(), sender.getUsername(), content, current);
             addSecret.save();
         }
+        return msg;
     }
 
     private void broadcastUpdate(final String action) {
