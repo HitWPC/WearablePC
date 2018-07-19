@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,9 +33,13 @@ import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
+import cn.hitftcl.wearablepc.NetWork.ReceiveService;
+import cn.hitftcl.wearablepc.NetWork.TransType;
 import cn.hitftcl.wearablepc.R;
 
 public class SecretActivity extends AppCompatActivity {
+    public static final String TAG = "debug001";
+
     //蓝牙有关其他变量、常量
     private final int RESULT_CODE_BTDEVICE = 0;
     private final static int MSG_SENT_DATA = 0;
@@ -82,7 +85,7 @@ public class SecretActivity extends AppCompatActivity {
 
 
     private final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
-
+    private int userId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,7 +97,7 @@ public class SecretActivity extends AppCompatActivity {
 
         //获取上一个Intent传入的数据
         Intent intent = getIntent();
-        final int userId = intent.getIntExtra("user_id", 0);
+        userId = intent.getIntExtra("user_id", 0);
         final String username = intent.getStringExtra("username");
 
         //设置标题
@@ -180,8 +183,7 @@ public class SecretActivity extends AppCompatActivity {
                         addSecret.save();
                     }
                     //发送数据
-                    NetworkUtil networkUtil = new NetworkUtil();
-                    networkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), "text", content);
+                    NetworkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), TransType.TEXT_TYPE, content);
                     mDataMsgs.add(msg);
                     //view更新数据
                     mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
@@ -277,6 +279,9 @@ public class SecretActivity extends AppCompatActivity {
         intentFilter.addAction("com.hitwearable.LOCAL_BROADCAST_SECRET");
         localReceiver = new LocalReceiver(userId);
         localBroadcastManager.registerReceiver(localReceiver, intentFilter);
+
+        this.registerReceiver(mMsgUpdateReceiver, msgUpdateIntentFilter());
+        Log.d(TAG, "注册了");
     }
 
     @Override
@@ -327,6 +332,7 @@ public class SecretActivity extends AppCompatActivity {
         super.onDestroy();
         MediaPlayerManager.release();
         localBroadcastManager.unregisterReceiver(localReceiver);
+        this.unregisterReceiver(mMsgUpdateReceiver);
     }
 
     @Override
@@ -462,6 +468,25 @@ public class SecretActivity extends AppCompatActivity {
                 break;
         }
         return true;
+    }
+
+
+    private final BroadcastReceiver mMsgUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (ReceiveService.ACTION_MESSAGE_RECEIVE.equals(action)) {     //收到数据
+                //希望自动刷新消息，未实现
+
+            }
+
+        }
+    };
+
+    private static IntentFilter msgUpdateIntentFilter() {                        //注册接收的事件
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ReceiveService.ACTION_MESSAGE_RECEIVE);
+        return intentFilter;
     }
 
 }

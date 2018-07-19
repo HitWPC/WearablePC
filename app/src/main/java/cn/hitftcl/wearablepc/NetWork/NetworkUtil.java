@@ -45,7 +45,7 @@ import cn.hitftcl.wearablepc.Model.UserIPInfo;
  * 网络操作工具类
  */
 public class NetworkUtil {
-    private static final String TAG = NetworkUtil.class.getSimpleName();
+    private static final String TAG = "debug001";
     private static final int INPUT_STREAM_READ_TIMEOUT = 300;
     private static final int CONNECT_TIMEOUT = 5000;
 
@@ -101,10 +101,11 @@ public class NetworkUtil {
      * @param type
      * @param content
      */
-    public void sendByTCP(final String addr, final int port, final String type, final String content){
+    public static void sendByTCP(final String addr, final int port, final TransType type, final String content){
         exec.execute(new Runnable() {
             @Override
             public void run() {
+                String typeName = type.name();
                 Socket mSocket = new Socket();
                 SocketAddress socketAddress = new InetSocketAddress(addr, port);
                 // 设置连接超时时间
@@ -115,10 +116,12 @@ public class NetworkUtil {
                     // 设置读流超时时间，必须在获取流之前设置
                     mSocket.setSoTimeout(INPUT_STREAM_READ_TIMEOUT);
                     DataOutputStream dataOutputStream = new DataOutputStream(mSocket.getOutputStream());
-                    dataOutputStream.writeUTF(type);
-                    dataOutputStream.writeUTF(content);
+                    dataOutputStream.writeBytes(typeName);
+                    dataOutputStream.writeBytes(" ");
+                    dataOutputStream.write(content.getBytes());
 
-                    if(type.equals("file")){
+                    //发送文件类型
+                    if(typeName.equals(TransType.FILE_TYPE)){
                         DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(content)));
 
                         int bufferSize = 1024;
@@ -141,7 +144,13 @@ public class NetworkUtil {
                         dataInputStream.close();
                         dataInputStream = null;
 
-                    }else if(type.equals("text")){
+                    }
+                    //发送文本类型
+                    else if(typeName.equals(TransType.TEXT_TYPE)){
+                        dataOutputStream.flush();
+                    }
+                    //发送传感器数据类型 转换后的Gson（String类型）
+                    else if(typeName.equals(TransType.SENSOR_TYPE)){
                         dataOutputStream.flush();
                     }
 
@@ -469,76 +478,6 @@ public class NetworkUtil {
         }.start();
     }
 
-    /**
-     * TCP接收GPSInfo
-     *//*
-    public static void receiveGpsInfo(final String targetIP, final int gpsReceivePort){
-        System.out.println("****************执行接收函数"+targetIP+" "+gpsReceivePort);
-        new Thread() {
-            public void run() {
-                try {
-                    //创建socket，连接发送端
-                    Socket receiveSocket = new Socket(targetIP, gpsReceivePort);
-                    System.out.println("****************客户端连接成功");
-                    //数据流操作
-                    ObjectInputStream in =new ObjectInputStream(receiveSocket.getInputStream());
-                    GPSInfoList inresult = (GPSInfoList)in.readObject();
-                    final ArrayList<GpsInfo> gpslists = inresult.getGpslist();
-                    System.out.println("****************"+gpslists.size());
-                    //保存GPS至数据库
-                    for(GpsInfo gpsinfo:gpslists){
-                        GpsInfo gps = new GpsInfo(gpsinfo.getLatitude(), gpsinfo.getlongitude(), gpsinfo.getuID());
-                        gps.save();
-                    }
-
-                    LogUtil.d("NetworkUtil", "接受完毕");
-                    in.close();
-                    receiveSocket.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-    }*/
-
-   /*
-    public static void sendGpsInfo(final int sendPort, final GpsInfo gpsinfo){
-        new Thread()
-        {
-            public void run()
-            {
-                ServerSocket serverSocket = null;
-                try
-                {
-                    //创建socket
-                    serverSocket = new ServerSocket(sendPort, 1);
-                    LogUtil.d("NetworkUtil", "等待接收端连接");
-                    Socket sendSocket = serverSocket.accept();
-                    LogUtil.d("NetworkUtil", "接收端完成连接");
-                    //数据流操作
-                    ObjectOutputStream out = new ObjectOutputStream(sendSocket.getOutputStream());
-                    out.writeObject(gpsinfo);
-                    out.flush();
-
-
-                    //关闭流和socket
-                    out.close();
-                    sendSocket.close();
-                    serverSocket.close();
-                }
-                catch(BindException bindException){
-                    try {
-                        serverSocket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                catch (IOException e){
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-    }*/
 
     public static String getSystemTime(){
         SimpleDateFormat format =new SimpleDateFormat("yyyy-MM-dd  hh:mm:ss");

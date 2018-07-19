@@ -28,6 +28,7 @@ import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
+import cn.hitftcl.wearablepc.NetWork.TransType;
 import cn.hitftcl.wearablepc.R;
 
 public class GroupActivity extends AppCompatActivity {
@@ -134,7 +135,7 @@ public class GroupActivity extends AppCompatActivity {
                     //TODO: 发送数据，需要改成调用广播接口
                     NetworkUtil networkUtil = new NetworkUtil();
                     for (UserIPInfo ele : mDatasGroup){
-                        networkUtil.sendByTCP(ele.getIp(), ele.getPort(), "text", content);
+                        networkUtil.sendByTCP(ele.getIp(), ele.getPort(), TransType.TEXT_TYPE, content);
                     }
                     Toast.makeText(MyApplication.getContext(), "发送成功", Toast.LENGTH_SHORT).show();
                 }

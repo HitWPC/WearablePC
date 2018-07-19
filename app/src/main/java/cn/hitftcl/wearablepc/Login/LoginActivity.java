@@ -15,6 +15,7 @@ import org.litepal.crud.DataSupport;
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.IndexGrid.IndexActivity;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 
@@ -59,6 +60,7 @@ public class LoginActivity extends AppCompatActivity {
                         if(self.getIp() != null && !self.getIp().isEmpty() && self.getPort() != 0) {
 //                        NetworkUtil networkUtil = new NetworkUtil();
 //                        networkUtil.receiveByTCP();
+
                             //打开新的Intent并清除栈里的其他Intent
                             Intent intent = new Intent(LoginActivity.this, IndexActivity.class)
                                     .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);

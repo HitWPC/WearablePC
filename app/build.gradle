@@ -10,6 +10,9 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+    android {compileOptions.encoding = "utf8"}
+
     buildTypes {
         release {
             minifyEnabled false

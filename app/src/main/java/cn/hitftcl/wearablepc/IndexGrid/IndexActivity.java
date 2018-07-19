@@ -21,12 +21,14 @@ import cn.hitftcl.wearablepc.Bluetooth.BTSettingActivity;
 import cn.hitftcl.wearablepc.Bluetooth.BluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.SensorDataService;
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
+import cn.hitftcl.wearablepc.Login.LoginActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
+import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.R;
 
 public class IndexActivity extends AppCompatActivity {
     private final static String TAG = "debug001";
-    private Intent sensorDataService = null;
+    private Intent sensorDataService = null, netService = null;
 
     MyGridLayout grid;
     int[] srcs = { R.drawable.actions_booktag, R.drawable.actions_about, R.drawable.actions_comment,
@@ -89,6 +91,12 @@ public class IndexActivity extends AppCompatActivity {
                 }
             }
         });
+
+        //TODO 开启接收网络数据的服务
+        netService = new Intent(this, ReceiveService.class);
+        startService(netService);
+
+        //TODO 开启传感器数据接收服务
         sensorDataService = new Intent(this, SensorDataService.class);
         startService(sensorDataService);
     }
@@ -110,9 +118,7 @@ public class IndexActivity extends AppCompatActivity {
 //            case R.id.about_us:
 //                return true;
             case R.id.btset:
-//                Intent btset_intent = new Intent(IndexActivity.this, BTSettingActivity.class);
                 Intent btset_intent = new Intent(IndexActivity.this, BluetoothActivity.class);
-//                btset_intent.putExtra("bleService",mBluetoothLeService);
                 startActivity(btset_intent);
                 return true;
 //            case R.id.voicetest:
@@ -126,5 +132,6 @@ public class IndexActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopService(sensorDataService);
+        stopService(netService);
     }
 }
