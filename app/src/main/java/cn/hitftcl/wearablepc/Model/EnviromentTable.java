@@ -13,6 +13,16 @@ public class EnviromentTable extends DataSupport{
     private double NO;
     private double voltage;
     private Date date;
+    private String IP;
+
+    public String getIP() {
+        return IP;
+    }
+
+    public void setIP(String IP) {
+        this.IP = IP;
+    }
+
     public EnviromentTable() {
     }
 
@@ -30,18 +40,30 @@ public class EnviromentTable extends DataSupport{
         this.date = date;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
-    }
+    public EnviromentTable(double temperature, double pressure, double humidity, double SO2, double NO, double voltage, Date date, String IP) {
 
-    public EnviromentTable(double temperature, double pressure, double humidity, double SO2, double NO, double voltage) {
         this.temperature = temperature;
-
         this.pressure = pressure;
         this.humidity = humidity;
         this.SO2 = SO2;
         this.NO = NO;
         this.voltage = voltage;
+        this.date = date;
+        this.IP = IP;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public EnviromentTable(double temperature, double pressure, double humidity, double SO2, double NO, double voltage, String IP) {
+        this.temperature = temperature;
+        this.pressure = pressure;
+        this.humidity = humidity;
+        this.SO2 = SO2;
+        this.NO = NO;
+        this.voltage = voltage;
+        this.IP = IP;
         this.date = new Date();
     }
 

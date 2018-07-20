@@ -16,6 +16,8 @@ import android.widget.ScrollView;
 import com.amap.api.maps.CoordinateConverter;
 import com.amap.api.maps.model.LatLng;
 
+import org.litepal.crud.DataSupport;
+
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import java.util.regex.Pattern;
 
 import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.UUIDs;
+import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.Utils.ModelOperation.BDOperation;
 
@@ -40,7 +43,7 @@ public class SensorDataService extends Service {
     public final static  String TAG = "debug001";
 
     public static final String ACTION_BD_AVAILABLE = "cn.hitftcl.wearable.ACTION_BD_AVAILABLE";
-
+    public static final String MyIP = (DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class)).getIp();
     public final static String Avivable_BeiDouInfo_regex =  "\\$.+[NS].+[WE].+\\r\\n";
     public final static String BeiDouInfo_regex =  "\\$.+\\r\\n";
 
@@ -225,7 +228,7 @@ public class SensorDataService extends Service {
             latLng = converter.convert();
 
             //存数据
-            BDOperation.SaveBDInfo(latLng.longitude,latLng.latitude,Times);
+            BDOperation.SaveBDInfo(latLng.longitude,latLng.latitude,Times,MyIP);
 
             //发送广播给地图Activity
             Intent intent=new Intent();
@@ -323,7 +326,7 @@ public class SensorDataService extends Service {
         double SO2 = Double.parseDouble(datas[3]);
         double NO = Double.parseDouble(datas[4]);
         double voltage = Double.parseDouble(datas[5]);
-        if(EnviromentTableOperation.SaveEnviromentTable(temperature,pressure,humidity,SO2,NO,voltage)){
+        if(EnviromentTableOperation.SaveEnviromentTable(temperature,pressure,humidity,SO2,NO,voltage,MyIP)){
             Log.d(TAG, "deal_environment: 环境数据保存成功！");
         }
         

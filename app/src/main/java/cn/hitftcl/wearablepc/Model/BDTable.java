@@ -14,6 +14,15 @@ public class BDTable extends DataSupport {
     private Date recordDate; //接收日期
 //    private int NorS;   //0表示北纬  1表示南纬
 //    private int WorE;  //0表示西经   1表示东经
+    private String IP;
+
+    public String getIP() {
+        return IP;
+    }
+
+    public void setIP(String IP) {
+        this.IP = IP;
+    }
 
     public BDTable() {
     }
@@ -26,11 +35,15 @@ public class BDTable extends DataSupport {
         this.id = id;
     }
 
-    public BDTable(double longitude, double latitude, Date recordDate) {
+    public BDTable( double longitude, double latitude, Date recordDate, String IP) {
+
         this.longitude = longitude;
         this.latitude = latitude;
         this.recordDate = recordDate;
+        this.IP = IP;
     }
+
+
 
     public void setLongitude(double longitude){
         this.longitude = longitude;

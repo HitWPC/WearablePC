@@ -55,7 +55,7 @@ public class NetworkUtil {
     private static final Executor exec = Executors.newCachedThreadPool();//使用可缓存线程池
 
     /**
-     * 接收数据
+     * 接收数据1110
      */
     public void receiveByTCP(){
         new Thread(new Runnable() {
@@ -149,7 +149,7 @@ public class NetworkUtil {
                         dataOutputStream.flush();
                     }
                     //发送传感器数据类型 转换后的Gson（String类型）
-                    else if(typeName.equals(TransType.SENSOR_TYPE)){
+                    else if(typeName.equals(TransType.SENSOR_TYPE) || typeName.equals(TransType.BD_TYPE)){
                         dataOutputStream.flush();
                     }
 

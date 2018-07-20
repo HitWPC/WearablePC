@@ -14,11 +14,11 @@ import cn.hitftcl.wearablepc.Model.BDTable;
 
 public class BDOperation {
     public final static  String TAG = "ModelOperationUtil";
-    public static boolean SaveBDInfo(Double longitude, Double latitude, String time){
+    public static boolean SaveBDInfo(Double longitude, Double latitude, String time, String IP){
         Log.d(TAG, "++++++++lat_double："+latitude + "   lng_double:"+longitude+"   times:"+time);
 
         Date date=parseTimes(time);
-        BDTable bdtable = new BDTable(longitude,latitude,date);
+        BDTable bdtable = new BDTable(longitude,latitude,date,IP);
         if (bdtable.save())
         {
             Log.d(TAG, "++++++++北斗保存成功");

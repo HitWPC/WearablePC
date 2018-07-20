@@ -7,5 +7,7 @@ package cn.hitftcl.wearablepc.NetWork;
 public enum TransType {
     FILE_TYPE,
     SENSOR_TYPE,
-    TEXT_TYPE
+    BD_TYPE,
+    TEXT_TYPE,
+    SYN_COMMAND
 }

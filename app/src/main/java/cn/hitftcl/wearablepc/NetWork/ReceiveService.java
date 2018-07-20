@@ -8,6 +8,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.litepal.crud.DataSupport;
 
 import java.io.BufferedInputStream;
@@ -21,7 +24,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 
+import cn.hitftcl.wearablepc.Model.BDTable;
+import cn.hitftcl.wearablepc.Model.EnviromentTable;
 import cn.hitftcl.wearablepc.Model.Msg;
 import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
@@ -38,6 +44,8 @@ public class ReceiveService extends Service {
     public final static String ACTION_MESSAGE_RECEIVE =
             "com.hitwearable.LOCAL_BROADCAST_SECRET";
     private final LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(MyApplication.getContext());
+
+    final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
     @Override
     public void onCreate() {
         Log.d(TAG,"onCreate - Thread ID = " + Thread.currentThread().getId());
@@ -50,21 +58,19 @@ public class ReceiveService extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                ServerSocket serverSocket = null;
+                Socket socket = null;
+                InputStream inputStream = null;
+                InputStreamReader inputStreamReader = null;
+                BufferedReader bufferedReader = null;
+
                 //TODO 等待接收网络传输数据
                 while(true){
-                    ServerSocket serverSocket = null;
-                    Socket socket = null;
-                    InputStream inputStream = null;
-                    InputStreamReader inputStreamReader = null;
-                    BufferedReader bufferedReader = null;
-
-                    final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
-                    int myPort = self.getPort();
 
                     try {
                         //建立连接
                         if(serverSocket  == null){
-                            serverSocket = new ServerSocket(myPort);
+                            serverSocket = new ServerSocket(self.getPort());
                             serverSocket.setReuseAddress(true);
                         }
 
@@ -76,7 +82,6 @@ public class ReceiveService extends Service {
                         //获取输入流
                         DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
                         //获得输入
-
                         String  type = dataInputStream.readUTF();
                         Msg msg=null;
                         if(type.equals(TransType.TEXT_TYPE.name())){
@@ -86,8 +91,24 @@ public class ReceiveService extends Service {
                             broadcastUpdate(ACTION_MESSAGE_RECEIVE);
                             Vibrator vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
                             vibrator.vibrate(500);
+                            updateUI(msg);
                         }else if(type.equals(TransType.SENSOR_TYPE.name())){
                             //TODO 接收到传感器数据
+                            String content = dataInputStream.readUTF();
+                            Gson gson = new Gson();
+                            EnviromentTable enviromentTable =  gson.fromJson(content, new TypeToken<ArrayList<EnviromentTable>>(){}.getType());
+                            Log.d(TAG, content);
+
+                        }else if(type.equals(TransType.BD_TYPE.name())){
+                            //TODO 接收到北斗数据
+                            String content = dataInputStream.readUTF();
+                            Gson gson = new Gson();
+                            ArrayList<BDTable> BD_list =  gson.fromJson(content, new TypeToken<ArrayList<BDTable>>(){}.getType());
+                            Log.d(TAG, content);
+                            for(BDTable e:BD_list){
+                                Log.d(TAG, ""+e.getLongitude()+" "+e.getLatitude());
+                            }
+
                         }else if(type.equals(TransType.FILE_TYPE.name())){
                             //TODO 接收到文件类型数据
                             String fileName = dataInputStream.readUTF();
@@ -135,8 +156,9 @@ public class ReceiveService extends Service {
                             }
                             msg=saveMsg(self, sender, fileName, catagory);
                             broadcastUpdate(ACTION_MESSAGE_RECEIVE);
+                            updateUI(msg);
                         }
-                        updateUI(msg);
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }finally {

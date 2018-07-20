@@ -30,7 +30,7 @@ import cn.hitftcl.wearablepc.Utils.RequestPermission;
 
 public class IndexActivity extends AppCompatActivity {
     private final static String TAG = "debug001";
-    private Intent sensorDataService = null, netService = null;
+    private Intent sensorDataService = null, netService = null, sendSensorDataService=null;
 
     MyGridLayout grid;
     int[] srcs = { R.drawable.actions_booktag, R.drawable.actions_about, R.drawable.actions_comment,
@@ -101,6 +101,10 @@ public class IndexActivity extends AppCompatActivity {
         //TODO 开启传感器数据接收服务
         sensorDataService = new Intent(this, SensorDataService.class);
         startService(sensorDataService);
+
+        //TODO 开启传感器数据接收服务
+        sendSensorDataService = new Intent(this, SensorDataService.class);
+        startService(sendSensorDataService);
 
         //TODO 申请存储器权限
         RequestPermission.requestPermission(this, PERMISSION.STORGE);
