@@ -2,6 +2,9 @@ package cn.hitftcl.wearablepc.BDMap;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
+import android.widget.ImageButton;
 
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.MapView;
@@ -12,10 +15,17 @@ public class MapActivity extends AppCompatActivity {
     private MapView mMapView = null;
     private AMap aMap = null;
 
+    private ImageButton locationBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        //设置ToolBar
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_secret);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //获取地图控件引用
         mMapView = (MapView) findViewById(R.id.map);
@@ -26,6 +36,10 @@ public class MapActivity extends AppCompatActivity {
         if (aMap == null) {
             aMap = mMapView.getMap();
         }
+
+        //获取定位按钮
+        locationBtn = findViewById(R.id.location_bt);
+
     }
 
     @Override
@@ -51,5 +65,18 @@ public class MapActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         //在activity执行onSaveInstanceState时执行mMapView.onSaveInstanceState (outState)，保存地图当前的状态
         mMapView.onSaveInstanceState(outState);
+    }
+
+    /**
+     * toolbar返回按钮响应事件
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return true;
     }
 }

@@ -38,6 +38,9 @@ import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
 public class SensorDataService extends Service {
     public final static  String TAG = "debug001";
+
+    public static final String ACTION_BD_AVAILABLE = "cn.hitftcl.wearable.ACTION_BD_AVAILABLE";
+
     public final static String Avivable_BeiDouInfo_regex =  "\\$.+[NS].+[WE].+\\r\\n";
     public final static String BeiDouInfo_regex =  "\\$.+\\r\\n";
 
@@ -213,18 +216,23 @@ public class SensorDataService extends Service {
                 lat_double = -lat_double;
             if(EorW.equals("W"))
                 lng_double = -lng_double;
-            //存数据
-            BDOperation.SaveBDInfo(lng_double,lat_double,Times);
-//
+
             latLng = new LatLng(lat_double, lng_double);
             //坐标转换
             CoordinateConverter converter = new CoordinateConverter(MyApplication.getContext());
             converter.from(CoordinateConverter.CoordType.GPS);
             converter.coord(latLng);
             latLng = converter.convert();
+
+            //存数据
+            BDOperation.SaveBDInfo(latLng.longitude,latLng.latitude,Times);
+
+            //发送广播给地图Activity
+            Intent intent=new Intent();
+            intent.setAction(ACTION_BD_AVAILABLE);
+            MyApplication.getContext().sendBroadcast(intent);
         }
 
-//        locateAndMark(latLng);
         return latLng;
     }
 
