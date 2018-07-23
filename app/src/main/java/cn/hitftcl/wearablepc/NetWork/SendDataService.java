@@ -36,7 +36,7 @@ public class SendDataService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        timer.schedule(timerTask,Timer_Interval);
+        timer.schedule(timerTask,0, Timer_Interval);
         return super.onStartCommand(intent, flags, startId);
     }
 

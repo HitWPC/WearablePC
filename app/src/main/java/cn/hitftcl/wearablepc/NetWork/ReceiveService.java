@@ -26,6 +26,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnviromentTable;
 import cn.hitftcl.wearablepc.Model.Msg;
@@ -105,9 +106,7 @@ public class ReceiveService extends Service {
                             Gson gson = new Gson();
                             ArrayList<BDTable> BD_list =  gson.fromJson(content, new TypeToken<ArrayList<BDTable>>(){}.getType());
                             Log.d(TAG, content);
-                            for(BDTable e:BD_list){
-                                Log.d(TAG, ""+e.getLongitude()+" "+e.getLatitude());
-                            }
+                            BD_Partner_Singleton.getInstance().setBD_Map(BD_list); //将队友北斗数据存入缓存
 
                         }else if(type.equals(TransType.FILE_TYPE.name())){
                             //TODO 接收到文件类型数据
