@@ -24,6 +24,7 @@ import java.util.Set;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
+import cn.hitftcl.wearablepc.Utils.Constant;
 
 public class UserIPEditActivity extends AppCompatActivity {
     public final String TAG = "debug001";
@@ -114,6 +115,10 @@ public class UserIPEditActivity extends AppCompatActivity {
                     userIPInfo.setIp(ip);
                     userIPInfo.setPort(port);
                     userIPInfo.setCaptain(isCaptain);
+                    if(userIPInfo.getType()==0){
+                        Constant.MY_IP = ip;
+                        Constant.MY_PORT = port;
+                    }
 //                    int res = userIPInfo.update(userId);
 //                    int res = userIPInfo.updateAll("id=?",String.valueOf(userId));
                     boolean res = userIPInfo.save();

@@ -4,16 +4,19 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import com.amap.api.maps.model.LatLng;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.util.Date;
 
+import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
 import cn.hitftcl.wearablepc.Model.BDTable;
 
 public class BDOperation {
-    public final static  String TAG = "ModelOperationUtil";
+    public final static  String TAG = "debug001";
     public static boolean SaveBDInfo(Double longitude, Double latitude, String time, String IP){
         Log.d(TAG, "++++++++lat_double："+latitude + "   lng_double:"+longitude+"   times:"+time);
 
@@ -21,6 +24,7 @@ public class BDOperation {
         BDTable bdtable = new BDTable(longitude,latitude,date,IP);
         if (bdtable.save())
         {
+            BD_Partner_Singleton.getInstance().setBD_Map(IP, new LatLng(latitude, longitude)); //缓存自己的最新位置
             Log.d(TAG, "++++++++北斗保存成功");
             return true;
         }

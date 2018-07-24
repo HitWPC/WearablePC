@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cn.hitftcl.wearablepc.Model.SynMessage;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
@@ -58,7 +59,7 @@ public class MapActivity extends AppCompatActivity {
     private AMap aMap = null;
     private UiSettings mUiSettings;
 
-    private ImageButton locationBtn;
+    private Button locationBtn;
     private Button synBtn;
 
     private List<UserIPInfo> group;
@@ -115,8 +116,14 @@ public class MapActivity extends AppCompatActivity {
         selfBitmap = BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.self_location_icon),80,80);
 
 
-        //获取定位按钮
+        //TODO 获取定位按钮
         locationBtn = findViewById(R.id.location_bt);
+        locationBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
 
         //TODO 获取同步按钮
         synBtn = findViewById(R.id.synBtn);
@@ -147,7 +154,7 @@ public class MapActivity extends AppCompatActivity {
             public void run() {
 //                Log.d(TAG, "更新队友坐标");
 
-                HashMap<String, LatLng> map = BD_Partner_Singleton.getInstance().getBD_Map();  //要更新的坐标
+                ConcurrentHashMap<String, LatLng> map = BD_Partner_Singleton.getInstance().getBD_Map();  //要更新的坐标
                 HashMap<String, Marker> IP_Marker_Map = new HashMap<>();
                 List<Marker> markers = aMap.getMapScreenMarkers();  //所有的Marker
 
