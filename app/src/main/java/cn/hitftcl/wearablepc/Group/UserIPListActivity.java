@@ -2,6 +2,7 @@ package cn.hitftcl.wearablepc.Group;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -193,6 +194,9 @@ public class UserIPListActivity extends AppCompatActivity {
                 viewHolder.blueMac.setText("未设置");
             }else{
                 viewHolder.blueMac.setText(String.valueOf(userIPInfo.getBlueMac()));
+            }
+            if(userIPInfo.isCaptain()){
+                view.setBackgroundColor(Color.LTGRAY);
             }
             return view;
         }

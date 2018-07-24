@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -36,6 +37,7 @@ public class UserIPAddActivity extends AppCompatActivity {
     private Button mButtonAdd;
     private Button mButtonClear;
     private TextView mWrongInput;
+    private CheckBox captainCheck;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,6 +56,7 @@ public class UserIPAddActivity extends AppCompatActivity {
         mButtonAdd = (Button)findViewById(R.id.id_btn_add);
         mButtonClear = (Button)findViewById(R.id.id_btn_clear);
         mWrongInput = (TextView) findViewById(R.id.id_wrong_input);
+        captainCheck = findViewById(R.id.captain_check);
 
         mButtonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,6 +64,7 @@ public class UserIPAddActivity extends AppCompatActivity {
                 boolean isMacExisted = false;
                 String username = mUsername.getText().toString().trim();
                 String ip = mIP.getText().toString().trim();
+                boolean isCaptain = captainCheck.isChecked();
                 int port = Integer.parseInt(mPort.getText().toString().trim());
                 String macAdress = mBlueMac.getText().toString().trim();
                 if(DataSupport.where("username = ? or ip = ?", username, ip).find(UserIPInfo.class).size() != 0){//验证用户名和IP是否已存在
@@ -79,7 +83,7 @@ public class UserIPAddActivity extends AppCompatActivity {
                     }
                     isMacExisted = true;
                     if(isMacExisted){
-                        UserIPInfo userIPInfo = new UserIPInfo(username, ip, port,macAdress);
+                        UserIPInfo userIPInfo = new UserIPInfo(username, ip, port,macAdress,isCaptain );
                         userIPInfo.save();
 
                         Intent intent = new Intent();
@@ -88,6 +92,7 @@ public class UserIPAddActivity extends AppCompatActivity {
                         intent.putExtra("ip", userIPInfo.getIp());
                         intent.putExtra("port", userIPInfo.getPort());
                         intent.putExtra("blueMac",userIPInfo.getBlueMac());
+                        intent.putExtra("isCaptain", userIPInfo.isCaptain());
                         setResult(RESULT_OK, intent);
                         finish();
                     }

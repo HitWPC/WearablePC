@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -24,6 +26,7 @@ import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 
 public class UserIPEditActivity extends AppCompatActivity {
+    public final String TAG = "debug001";
 
     private EditText mEditTextUsername;
 
@@ -36,6 +39,10 @@ public class UserIPEditActivity extends AppCompatActivity {
     private Button mButtonEdit;
 
     private Button mButtonDelete;
+
+    private CheckBox captainCheck;
+
+    private boolean isCaptain;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,39 +76,50 @@ public class UserIPEditActivity extends AppCompatActivity {
         mButtonEdit = (Button)findViewById(R.id.id_btn_edit);
         mButtonDelete = (Button)findViewById(R.id.id_btn_delete);
 
+        captainCheck = findViewById(R.id.captain_check);
+        Log.d(TAG, "     "+userIPInfo.isCaptain());
+        captainCheck.setChecked(userIPInfo.isCaptain());
+
+        captainCheck.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                isCaptain = b;
+                Log.d(TAG,"check changed="+isCaptain);
+            }
+        });
+
         mButtonEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String ip = mEditTextIP.getText().toString().trim();
                 int port = Integer.parseInt(mEditTextPort.getText().toString().trim());
                 String BlueMac = mEditBlueMac.getText().toString().trim();
-                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
-                boolean isMacExisted = false;
-                Log.d("本机蓝牙地址",""+mBluetoothAdapter.getAddress().equals(BlueMac));
-
-                for(BluetoothDevice bonddevice:devices) {
-                    if(bonddevice.getAddress().equals(BlueMac)){
-                        isMacExisted = true;
-                        break;
-                    }
-                }
-                if(mBluetoothAdapter.getAddress().equals(BlueMac))
-                    isMacExisted = true;
-                isMacExisted = true;
+//                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//                Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
+//                boolean isMacExisted = false;
+//                Log.d("本机蓝牙地址",""+mBluetoothAdapter.getAddress().equals(BlueMac));
+//
+//                for(BluetoothDevice bonddevice:devices) {
+//                    if(bonddevice.getAddress().equals(BlueMac)){
+//                        isMacExisted = true;
+//                        break;
+//                    }
+//                }
+//                if(mBluetoothAdapter.getAddress().equals(BlueMac))
+//                    isMacExisted = true;
+                boolean isMacExisted = true;
                 Log.d("本机蓝牙地址",""+ isMacExisted);
                 if(isMacExisted){
                     userIPInfo.setBlueMac(BlueMac);
                     userIPInfo.setIp(ip);
                     userIPInfo.setPort(port);
-                    userIPInfo.update(userId);
-                    Log.d("本机蓝牙地址",""+"baocun");
-                    //打开TCP接收端口
-//                    if(userIPInfo.getType() == UserIPInfo.TYPE_SELF) {
-//                        NetworkUtil networkUtil = new NetworkUtil();
-//                        networkUtil.receiveByTCP();
-//
-//                    }
+                    userIPInfo.setCaptain(isCaptain);
+//                    int res = userIPInfo.update(userId);
+//                    int res = userIPInfo.updateAll("id=?",String.valueOf(userId));
+                    boolean res = userIPInfo.save();
+                    Log.d(TAG,isCaptain+" "+res);
+                    Log.d(TAG, "shujuku  "+DataSupport.find(UserIPInfo.class, userId).isCaptain());
+
 
                     Intent intent = new Intent();
                     intent.putExtra("result", "edit");
@@ -109,6 +127,7 @@ public class UserIPEditActivity extends AppCompatActivity {
                     intent.putExtra("ip", ip);
                     intent.putExtra("port", port);
                     intent.putExtra("blueMac", BlueMac);
+                    intent.putExtra("isCaptain", isCaptain);
                     setResult(RESULT_OK, intent);
                     finish();
                 }

@@ -27,7 +27,8 @@ public class SendDataService extends Service {
     private  static int Max_Interval_Seconds = 2000;
     private static int Timer_Interval = 1000;
 
-    private static UserIPInfo CaptainInfo = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_CAPTAIN)).findFirst(UserIPInfo.class);
+    private static UserIPInfo CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(true)).findFirst(UserIPInfo.class);
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {

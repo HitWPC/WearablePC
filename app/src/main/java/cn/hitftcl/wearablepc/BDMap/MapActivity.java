@@ -1,5 +1,9 @@
 package cn.hitftcl.wearablepc.BDMap;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -21,6 +25,8 @@ import com.amap.api.maps.model.CameraPosition;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.litepal.crud.DataSupport;
 
@@ -30,14 +36,23 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.hitftcl.wearablepc.Model.SynMessage;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
+import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
+import cn.hitftcl.wearablepc.NetWork.ReceiveService;
+import cn.hitftcl.wearablepc.NetWork.TransType;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.BitmapUtil;
+import cn.hitftcl.wearablepc.Utils.Constant;
+import cn.hitftcl.wearablepc.Utils.ThreadPool;
+
+import static cn.hitftcl.wearablepc.NetWork.ReceiveService.ACTION_SYN_COMMAND;
 
 public class MapActivity extends AppCompatActivity {
     public static final String TAG = "debug001";
 
-    public final float INI_ZOOM = 18.5f;
+    public float INI_ZOOM = 18.5f;
+    public LatLng INI_LATLNG = new LatLng(39.92421163425557,116.39786526560786); //天安门
 
     private MapView mMapView = null;
     private AMap aMap = null;
@@ -54,13 +69,24 @@ public class MapActivity extends AppCompatActivity {
 
     private Bitmap selfBitmap;
 
+    private static mBroadcastReceiver mBroadcastReceiver = null;
+    private static IntentFilter intentFilter = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        Intent myIntent = getIntent();
+        String intent_content = myIntent.getStringExtra("Syn_Content");
+        if(intent_content!=null && !intent_content.equals("")){
+            SynMessage synMessage = new Gson().fromJson(intent_content, new TypeToken<SynMessage>(){}.getType());
+            INI_ZOOM = synMessage.getZoom();
+            INI_LATLNG = synMessage.getLatLng();
+        }
+
         //找到除自己以外的其他队员信息
-        group = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_COMMON)).find(UserIPInfo.class);
+        group = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_OTHER)).find(UserIPInfo.class);
 
         //设置ToolBar
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_secret);
@@ -82,7 +108,8 @@ public class MapActivity extends AppCompatActivity {
         mUiSettings.setCompassEnabled(true);  //指南针
 
         //TODO 设置中心点以及缩放级别
-        aMap.moveCamera(CameraUpdateFactory.zoomTo(INI_ZOOM));
+        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
+                INI_LATLNG, INI_ZOOM, 30, 0)));
 
         //获取表示自己头像的Bitmap
         selfBitmap = BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.self_location_icon),80,80);
@@ -91,22 +118,26 @@ public class MapActivity extends AppCompatActivity {
         //获取定位按钮
         locationBtn = findViewById(R.id.location_bt);
 
-        //获取同步按钮
+        //TODO 获取同步按钮
         synBtn = findViewById(R.id.synBtn);
         synBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG,"缩放级别="+aMap.getCameraPosition().zoom);
-                CameraUpdateFactory.zoomTo(INI_ZOOM);
-//                final String content = "";  //同步数据
-//                ThreadPool.getInstance().execute(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        for(UserIPInfo user : group){
-//                            NetworkUtil.sendByTCP(user.getIp(), user.getPort(), TransType.SYN_COMMAND, content);
-//                        }
-//                    }
-//                });
+                //找到除自己以外的其他队员信息
+                group = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_OTHER)).find(UserIPInfo.class);
+
+                float zoom = aMap.getCameraPosition().zoom;
+                LatLng latLng_center = aMap.getCameraPosition().target;
+                SynMessage synMessage = new SynMessage(zoom, latLng_center);
+                final String content = new Gson().toJson(synMessage);
+                ThreadPool.getInstance().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (UserIPInfo user : group){
+                            NetworkUtil.sendByTCP(user.getIp(),user.getPort(),TransType.SYN_COMMAND, content);
+                        }
+                    }
+                });
             }
         });
 
@@ -114,7 +145,7 @@ public class MapActivity extends AppCompatActivity {
         task= new TimerTask() {
             @Override
             public void run() {
-                Log.d(TAG, "更新队友坐标");
+//                Log.d(TAG, "更新队友坐标");
 
                 HashMap<String, LatLng> map = BD_Partner_Singleton.getInstance().getBD_Map();  //要更新的坐标
                 HashMap<String, Marker> IP_Marker_Map = new HashMap<>();
@@ -169,12 +200,24 @@ public class MapActivity extends AppCompatActivity {
         super.onResume();
         //在activity执行onResume时执行mMapView.onResume ()，重新绘制加载地图
         mMapView.onResume();
+        Constant.isMapActivityFront = true;
+        if(mBroadcastReceiver==null){
+            mBroadcastReceiver = new mBroadcastReceiver();
+            // 2. 设置接收广播的类型
+            intentFilter = new IntentFilter();
+            intentFilter.addAction(ACTION_SYN_COMMAND);
+            // 3. 动态注册：调用Context的registerReceiver（）方法
+        }
+        registerReceiver(mBroadcastReceiver, intentFilter);
+
     }
     @Override
     protected void onPause() {
         super.onPause();
         //在activity执行onPause时执行mMapView.onPause ()，暂停地图的绘制
         mMapView.onPause();
+        Constant.isMapActivityFront = false;
+        unregisterReceiver(mBroadcastReceiver);
     }
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -194,6 +237,23 @@ public class MapActivity extends AppCompatActivity {
                 break;
         }
         return true;
+    }
+
+    class mBroadcastReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch(intent.getAction()){
+                case ACTION_SYN_COMMAND:
+                    String synContent = intent.getStringExtra("Syn_Content");
+                    SynMessage synMessage = new Gson().fromJson(synContent, new TypeToken<SynMessage>(){}.getType());
+                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
+                            synMessage.getLatLng(), synMessage.getZoom(), 30, 0)));
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
 }

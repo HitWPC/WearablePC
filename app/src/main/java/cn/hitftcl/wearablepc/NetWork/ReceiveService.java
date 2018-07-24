@@ -27,12 +27,15 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
+import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnviromentTable;
 import cn.hitftcl.wearablepc.Model.Msg;
 import cn.hitftcl.wearablepc.Model.Secret;
+import cn.hitftcl.wearablepc.Model.SynMessage;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.Utils.Constant;
 
 /**
  * Created by Administrator on 2018/7/11.
@@ -44,9 +47,14 @@ public class ReceiveService extends Service {
 
     public final static String ACTION_MESSAGE_RECEIVE =
             "com.hitwearable.LOCAL_BROADCAST_SECRET";
+    public final static String ACTION_SYN_COMMAND =
+            "com.hitwearable.ACTION_SYN_COMMAND";
+
     private final LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(MyApplication.getContext());
 
     final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
+
+    ServerSocket serverSocket = null;
     @Override
     public void onCreate() {
         Log.d(TAG,"onCreate - Thread ID = " + Thread.currentThread().getId());
@@ -59,22 +67,22 @@ public class ReceiveService extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ServerSocket serverSocket = null;
+
                 Socket socket = null;
                 InputStream inputStream = null;
                 InputStreamReader inputStreamReader = null;
                 BufferedReader bufferedReader = null;
 
+                try {
+                    serverSocket = new ServerSocket(self.getPort());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 //TODO 等待接收网络传输数据
                 while(true){
-
                     try {
                         //建立连接
-                        if(serverSocket  == null){
-                            serverSocket = new ServerSocket(self.getPort());
-                            serverSocket.setReuseAddress(true);
-                        }
-
+//                        serverSocket.setReuseAddress(true);
                         socket = serverSocket.accept();
                         //发送者信息
                         String senderAddr = socket.getInetAddress().getHostAddress();
@@ -156,10 +164,23 @@ public class ReceiveService extends Service {
                             msg=saveMsg(self, sender, fileName, catagory);
                             broadcastUpdate(ACTION_MESSAGE_RECEIVE);
                             updateUI(msg);
+                        }else if(type.equals(TransType.SYN_COMMAND.name())){
+                            String content = dataInputStream.readUTF();
+                            if(!Constant.isMapActivityFront){
+                                //TODO MapActivity 不在前台
+                                Intent mapIntent = new Intent(ReceiveService.this, MapActivity.class);
+                                mapIntent.putExtra("Syn_Content", content);
+                                startActivity(mapIntent);
+                            }else{
+                                broadcastUpdate(ACTION_SYN_COMMAND, content);
+                            }
+
+
                         }
 
                     } catch (IOException e) {
                         e.printStackTrace();
+                        Log.d(TAG,"RecieveService:error########################");
                     }finally {
                         try {
                             if (bufferedReader != null) {
@@ -247,6 +268,12 @@ public class ReceiveService extends Service {
         final Intent intent = new Intent(action);
         this.sendBroadcast(intent);
         Log.d(TAG, "已发送广播");
+    }
+
+    private void broadcastUpdate(final String action, String content){
+        final Intent intent = new Intent(action);
+        intent.putExtra("Syn_Content", content);
+        this.sendBroadcast(intent);
     }
 
 }

@@ -74,6 +74,7 @@ public class SensorDataService extends Service {
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
         super.onDestroy();
+        unregisterReceiver(mGattUpdateReceiver);
     }
 
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {

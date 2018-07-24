@@ -9,8 +9,7 @@ import org.litepal.crud.DataSupport;
 
 public class UserIPInfo extends DataSupport {
     public static final int TYPE_SELF = 0;//自己
-    public static final int TYPE_COMMON = 1;//普通用户
-    public static final int TYPE_CAPTAIN = 2;//编队长官
+    public static final int TYPE_OTHER = 1;//普通用户
 
 
     private int id;
@@ -20,25 +19,27 @@ public class UserIPInfo extends DataSupport {
     private int port;
     private String BlueMac;
     private int type;
+    private int isCaptain;  //0——》false 非队长
 
     public UserIPInfo(){
 
     }
 
-    public UserIPInfo(String username, String ip, int port, String BlueMac) {
+    public UserIPInfo(String username, String ip, int port, String BlueMac, boolean isCaptain) {
         this.username = username;
         this.password = "";
         this.ip = ip;
         this.port = port;
         this.BlueMac = BlueMac;
-        this.type = TYPE_COMMON;
+        this.type = TYPE_OTHER;
+        this.isCaptain = isCaptain?1:0;
     }
     public UserIPInfo(String username, String ip, int port) {
         this.username = username;
         this.password = "";
         this.ip = ip;
         this.port = port;
-        this.type = TYPE_COMMON;
+        this.type = TYPE_OTHER;
     }
     public UserIPInfo(String username, String password){
         this.username = username;
@@ -100,5 +101,13 @@ public class UserIPInfo extends DataSupport {
 
     public void setBlueMac(String blueMac) {
         BlueMac = blueMac;
+    }
+
+    public void setCaptain(boolean is_captain){
+        isCaptain = is_captain? 1 : 0;
+    }
+
+    public boolean isCaptain(){
+        return isCaptain>0;
     }
 }

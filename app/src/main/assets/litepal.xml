@@ -2,7 +2,7 @@
     <litepal>
         <dbname value="WearablePC"></dbname>
 
-        <version value="6"></version>
+        <version value="1"></version>
 
     <list>
         <mapping class="cn.hitftcl.wearablepc.Model.UserIPInfo"/>
