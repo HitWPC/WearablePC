@@ -34,6 +34,13 @@ import com.google.gson.reflect.TypeToken;
 
 import org.litepal.crud.DataSupport;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,8 +64,9 @@ public class MapActivity extends AppCompatActivity {
     public static final String TAG = "debug001";
 
     public float INI_ZOOM = 18.5f;
+    public float INIT_TILE = 30;
+    public float INIT_BEARING = 0;
     public LatLng INI_LATLNG = new LatLng(39.92421163425557,116.39786526560786); //天安门
-
     private MapView mMapView = null;
     private AMap aMap = null;
     private UiSettings mUiSettings;
@@ -80,21 +88,39 @@ public class MapActivity extends AppCompatActivity {
     private Polyline polyline;
     private List<LatLng> listPts = new ArrayList<>();
     private boolean isDrawingRoute = false, isDrawingSymbol = false;
-    private String SYMBLE_TYPE = SYMBOL_TYPE.NONE.name();
-//    private HashMap<LatLng, String> symbolMap = new HashMap<>();
+    private String SYMBOL_TYPE_NAME = SYMBOL_TYPE.NONE.name();
+    private HashMap<LatLng, String> symbolMap = new HashMap<>();
     private ArrayList<Marker> listSymbol = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+
+
         Intent myIntent = getIntent();
         String intent_content = myIntent.getStringExtra("Syn_Content");
         if(intent_content!=null && !intent_content.equals("")){
-            SynMessage synMessage = new Gson().fromJson(intent_content, new TypeToken<SynMessage>(){}.getType());
-            INI_ZOOM = synMessage.getZoom();
-            INI_LATLNG = synMessage.getLatLng();
+//            SynMessage synMessage = new Gson().fromJson(intent_content, new TypeToken<SynMessage>(){}.getType());
+            MapInfo mapInfo =  new Gson().fromJson(intent_content, new TypeToken<MapInfo>(){}.getType());
+            parseMapInfo(mapInfo);
+        }else{
+            File mapFile = new File(Constant.mapInfoPath, "map.temp");
+            if (mapFile.exists()){
+                try {
+                    ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(mapFile));
+                    MapInfo initMapInfo = (MapInfo)objectInputStream.readObject();
+                    parseMapInfo(initMapInfo);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
+
 
         //找到除自己以外的其他队员信息
         group = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_OTHER)).find(UserIPInfo.class);
@@ -120,7 +146,7 @@ public class MapActivity extends AppCompatActivity {
 
         //TODO 设置中心点以及缩放级别
         aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                INI_LATLNG, INI_ZOOM, 30, 0)));
+                INI_LATLNG, INI_ZOOM, INIT_TILE, INIT_BEARING)));
 
         //获取表示自己头像的Bitmap
         selfBitmap = BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.self_location_icon),80,80);
@@ -144,10 +170,11 @@ public class MapActivity extends AppCompatActivity {
                 //找到除自己以外的其他队员信息
                 group = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_OTHER)).find(UserIPInfo.class);
 
-                float zoom = aMap.getCameraPosition().zoom;
-                LatLng latLng_center = aMap.getCameraPosition().target;
-                SynMessage synMessage = new SynMessage(zoom, latLng_center);
-                final String content = new Gson().toJson(synMessage);
+//                float zoom = aMap.getCameraPosition().zoom;
+//                LatLng latLng_center = aMap.getCameraPosition().target;
+//                SynMessage synMessage = new SynMessage(zoom, latLng_center);
+                MapInfo mapInfo = getMapInfo();
+                final String content = new Gson().toJson(mapInfo);
                 ThreadPool.getInstance().execute(new Runnable() {
                     @Override
                     public void run() {
@@ -182,13 +209,13 @@ public class MapActivity extends AppCompatActivity {
                     if(IP_Marker_Map.containsKey(IP)){
                         if(IP.equals(self.getIp())){
                             aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                                    latlng, aMap.getCameraPosition().zoom, 30, 0)));
+                                    latlng, aMap.getCameraPosition().zoom, aMap.getCameraPosition().tilt, aMap.getCameraPosition().bearing)));
                         }
                         IP_Marker_Map.get(IP).setPosition(latlng);
                     }else{
                         if(IP.equals(self.getIp())){
                             aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                                    latlng, aMap.getCameraPosition().zoom, 30, 0)));
+                                    latlng, aMap.getCameraPosition().zoom,  aMap.getCameraPosition().tilt, aMap.getCameraPosition().bearing)));
                             MarkerOptions markerOptions = new MarkerOptions().position(latlng).title(IP).icon(
                                     BitmapDescriptorFactory.fromBitmap(selfBitmap)
                             );
@@ -208,21 +235,9 @@ public class MapActivity extends AppCompatActivity {
                 if(isDrawingRoute){
                     listPts.add(latLng);
                     // 地图上绘制路线
-                    drawLine(listPts, false);
+                    drawLine(listPts, false, false);
                 }else if(isDrawingSymbol){
-                    if(SYMBLE_TYPE.equals(SYMBOL_TYPE.TANC.name())){
-                        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
-                                BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.tanc),75,60));
-                        listSymbol.add(drawMarker(latLng, SYMBLE_TYPE, icon, null, null, true));
-                    }else if(SYMBLE_TYPE.equals(SYMBOL_TYPE.HELICOPTER.name())){
-                        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
-                                BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.helicopter),115,115));
-                        listSymbol.add(drawMarker(latLng, SYMBLE_TYPE, icon, null, null, true));
-                    }else if(SYMBLE_TYPE.equals(SYMBOL_TYPE.CAMP.name())){
-                        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
-                                BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.camp),90,80));
-                        listSymbol.add(drawMarker(latLng, SYMBLE_TYPE, icon, null, null, true));
-                    }
+                    drawMarker(latLng, SYMBOL_TYPE_NAME);
                 }
             }
         });
@@ -252,7 +267,56 @@ public class MapActivity extends AppCompatActivity {
         // 绑定marker拖拽事件
         aMap.setOnMarkerDragListener(markerDragListener);
 
+        //TODO 绘制初始地图路线、标记
+        initDraw();
 
+
+    }
+
+    private void initDraw() {
+        if(listPts.size()>0){
+            drawLine(listPts, true, true);
+        }
+        listSymbol.clear();
+        if(symbolMap.size()>0){
+            for (Map.Entry<LatLng, String> entry : symbolMap.entrySet()){
+                drawMarker(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private void parseMapInfo(MapInfo initMapInfo) {
+        INI_LATLNG = new LatLng(initMapInfo.getMap_center().getLat(),initMapInfo.getMap_center().getLng());
+        INI_ZOOM = initMapInfo.getZoom();
+        INIT_TILE = initMapInfo.getTilt();
+        INIT_BEARING = initMapInfo.getBearing();
+        HashMap<String,ArrayList<Mlatlng>> symbolRouteMap = initMapInfo.getMapMessage();
+        if (symbolRouteMap.containsKey("路线")){
+            List<Mlatlng> path = symbolRouteMap.get("路线");
+            listPts.clear();
+            for (Mlatlng mlatlng:path){
+                listPts.add(new LatLng(mlatlng.getLat(),mlatlng.getLng()));
+            }
+        }
+        symbolMap.clear();
+        if (symbolRouteMap.containsKey(SYMBOL_TYPE.TANC.name())){
+            List<Mlatlng> mlatlngs = symbolRouteMap.get(SYMBOL_TYPE.TANC.name());
+            for(Mlatlng temp : mlatlngs){
+                symbolMap.put(new LatLng(temp.getLat(),temp.getLng()), SYMBOL_TYPE.TANC.name());
+            }
+        }
+        if (symbolRouteMap.containsKey(SYMBOL_TYPE.HELICOPTER.name())){
+            List<Mlatlng> mlatlngs = symbolRouteMap.get(SYMBOL_TYPE.HELICOPTER.name());
+            for(Mlatlng temp : mlatlngs){
+                symbolMap.put(new LatLng(temp.getLat(),temp.getLng()), SYMBOL_TYPE.HELICOPTER.name());
+            }
+        }
+        if (symbolRouteMap.containsKey(SYMBOL_TYPE.CAMP.name())){
+            List<Mlatlng> mlatlngs = symbolRouteMap.get(SYMBOL_TYPE.CAMP.name());
+            for(Mlatlng temp : mlatlngs){
+                symbolMap.put(new LatLng(temp.getLat(),temp.getLng()), SYMBOL_TYPE.CAMP.name());
+            }
+        }
     }
 
     @Override
@@ -316,7 +380,7 @@ public class MapActivity extends AppCompatActivity {
                     listPts.remove(listPts.size()-1);
                     polyline.remove();
                     Log.d(TAG, ""+(polyline==null));
-                    drawLine(listPts, true);
+                    drawLine(listPts, true, false);
                 }
                 break;
             case R.id.route_send:
@@ -336,8 +400,6 @@ public class MapActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.make_symbol_start:
-                listSymbol.clear();
-
                 mMenu.findItem(R.id.draw_route_start).setVisible(false);
                 mMenu.findItem(R.id.make_symbol_start).setVisible(false);
                 mMenu.findItem(R.id.make_symbol_end).setVisible(true);
@@ -362,16 +424,16 @@ public class MapActivity extends AppCompatActivity {
                 mMenu.findItem(R.id.symbol_send).setVisible(true);
 
                 isDrawingSymbol = false;
-                SYMBLE_TYPE = SYMBOL_TYPE.NONE.name();
+                SYMBOL_TYPE_NAME = SYMBOL_TYPE.NONE.name();
                 break;
             case R.id.tanc_symbol:
-                SYMBLE_TYPE = SYMBOL_TYPE.TANC.name();
+                SYMBOL_TYPE_NAME = SYMBOL_TYPE.TANC.name();
                 break;
             case R.id.helicopter_symbol:
-                SYMBLE_TYPE = SYMBOL_TYPE.HELICOPTER.name();
+                SYMBOL_TYPE_NAME = SYMBOL_TYPE.HELICOPTER.name();
                 break;
             case R.id.camp_symbol:
-                SYMBLE_TYPE = SYMBOL_TYPE.CAMP.name();
+                SYMBOL_TYPE_NAME = SYMBOL_TYPE.CAMP.name();
                 break;
             default:
                 break;
@@ -416,16 +478,71 @@ public class MapActivity extends AppCompatActivity {
         //在activity执行onSaveInstanceState时执行mMapView.onSaveInstanceState (outState)，保存地图当前的状态
         mMapView.onSaveInstanceState(outState);
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        String filePath = Constant.mapInfoPath;
+        File mapDir = new File(filePath);
+        if (!mapDir.exists()){
+            mapDir.mkdirs();
+        }
+        File mapFile = new File(mapDir, "map.temp");
+        if(!mapFile.exists()){
+            try {
+                mapFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(mapFile);
+            MapInfo mapInfo = getMapInfo();
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(mapInfo);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void drawMarker(LatLng latLng, String typeName){
+        if(typeName.equals(SYMBOL_TYPE.TANC.name())){
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
+                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.tanc),75,60));
+            listSymbol.add(drawMarker(latLng, typeName, icon, null, null, true));
+        }else if(typeName.equals(SYMBOL_TYPE.HELICOPTER.name())){
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
+                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.helicopter),115,115));
+            listSymbol.add(drawMarker(latLng, typeName, icon, null, null, true));
+        }else if(typeName.equals(SYMBOL_TYPE.CAMP.name())){
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
+                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.camp),90,80));
+            listSymbol.add(drawMarker(latLng, typeName, icon, null, null, true));
+        }
+    }
+
     /**
      * 地图上绘制线
      * @param pts
      */
-    private void drawLine(List<LatLng> pts, boolean ifCreate) {
-        Log.d(TAG, "数量--->"+pts.size());
-        if(pts.size() == 1){
+    private void drawLine(List<LatLng> pts, boolean ifCreate, boolean ifInit) {
+        if(ifInit && pts.size()>1){
             BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
                     BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.start_point),57,72));
             drawMarker(pts.get(0), "起点", icon, null, null, false);
+            BitmapDescriptor icon1 = BitmapDescriptorFactory.fromBitmap(
+                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.end_point),57,72));
+            drawMarker(pts.get(pts.size()-1), "终点", icon1, null, null, false);
+        }else{
+            if(pts.size() == 1){
+                BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
+                        BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.start_point),57,72));
+                drawMarker(pts.get(0), "起点", icon, null, null, false);
+            }
         }
 
         if (pts.size() >= 2) {
@@ -445,6 +562,57 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
+    public MapInfo getMapInfo(){
+        float zoom = aMap.getCameraPosition().zoom;
+        float tile = aMap.getCameraPosition().tilt;
+        float bearing = aMap.getCameraPosition().bearing;
+        Mlatlng center = new Mlatlng(aMap.getCameraPosition().target.latitude,aMap.getCameraPosition().target.longitude);
+        HashMap<String,ArrayList<Mlatlng>> symbolRouteInfo = new HashMap<>();
+        if (listPts.size()>0){
+            ArrayList<Mlatlng> route = new ArrayList<>();
+            for (LatLng temp:listPts){
+                route.add(new Mlatlng(temp.latitude,temp.longitude));
+            }
+            symbolRouteInfo.put("路线",route);
+        }
+        if (listSymbol.size()>0){
+            ArrayList<Mlatlng> tancList=new ArrayList<>(),heliList=new ArrayList<>(),campList=new ArrayList<>();
+            for (Marker temp:listSymbol){
+                String obj = (String) temp.getObject();
+                if (obj.equals(SYMBOL_TYPE.TANC.name())){
+                    tancList.add(new Mlatlng(temp.getPosition().latitude,temp.getPosition().longitude));
+                }
+                else if (obj.equals(SYMBOL_TYPE.HELICOPTER.name())){
+                    heliList.add(new Mlatlng(temp.getPosition().latitude,temp.getPosition().longitude));
+                }
+                else if (obj.equals(SYMBOL_TYPE.CAMP.name())){
+                    campList.add(new Mlatlng(temp.getPosition().latitude,temp.getPosition().longitude));
+                }
+            }
+            if (tancList.size()>0){
+                symbolRouteInfo.put(SYMBOL_TYPE.TANC.name(),tancList);
+            }
+            if (heliList.size()>0){
+                symbolRouteInfo.put(SYMBOL_TYPE.HELICOPTER.name(),heliList);
+            }
+            if (tancList.size()>0){
+                symbolRouteInfo.put(SYMBOL_TYPE.CAMP.name(),campList);
+            }
+        }
+        return new MapInfo(center,zoom,tile,bearing,symbolRouteInfo);
+
+    }
+
+    /**
+     * 绘制标记
+     * @param latLng
+     * @param object
+     * @param icon
+     * @param title
+     * @param snippet
+     * @param draggable
+     * @return
+     */
     public Marker drawMarker(LatLng latLng, Object object, BitmapDescriptor icon, String title, String snippet, boolean draggable){
         MarkerOptions markerOption = new MarkerOptions();
         markerOption.position(latLng);
@@ -464,9 +632,12 @@ public class MapActivity extends AppCompatActivity {
             switch(intent.getAction()){
                 case ACTION_SYN_COMMAND:
                     String synContent = intent.getStringExtra("Syn_Content");
-                    SynMessage synMessage = new Gson().fromJson(synContent, new TypeToken<SynMessage>(){}.getType());
+                    Log.d(TAG, synContent);
+                    MapInfo mapInfo = new Gson().fromJson(synContent, new TypeToken<MapInfo>(){}.getType());
+                    parseMapInfo(mapInfo);
                     aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                            synMessage.getLatLng(), synMessage.getZoom(), 30, 0)));
+                            INI_LATLNG, INI_ZOOM, INIT_TILE, INIT_BEARING)));
+                    initDraw();
                     break;
                 default:
                     break;

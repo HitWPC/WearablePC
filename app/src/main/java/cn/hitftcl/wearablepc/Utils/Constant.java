@@ -1,5 +1,7 @@
 package cn.hitftcl.wearablepc.Utils;
 
+import android.os.Environment;
+
 import org.litepal.crud.DataSupport;
 
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
@@ -12,7 +14,7 @@ public class Constant {
     public static boolean isMapActivityFront = false;
     public static String MY_IP = "";
     public static int MY_PORT = 0;
-
+    public static final String mapInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/map";
     static {
         UserIPInfo me = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
         if(me!=null){

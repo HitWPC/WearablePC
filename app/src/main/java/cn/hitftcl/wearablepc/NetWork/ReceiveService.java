@@ -165,6 +165,7 @@ public class ReceiveService extends Service {
                             broadcastUpdate(ACTION_MESSAGE_RECEIVE);
                             updateUI(msg);
                         }else if(type.equals(TransType.SYN_COMMAND.name())){
+                            //TODO 同步消息
                             String content = dataInputStream.readUTF();
                             if(!Constant.isMapActivityFront){
                                 //TODO MapActivity 不在前台
