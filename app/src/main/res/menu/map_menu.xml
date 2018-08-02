@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/draw_route_start"
+        android:title="绘制路线开始"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/draw_route_end"
+        android:title="绘制路线结束"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/draw_back"
+        android:title="绘制撤销"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/make_symbol_start"
+        android:title="绘制标记开始"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/make_symbol_end"
+        android:title="绘制标记结束"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/tanc_symbol"
+        android:title="标记坦克"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/helicopter_symbol"
+        android:title="标记直升机"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/camp_symbol"
+        android:title="标记营地"
+        app:showAsAction="never"/>
+    <item android:id="@+id/route_send"
+        android:title="发送路线"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+    <item android:id="@+id/symbol_send"
+        android:title="发送标记"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+     
+</menu>

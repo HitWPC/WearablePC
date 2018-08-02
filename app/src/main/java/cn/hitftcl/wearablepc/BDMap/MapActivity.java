@@ -6,30 +6,35 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.UiSettings;
+import com.amap.api.maps.model.BitmapDescriptor;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
 import com.amap.api.maps.model.CameraPosition;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
+import com.amap.api.maps.model.Polyline;
+import com.amap.api.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.litepal.crud.DataSupport;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +45,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import cn.hitftcl.wearablepc.Model.SynMessage;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
-import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.NetWork.TransType;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.BitmapUtil;
@@ -61,7 +65,6 @@ public class MapActivity extends AppCompatActivity {
 
     private Button locationBtn;
     private Button synBtn;
-
     private List<UserIPInfo> group;
     private final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
 
@@ -69,10 +72,17 @@ public class MapActivity extends AppCompatActivity {
     private TimerTask task = null;
 
     private Bitmap selfBitmap;
-
+    private Menu mMenu=null;
     private static mBroadcastReceiver mBroadcastReceiver = null;
     private static IntentFilter intentFilter = null;
 
+    //控制地图绘制
+    private Polyline polyline;
+    private List<LatLng> listPts = new ArrayList<>();
+    private boolean isDrawingRoute = false, isDrawingSymbol = false;
+    private String SYMBLE_TYPE = SYMBOL_TYPE.NONE.name();
+//    private HashMap<LatLng, String> symbolMap = new HashMap<>();
+    private ArrayList<Marker> listSymbol = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,6 +131,7 @@ public class MapActivity extends AppCompatActivity {
         locationBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d(TAG, "SIZE:"+ listSymbol.size());
 
             }
         });
@@ -190,9 +201,182 @@ public class MapActivity extends AppCompatActivity {
             }
         };
 
+        //TODO 绘制线/标记
+        aMap.setOnMapClickListener(new AMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if(isDrawingRoute){
+                    listPts.add(latLng);
+                    // 地图上绘制路线
+                    drawLine(listPts, false);
+                }else if(isDrawingSymbol){
+                    if(SYMBLE_TYPE.equals(SYMBOL_TYPE.TANC.name())){
+                        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
+                                BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.tanc),75,60));
+                        listSymbol.add(drawMarker(latLng, SYMBLE_TYPE, icon, null, null, true));
+                    }else if(SYMBLE_TYPE.equals(SYMBOL_TYPE.HELICOPTER.name())){
+                        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
+                                BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.helicopter),115,115));
+                        listSymbol.add(drawMarker(latLng, SYMBLE_TYPE, icon, null, null, true));
+                    }else if(SYMBLE_TYPE.equals(SYMBOL_TYPE.CAMP.name())){
+                        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
+                                BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.camp),90,80));
+                        listSymbol.add(drawMarker(latLng, SYMBLE_TYPE, icon, null, null, true));
+                    }
+                }
+            }
+        });
         timer.schedule(task, 0,1000);
 
 
+        //TODO 坦克等标记的拖拽监听
+        AMap.OnMarkerDragListener markerDragListener = new AMap.OnMarkerDragListener() {
+            // 当marker开始被拖动时回调此方法, 这个marker的位置可以通过getPosition()方法返回。
+            // 这个位置可能与拖动的之前的marker位置不一样。
+            // marker 被拖动的marker对象。
+            @Override
+            public void onMarkerDragStart(Marker arg0) {
+                listSymbol.remove(arg0);
+            }
+            // 在marker拖动完成后回调此方法, 这个marker的位置可以通过getPosition()方法返回。
+            // 这个位置可能与拖动的之前的marker位置不一样。
+            // marker 被拖动的marker对象。
+            @Override
+            public void onMarkerDragEnd(Marker arg0) {
+                listSymbol.add(arg0);
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {}
+        };
+        // 绑定marker拖拽事件
+        aMap.setOnMarkerDragListener(markerDragListener);
+
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.map_menu, menu);
+        mMenu=menu;
+        mMenu.findItem(R.id.draw_route_start).setVisible(true);
+        mMenu.findItem(R.id.draw_route_end).setVisible(false);
+        mMenu.findItem(R.id.draw_back).setVisible(false);
+
+        mMenu.findItem(R.id.make_symbol_start).setVisible(true);
+        mMenu.findItem(R.id.make_symbol_end).setVisible(false);
+        mMenu.findItem(R.id.tanc_symbol).setVisible(false);
+        mMenu.findItem(R.id.helicopter_symbol).setVisible(false);
+        mMenu.findItem(R.id.camp_symbol).setVisible(false);
+
+        mMenu.findItem(R.id.route_send).setVisible(true);
+        mMenu.findItem(R.id.symbol_send).setVisible(true);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch(id){
+            case android.R.id.home:  //返回上一页
+                finish();
+                break;
+            case R.id.draw_route_start:
+                listPts.clear();
+
+                mMenu.findItem(R.id.draw_route_start).setVisible(false);
+                mMenu.findItem(R.id.draw_route_end).setVisible(true);
+                mMenu.findItem(R.id.draw_back).setVisible(true);
+                mMenu.findItem(R.id.make_symbol_start).setVisible(false);
+
+                mMenu.findItem(R.id.route_send).setVisible(false);
+                mMenu.findItem(R.id.symbol_send).setVisible(false);
+
+                isDrawingRoute = true;
+
+                break;
+            case R.id.draw_route_end:
+                mMenu.findItem(R.id.draw_route_start).setVisible(true);
+                mMenu.findItem(R.id.draw_route_end).setVisible(false);
+                mMenu.findItem(R.id.draw_back).setVisible(false);
+                mMenu.findItem(R.id.make_symbol_start).setVisible(true);
+
+                mMenu.findItem(R.id.route_send).setVisible(true);
+                mMenu.findItem(R.id.symbol_send).setVisible(true);
+
+                isDrawingRoute = false;
+                if(listPts.size()>1){
+                    BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
+                            BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.end_point),57,72));
+                    drawMarker(listPts.get(listPts.size()-1), "终点", icon, null, null, false);
+                }
+                break;
+            case R.id.draw_back:
+                if(listPts!=null && listPts.size()>0){
+                    listPts.remove(listPts.size()-1);
+                    polyline.remove();
+                    Log.d(TAG, ""+(polyline==null));
+                    drawLine(listPts, true);
+                }
+                break;
+            case R.id.route_send:
+                if(listPts.size()>0){
+                    //发送绘制的路线
+
+                }else{
+                    Toast.makeText(this, "请在绘制后选择发送", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.symbol_send:
+                if(listSymbol.size()>0){
+                    //发送绘制的点标记
+
+                }else{
+                    Toast.makeText(this, "请在绘制后选择发送", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.make_symbol_start:
+                listSymbol.clear();
+
+                mMenu.findItem(R.id.draw_route_start).setVisible(false);
+                mMenu.findItem(R.id.make_symbol_start).setVisible(false);
+                mMenu.findItem(R.id.make_symbol_end).setVisible(true);
+                mMenu.findItem(R.id.tanc_symbol).setVisible(true);
+                mMenu.findItem(R.id.helicopter_symbol).setVisible(true);
+                mMenu.findItem(R.id.camp_symbol).setVisible(true);
+
+                mMenu.findItem(R.id.route_send).setVisible(false);
+                mMenu.findItem(R.id.symbol_send).setVisible(false);
+
+                isDrawingSymbol = true;
+                break;
+            case R.id.make_symbol_end:
+                mMenu.findItem(R.id.make_symbol_end).setVisible(false);
+                mMenu.findItem(R.id.draw_route_start).setVisible(true);
+                mMenu.findItem(R.id.make_symbol_start).setVisible(true);
+                mMenu.findItem(R.id.tanc_symbol).setVisible(false);
+                mMenu.findItem(R.id.helicopter_symbol).setVisible(false);
+                mMenu.findItem(R.id.camp_symbol).setVisible(false);
+
+                mMenu.findItem(R.id.route_send).setVisible(true);
+                mMenu.findItem(R.id.symbol_send).setVisible(true);
+
+                isDrawingSymbol = false;
+                SYMBLE_TYPE = SYMBOL_TYPE.NONE.name();
+                break;
+            case R.id.tanc_symbol:
+                SYMBLE_TYPE = SYMBOL_TYPE.TANC.name();
+                break;
+            case R.id.helicopter_symbol:
+                SYMBLE_TYPE = SYMBOL_TYPE.HELICOPTER.name();
+                break;
+            case R.id.camp_symbol:
+                SYMBLE_TYPE = SYMBOL_TYPE.CAMP.name();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -232,22 +416,49 @@ public class MapActivity extends AppCompatActivity {
         //在activity执行onSaveInstanceState时执行mMapView.onSaveInstanceState (outState)，保存地图当前的状态
         mMapView.onSaveInstanceState(outState);
     }
-
     /**
-     * toolbar返回按钮响应事件
+     * 地图上绘制线
+     * @param pts
      */
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        switch (item.getItemId()){
-            case android.R.id.home:
-                finish();
-                break;
+    private void drawLine(List<LatLng> pts, boolean ifCreate) {
+        Log.d(TAG, "数量--->"+pts.size());
+        if(pts.size() == 1){
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
+                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.start_point),57,72));
+            drawMarker(pts.get(0), "起点", icon, null, null, false);
         }
-        return true;
+
+        if (pts.size() >= 2) {
+            if (pts.size() == 2) {
+                polyline = aMap.addPolyline((new PolylineOptions()).addAll(pts)
+                        .width(10).setDottedLine(true).geodesic(true)
+                        .color(Color.argb(255, 1, 1, 1)));
+            } else {
+                if(ifCreate){
+                    polyline = aMap.addPolyline((new PolylineOptions()).addAll(pts)
+                            .width(10).setDottedLine(true).geodesic(true)
+                            .color(Color.argb(255, 1, 1, 1)));
+                }else{
+                    polyline.setPoints(pts);
+                }
+            }
+        }
+    }
+
+    public Marker drawMarker(LatLng latLng, Object object, BitmapDescriptor icon, String title, String snippet, boolean draggable){
+        MarkerOptions markerOption = new MarkerOptions();
+        markerOption.position(latLng);
+        markerOption.title(title).snippet(snippet);
+        markerOption.icon(icon);
+        // 将Marker设置为贴地显示，可以双指下拉地图查看效果
+        markerOption.setFlat(true);//设置marker平贴地图效果
+        markerOption.draggable(draggable);
+        final Marker marker =  aMap.addMarker(markerOption);
+        marker.setObject(object);
+        return marker;
     }
 
     class mBroadcastReceiver extends BroadcastReceiver{
-
         @Override
         public void onReceive(Context context, Intent intent) {
             switch(intent.getAction()){

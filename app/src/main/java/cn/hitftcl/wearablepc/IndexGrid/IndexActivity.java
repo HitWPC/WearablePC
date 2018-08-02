@@ -1,14 +1,9 @@
 package cn.hitftcl.wearablepc.IndexGrid;
 
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,11 +12,9 @@ import android.widget.TextView;
 
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
-import cn.hitftcl.wearablepc.Bluetooth.BTSettingActivity;
 import cn.hitftcl.wearablepc.Bluetooth.BluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.SensorDataService;
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
-import cn.hitftcl.wearablepc.Login.LoginActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
 import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.R;
@@ -114,7 +107,7 @@ public class IndexActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.menu_map, menu);
+        getMenuInflater().inflate(R.menu.menu_index, menu);
         return true;
     }
 
