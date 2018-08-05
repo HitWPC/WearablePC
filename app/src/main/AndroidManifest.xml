@@ -57,6 +57,16 @@
             android:name="com.amap.api.v2.apikey"
             android:value="545eb5cb2f33241fbe78e5349b8f3bc9" />
 
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="cn.hit.ftcl.wearablepc.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <activity android:name=".Login.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

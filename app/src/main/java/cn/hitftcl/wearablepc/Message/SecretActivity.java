@@ -1,13 +1,22 @@
 package cn.hitftcl.wearablepc.Message;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -28,6 +37,7 @@ import android.widget.Toast;
 import org.json.JSONObject;
 import org.litepal.crud.DataSupport;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +50,10 @@ import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.NetWork.TransType;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.Utils.MediaTypeJudgeUtil;
 import cn.hitftcl.wearablepc.Utils.PERMISSION;
 import cn.hitftcl.wearablepc.Utils.RequestPermission;
+import cn.hitftcl.wearablepc.Utils.UriUtil;
 
 public class SecretActivity extends AppCompatActivity {
     public static final String TAG = "debug001";
@@ -54,10 +66,6 @@ public class SecretActivity extends AppCompatActivity {
     private Handler mHandler;
 //    private ConnectionManager mConnectionManager;
 //    private ConnectionListener mConnectionListener;
-    //蓝牙适配器
-    BluetoothAdapter bluetoothAdapter;
-
-
 
     private List<Msg> mDataMsgs = new ArrayList<>();
     private List<String> mDataExpressions = new ArrayList<>();
@@ -68,6 +76,7 @@ public class SecretActivity extends AppCompatActivity {
 
     private Button mButtonVoice;
     private Button mButtonSecret;
+    private Button mButtonFile;
 
     private Button mButtonBackVoice;
     private Button mButtonBackSecret;
@@ -88,7 +97,9 @@ public class SecretActivity extends AppCompatActivity {
     private IntentFilter intentFilter;
     private LocalReceiver localReceiver;
     private LocalBroadcastManager localBroadcastManager;
-
+    
+    //文件路径
+    private String filePath;
 
     private final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
     private int userId;
@@ -111,6 +122,8 @@ public class SecretActivity extends AppCompatActivity {
 
         //聊天消息数据初始化
         initMsgAndExpression(userId);
+
+        Toast.makeText(this, "消息数量："+mDataMsgs.size(), Toast.LENGTH_SHORT).show();
 
         //RecyclerView
         mRecyclerView = (MyRecyclerView) findViewById(R.id.msg_recycler_view_secret);
@@ -141,6 +154,7 @@ public class SecretActivity extends AppCompatActivity {
         //Button：切换到语音/条密
         mButtonSecret = (Button)findViewById(R.id.id_button_secret);
         mButtonVoice = (Button)findViewById(R.id.id_button_voice);
+        mButtonFile = (Button)findViewById(R.id.id_button_file);
 
         //Button：返回按钮
         mButtonBackSecret = (Button)findViewById(R.id.id_button_back_secret);
@@ -264,6 +278,17 @@ public class SecretActivity extends AppCompatActivity {
             }
         });
 
+        //切换到文件选择并发送
+        mButtonFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");//无类型限制
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent, 1);
+            }
+        });
+
         //回到主界面
         mButtonBackSecret.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -285,6 +310,7 @@ public class SecretActivity extends AppCompatActivity {
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
         intentFilter = new IntentFilter();
         intentFilter.addAction("com.hitwearable.LOCAL_BROADCAST_SECRET");
+        intentFilter.addAction("com.hitwearable.LOCAL_BROADCAST_IMAGE");
         localReceiver = new LocalReceiver(userId);
         localBroadcastManager.registerReceiver(localReceiver, intentFilter);
 
@@ -292,12 +318,12 @@ public class SecretActivity extends AppCompatActivity {
         Log.d(TAG, "注册了");
     }
 
-    @Override
-    public void onBackPressed() {//按下返回后重新进入SecretListActivity
-        Intent intent = new Intent(SecretActivity.this, SecretListActivity.class);
-        startActivity(intent);
-        finish();
-    }
+//    @Override
+//    public void onBackPressed() {//按下返回后重新进入SecretListActivity
+//        Intent intent = new Intent(SecretActivity.this, SecretListActivity.class);
+//        startActivity(intent);
+//        finish();
+//    }
 
     /**
      * 本地广播接收器
@@ -313,7 +339,9 @@ public class SecretActivity extends AppCompatActivity {
             Bundle bundle = intent.getExtras();
             Msg msg = (Msg)bundle.getSerializable("msg");
             if(msg.getSender() == userId) {//如果收到的消息是当前用户发送的
+                Log.d(TAG,"before-add-size:---->"+mDataMsgs.size());
                 mDataMsgs.add(msg);
+                Log.d(TAG,"after-add-size:---->"+mDataMsgs.size());
                 //view更新数据
                 mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
                 //设置位置
@@ -355,8 +383,8 @@ public class SecretActivity extends AppCompatActivity {
             mDataExpressions.add(e.getContent());
         }
         mDataExpressions.add("+ 编辑常用短语");
-        mAdapterList = new ArrayAdapter<String>(SecretActivity.this, android.R.layout.simple_list_item_1, mDataExpressions);
-        mListView = (ListView)findViewById(R.id.id_list_expression);
+        mAdapterList = new ArrayAdapter<>(SecretActivity.this, android.R.layout.simple_list_item_1, mDataExpressions);
+        mListView = findViewById(R.id.id_list_expression);
         mListView.setAdapter(mAdapterList);
     }
 
@@ -364,9 +392,9 @@ public class SecretActivity extends AppCompatActivity {
      * 初始化消息列表和常用短语
      */
     private void initMsgAndExpression(int userId){
-        //数据库查询指定队友的条密和语音
+        //数据库查询指定队友消息记录
         mDataMsgs = DataSupport
-                .where("(catagory = ? or catagory = ?) and (receiver = ? or sender = ?)", String.valueOf(Msg.CATAGORY_TEXT), String.valueOf(Msg.CATAGORY_VOICE), String.valueOf(userId), String.valueOf(userId))
+                .where("(receiver = ? or sender = ?)",  String.valueOf(userId), String.valueOf(userId))
                 .find(Msg.class);
         //数据库查询常用短语
         List<Expression> expressionList = DataSupport.findAll(Expression.class);
@@ -375,93 +403,6 @@ public class SecretActivity extends AppCompatActivity {
         }
         mDataExpressions.add("+ 编辑常用短语");
     }
-//    /**
-//        初始化蓝牙
-//     */
-//    private void initBlue(final int userId){
-//        //蓝牙初始化
-//        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-//        if(!bluetoothAdapter.isEnabled()){
-//            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//            startActivity(intent);
-//            finish();
-//            return;
-//        }
-
-//        //设置可被其他蓝牙设备发现
-//        if(bluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-//            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-//            //设置为一直开启
-//            intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-//            startActivity(intent);
-//        }
-//        mConnectionListener = new ConnectionListener() {
-//            @Override
-//            public void onConnectStateChange(int oldState, int State) {
-//                //连接状态的变化通知给UI线程，请UI线程处理
-//                mHandler.obtainMessage(MSG_UPDATE_UI).sendToTarget();
-//                System.out.println("更新UI界面");
-//            }
-//
-//            @Override
-//            public void onListenStateChange(int oldState, int State) {
-//                //监听状态的变化通知给UI线程，请UI线程处理
-//                mHandler.obtainMessage(MSG_UPDATE_UI).sendToTarget();
-//            }
-//
-//            @Override
-//            public void onSendData(boolean suc, byte[] data) {
-//                //将发送的数据交给UI线程，请UI线程处理
-//                mHandler.obtainMessage(MSG_SENT_DATA, suc?1:0, 0, data).sendToTarget();
-//            }
-//
-//            @Override
-//            public void onReadData(byte[] data) {
-//                //将收到的数据交给UI线程，请UI线程处理
-//                mHandler.obtainMessage(MSG_RECEIVE_DATA,  data).sendToTarget();
-//            }
-//        };
-//        //给主线程服务的Handler
-//        mHandler = new Handler(){
-//            @Override
-//            public void handleMessage(Message msg) {
-//
-//                switch (msg.what) {
-//                    case MSG_SENT_DATA: {
-//                        //UI线程处理发送成功的数据，
-//                        //把文字内容展示到主界面上
-//                        //获取发送的文字内容
-//                    }
-//                    break;
-//
-//                    case MSG_RECEIVE_DATA: {
-//                        //UI线程处理接收到的对方发送的数据，
-//                        //把文字内容展示到主界面上
-//                        byte [] data = (byte []) msg.obj;
-//                        if(data != null) {
-//                            long current = System.currentTimeMillis();
-//                            Msg mwssage = new Msg(userId,self.getId(), new String(data), current, Msg.TYPE_RECEIVED, Msg.CATAGORY_TEXT);
-//                            mDataMsgs.add(mwssage);
-//                            //view更新数据
-//                            mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
-//                            //设置位置
-//                            mRecyclerView.scrollToPosition(mDataMsgs.size() - 1);
-//                        }
-//                    }
-//                    break;
-//
-//                    case MSG_UPDATE_UI: {
-//                        //更新界面上的菜单等显示状态
-//                    }
-//                    break;
-//                }
-//            }
-//        };
-//        mConnectionManager = new ConnectionManager(mConnectionListener);
-//        mConnectionManager.startListen();
-//        UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
-//        mConnectionManager.connect(userIPInfo.getBlueMac());
-//    }
 
     /**
      * toolbar返回按钮响应事件
@@ -485,7 +426,6 @@ public class SecretActivity extends AppCompatActivity {
             final String action = intent.getAction();
             if (ReceiveService.ACTION_MESSAGE_RECEIVE.equals(action)) {     //收到数据
                 //希望自动刷新消息，未实现
-
             }
 
         }
@@ -497,4 +437,43 @@ public class SecretActivity extends AppCompatActivity {
         return intentFilter;
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
+            Uri uri = data.getData();
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {//4.4以后
+                try{
+                    filePath = UriUtil.getPath(this, uri);
+//                    Toast.makeText(this,filePath,Toast.LENGTH_SHORT).show();
+                    int catagory = Msg.CATAGORY_IMAGE;
+                    if(MediaTypeJudgeUtil.isImageFileType(filePath)){
+                        catagory = Msg.CATAGORY_IMAGE;
+                        Log.d(TAG, "发送图片");
+                    }else if(MediaTypeJudgeUtil.isVideoFileType(filePath)){
+                        catagory = Msg.CATAGORY_VIDEO;
+                        Log.d(TAG, "发送视频");
+                    }
+                    //数据库新增
+                    File file = new File(filePath);
+                    Msg msg = new Msg(self.getId(), userId, filePath, System.currentTimeMillis(), Msg.TYPE_SENT, catagory);
+                    msg.save();
+                    //发送图片到接收端
+                    NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.FILE_TYPE, filePath);
+                    mDataMsgs.add(msg);
+                    //view更新数据
+                    mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
+                    //设置位置
+                    mRecyclerView.scrollToPosition(mDataMsgs.size() - 1);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            } else {//4.4以下下系统调用方法
+//                path = getRealPathFromURI(uri);
+                Toast.makeText(this, "系统版本过低", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
 }
+

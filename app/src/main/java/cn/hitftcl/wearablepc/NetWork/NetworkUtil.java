@@ -46,7 +46,7 @@ import cn.hitftcl.wearablepc.Model.UserIPInfo;
  */
 public class NetworkUtil {
     private static final String TAG = "debug001";
-    private static final int INPUT_STREAM_READ_TIMEOUT = 300;
+    private static final int INPUT_STREAM_READ_TIMEOUT = 3000;
     private static final int CONNECT_TIMEOUT = 5000;
 
     private final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
@@ -120,7 +120,8 @@ public class NetworkUtil {
                     dataOutputStream.writeUTF(content);
 
                     //发送文件类型
-                    if(typeName.equals(TransType.FILE_TYPE)){
+
+                    if(typeName.equals(TransType.FILE_TYPE.name())){
                         DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(content)));
 
                         int bufferSize = 1024;
@@ -145,11 +146,11 @@ public class NetworkUtil {
 
                     }
                     //发送文本类型
-                    else if(typeName.equals(TransType.TEXT_TYPE)){
+                    else if(typeName.equals(TransType.TEXT_TYPE.name())){
                         dataOutputStream.flush();
                     }
                     //发送传感器数据类型 转换后的Gson（String类型）
-                    else if(typeName.equals(TransType.SENSOR_TYPE) || typeName.equals(TransType.BD_TYPE)){
+                    else if(typeName.equals(TransType.SENSOR_TYPE.name()) || typeName.equals(TransType.BD_TYPE.name())){
                         dataOutputStream.flush();
                     }
 

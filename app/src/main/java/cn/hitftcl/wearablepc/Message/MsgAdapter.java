@@ -1,12 +1,16 @@
 package cn.hitftcl.wearablepc.Message;
 
+import android.app.Application;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -25,6 +29,7 @@ import org.litepal.crud.DataSupport;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -37,6 +42,7 @@ import cn.hitftcl.wearablepc.Model.Msg;
  */
 
 public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
+    public static final String TAG = "debug001";
     private List<Msg> mMsgList;
 
     private Context mContext;
@@ -68,6 +74,39 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
                             }
                         });
                         break;
+                    case Msg.CATAGORY_IMAGE:
+                        //调用系统自带的播放器
+                        File outputImage = new File(mMsgList.get(position).getPath());
+                        Uri imageUri;
+                        Intent imageIntent = new Intent(Intent.ACTION_VIEW);
+                        if(Build.VERSION.SDK_INT >= 24){
+                            imageUri = FileProvider.getUriForFile(MyApplication.getContext(), "cn.hit.ftcl.wearablepc.fileprovider", outputImage);
+                            imageIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        }else {
+                            imageUri = Uri.fromFile(outputImage);
+
+                            imageIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        }
+
+                        imageIntent.setDataAndType(imageUri, "image/*");
+                        mContext.startActivity(imageIntent);
+                        break;
+                    case Msg.CATAGORY_VIDEO:
+                        //调用系统自带的播放器
+                        Log.d("MsgAdapter", mMsgList.get(position).getPath());
+                        File outputVideo = new File(mMsgList.get(position).getPath());
+                        Uri videoUri;
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        if(Build.VERSION.SDK_INT >= 24){
+                            videoUri = FileProvider.getUriForFile(MyApplication.getContext(), "cn.hit.ftcl.wearablepc.fileprovider", outputVideo);
+                            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        }else {
+                            videoUri = Uri.fromFile(outputVideo);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        }
+                        intent.setDataAndType(videoUri, "video/*");
+                        mContext.startActivity(intent);
+                        break;
                     case Msg.CATAGORY_TEXT:
                         String text =  mMsgList.get(position).getPath();
                         Log.d("122223e34q", text);
@@ -96,13 +135,17 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
                         //调用系统自带的播放器
                         File outputImage = new File(mMsgList.get(position).getPath());
                         Uri imageUri;
+                        Intent imageIntent = new Intent(Intent.ACTION_VIEW);
                         if(Build.VERSION.SDK_INT >= 24){
-                            imageUri = FileProvider.getUriForFile(MyApplication.getContext(), "com.hitwearable.fileprovider", outputImage);
+                            imageUri = FileProvider.getUriForFile(MyApplication.getContext(), "cn.hit.ftcl.wearablepc.fileprovider", outputImage);
+                            imageIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         }else {
                             imageUri = Uri.fromFile(outputImage);
+
+                            imageIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         }
-                        Intent imageIntent = new Intent(Intent.ACTION_VIEW);
-                        imageIntent.setDataAndType(imageUri, "image/jpeg");
+
+                        imageIntent.setDataAndType(imageUri, "image/*");
                         mContext.startActivity(imageIntent);
                         break;
                     case Msg.CATAGORY_VIDEO:
@@ -110,20 +153,23 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
                         Log.d("MsgAdapter", mMsgList.get(position).getPath());
                         File outputVideo = new File(mMsgList.get(position).getPath());
                         Uri videoUri;
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
                         if(Build.VERSION.SDK_INT >= 24){
-                            videoUri = FileProvider.getUriForFile(MyApplication.getContext(), "com.hitwearable.fileprovider", outputVideo);
+                            videoUri = FileProvider.getUriForFile(MyApplication.getContext(), "cn.hit.ftcl.wearablepc.fileprovider", outputVideo);
+                            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         }else {
                             videoUri = Uri.fromFile(outputVideo);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         }
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setDataAndType(videoUri, "video/mp4");
+                        intent.setDataAndType(videoUri, "video/*");
                         mContext.startActivity(intent);
+                        break;
                     case Msg.CATAGORY_TEXT:
                         String text =  mMsgList.get(position).getPath();
-                        Log.d("122223e34q", text);
-
 //                        SpeechSynthesisUtil.getUtil().start(text);
+                        break;
                     default:
+                        break;
                 }
             }
         });
@@ -164,13 +210,52 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
                 case Msg.CATAGORY_VOICE:
                     holder.voiceLeft.setVisibility(View.VISIBLE);
                     holder.textLeft.setVisibility(View.GONE);
+                    holder.imageLeft.setVisibility(View.GONE);
+                    Log.d(TAG, "收到语音");
                     break;
                 case Msg.CATAGORY_TEXT:
                     holder.voiceLeft.setVisibility(View.GONE);
                     holder.textLeft.setVisibility(View.VISIBLE);
                     holder.textLeft.setText(msg.getPath());
+                    holder.imageLeft.setVisibility(View.GONE);
+                    Log.d(TAG, "收到文本");
+                    break;
+                case Msg.CATAGORY_IMAGE:
+                    holder.voiceLeft.setVisibility(View.GONE);
+                    holder.textLeft.setVisibility(View.GONE);
+                    holder.imageLeft.setVisibility(View.VISIBLE);
+                    //图片处理
+
+                    File outputImage = new File(msg.getPath());
+                    Uri imageUri;
+                    if(Build.VERSION.SDK_INT >= 24){
+                        imageUri = FileProvider.getUriForFile(MyApplication.getContext(), "cn.hit.ftcl.wearablepc.fileprovider", outputImage);
+                    }else {
+                        imageUri = Uri.fromFile(outputImage);
+                    }
+                    Glide.with(mContext).load(imageUri).into(holder.imageLeft);
+                    Log.d(TAG, "收到图片");
+                    Log.d(TAG, msg.getPath());
+                    break;
+                case Msg.CATAGORY_VIDEO:
+                    holder.voiceLeft.setVisibility(View.GONE);
+                    holder.textLeft.setVisibility(View.GONE);
+                    holder.imageLeft.setVisibility(View.VISIBLE);
+                    //图片处理
+                    File outputVideo = new File(msg.getPath());
+                    Uri videoUri;
+                    if(Build.VERSION.SDK_INT >= 24){
+                        videoUri = FileProvider.getUriForFile(MyApplication.getContext(), "cn.hit.ftcl.wearablepc.fileprovider", outputVideo);
+                    }else {
+                        videoUri = Uri.fromFile(outputVideo);
+                    }
+                    Glide.with(mContext).load(videoUri).into(holder.imageLeft);//依然加载成图片，点击后播放视频
+                    Log.d(TAG, "收到视频");
+                    Log.d(TAG, msg.getPath());
                     break;
                 default:
+                    Log.d(TAG, "收到默认");
+                    break;
             }
         }
         else if(msg.getType() == Msg.TYPE_SENT){
@@ -199,7 +284,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
                     File outputImage = new File(msg.getPath());
                     Uri imageUri;
                     if(Build.VERSION.SDK_INT >= 24){
-                        imageUri = FileProvider.getUriForFile(MyApplication.getContext(), "com.hitwearable.fileprovider", outputImage);
+                        imageUri = FileProvider.getUriForFile(MyApplication.getContext(), "cn.hit.ftcl.wearablepc.fileprovider", outputImage);
                     }else {
                         imageUri = Uri.fromFile(outputImage);
                     }
@@ -213,6 +298,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
 //                    }
 //                    if(bitmap != null)
 //                        holder.imageRight.setImageBitmap(comp(bitmap));
+                    break;
                 case Msg.CATAGORY_VIDEO:
                     holder.voiceRight.setVisibility(View.GONE);
                     holder.textRight.setVisibility(View.GONE);
@@ -221,13 +307,15 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
                     File outputVideo = new File(msg.getPath());
                     Uri videoUri;
                     if(Build.VERSION.SDK_INT >= 24){
-                        videoUri = FileProvider.getUriForFile(MyApplication.getContext(), "com.hitwearable.fileprovider", outputVideo);
+                        videoUri = FileProvider.getUriForFile(MyApplication.getContext(), "cn.hit.ftcl.wearablepc.fileprovider", outputVideo);
                     }else {
                         videoUri = Uri.fromFile(outputVideo);
                     }
+//                    videoUri =getImageContentUri(outputVideo.getAbsolutePath());
                     Glide.with(mContext).load(videoUri).into(holder.imageRight);//依然加载成图片，点击后播放视频
                     break;
                 default:
+                    break;
             }
         }
     }
@@ -247,7 +335,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
         View voiceRight;
         TextView textLeft;
         TextView textRight;
-        ImageView imageRight;
+        ImageView imageRight, imageLeft;
         public ViewHolder(View itemView) {
             super(itemView);
             leftLayout = (LinearLayout) itemView.findViewById(R.id.left_layout);
@@ -259,6 +347,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder>{
             textLeft = (TextView)itemView.findViewById(R.id.id_text_left);
             textRight = (TextView)itemView.findViewById(R.id.id_text_right);
             imageRight = (ImageView)itemView.findViewById(R.id.id_image_right);
+            imageLeft= itemView.findViewById(R.id.id_image_left);
         }
     }
 

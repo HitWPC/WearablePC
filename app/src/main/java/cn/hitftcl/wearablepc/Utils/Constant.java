@@ -15,6 +15,9 @@ public class Constant {
     public static String MY_IP = "";
     public static int MY_PORT = 0;
     public static final String mapInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/map";
+    public static final String imageInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/image";
+    public static final String videoInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/video";
+    public static final String voiceInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/voice";
     static {
         UserIPInfo me = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
         if(me!=null){

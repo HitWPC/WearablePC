@@ -97,7 +97,6 @@ public class MapActivity extends AppCompatActivity {
         setContentView(R.layout.activity_map);
 
 
-
         Intent myIntent = getIntent();
         String intent_content = myIntent.getStringExtra("Syn_Content");
         if(intent_content!=null && !intent_content.equals("")){
