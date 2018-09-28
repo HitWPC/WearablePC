@@ -46,6 +46,7 @@ public class LoginActivity extends AppCompatActivity {
         //存在该用户，直接记住用户名
         if(self != null && self.getUsername() != null){
             mUsername.setText(self.getUsername());
+//            mPassword.setText(self.getPassword());
         }
 
         mButtonLogin.setOnClickListener(new View.OnClickListener() {

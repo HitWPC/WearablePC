@@ -16,8 +16,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,7 +27,11 @@ import java.util.List;
 import java.util.Map;
 
 import cn.hitftcl.ble.BleController;
+import cn.hitftcl.ble.UUIDs;
+import cn.hitftcl.ble.callback.OnWriteCallback;
+import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.Utils.PickerView;
 import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
 /**
@@ -101,6 +107,70 @@ public class ConnectedFragment extends Fragment{
                 });
                 builder.create().show();
                 return true;
+            }
+        });
+
+        connnectedLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                final String []numbers = new String[1];
+                numbers[0] = "08";//预防不选择时返回0
+                final int j= i;
+//                final EditText et = new EditText(view.getContext());
+                final PickerView et = new PickerView(view.getContext());
+                List<String> data = new ArrayList<String>();
+                for (int s = 1; s <= 15; s++)
+                {
+                    data.add(s<10?"0" + s:""+s);
+                }
+                et.setData(data);
+                et.setOnSelectListener(new PickerView.onSelectListener() {
+                    @Override
+                    public void onSelect(String text) {
+                        numbers[0] = text;
+                    }
+                });
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                builder.setView(et);
+                builder.setTitle("请选择速率(单位：s)");
+                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        arg0.dismiss();
+                    }
+                });
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    final int k =j;
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        // TODO Auto-generated method stub
+                        Toast.makeText(MyApplication.getContext(), numbers[0]+"s",Toast.LENGTH_LONG).show();
+                        final String address = conn_btDevices.get(k).get("地址");
+                        for(Map.Entry<BluetoothDevice, BluetoothGatt> entry : conn_device_hashmap.entrySet()){
+                            BluetoothDevice device = entry.getKey();
+                            if(device.getAddress().equals(address)){
+                                Log.d(TAG,"地址："+device.getAddress());
+//                                mBleController.closeBleConn(device);
+                                byte[] buf =numbers[0].getBytes();
+                                mBleController.writeBuffer_Device(device, UUIDs.UUID_ENVIRONMENT_Service, UUIDs.UUID_ENVIRONMENT_Char,buf, new OnWriteCallback() {
+                                    @Override
+                                    public void onSuccess() {
+                                        Log.d(TAG, "修改速率="+numbers[0]+"成功");
+                                    }
+
+                                    @Override
+                                    public void onFailed(int state) {
+                                        Log.d(TAG, "修改速率="+numbers[0]+"失败");
+                                    }
+                                });
+                                break;
+                            }
+                        }
+
+                    }
+                });
+                builder.create().show();
             }
         });
 

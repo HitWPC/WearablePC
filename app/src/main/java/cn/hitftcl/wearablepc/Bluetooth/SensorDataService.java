@@ -7,26 +7,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.ScrollView;
 
 import com.amap.api.maps.CoordinateConverter;
 import com.amap.api.maps.model.LatLng;
 
 import org.litepal.crud.DataSupport;
 
-import java.lang.reflect.Array;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,10 +103,10 @@ public class SensorDataService extends Service {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static synchronized void char6_store(byte[] data, String uuid) {
         switch (uuid){
-            case UUIDs.UUID_ENVIRONMENT:
+            case UUIDs.UUID_ENVIRONMENT_Char:
                 deal_environment(data);
                 break;
-            case UUIDs.UUID_BD:
+            case UUIDs.UUID_BD_Char:
 //                Log.d(TAG, new String(data));
                 temp_bd_data.append(new String(data));
                 String info=ifHasDataNeeded(temp_bd_data);

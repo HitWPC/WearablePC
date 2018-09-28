@@ -11,11 +11,9 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
-import android.nfc.Tag;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 
 import java.util.Arrays;
@@ -43,14 +41,17 @@ public class BleController {
     private static String LOGTAG = "H_Ble_Lib";
     public static final String  TAG = "debug001";
 
-    //BleCOntroller实例
+    //BleController实例
     private static BleController sBleManager;
     private Context mContext;
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mAdapter;
+    //BluetoothDevice和Gatt的映射
     private HashMap<BluetoothDevice,BluetoothGatt> ConnectedDvices = new HashMap<>();
+
     private BluetoothGatt mBluetoothGatt;
+    private HashMap<BluetoothDevice,BluetoothGattCharacteristic> DevicesGattChar = new HashMap<>();
     private BluetoothGattCharacteristic gattCharacteristic;
 
     private BleGattCallback mGattCallback;
@@ -59,9 +60,11 @@ public class BleController {
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
     //发起连接是否有响应
-//    private boolean isConnectResponse = false;
+    private boolean isConnectResponse = false;
     //获取到所有服务的集合
     private HashMap<String, Map<String, BluetoothGattCharacteristic>> servicesMap = new HashMap<>();
+    //保存所有设备的所有服务
+    private HashMap<BluetoothGatt, HashMap<String, Map<String, BluetoothGattCharacteristic>>> devicesServicesMap = new HashMap<>();
     //默认扫描时间：5s
     private static final int SCAN_TIME = 5000;
     //默认连接超时时间:6s
@@ -170,11 +173,9 @@ public class BleController {
 //            mBluetoothGatt.close();
 //        }
         reset();
-        if (!ConnectedDvices.containsKey(remoteDevice)){
-            mBluetoothGatt = remoteDevice.connectGatt(mContext, false, mGattCallback);
-        }
-        else
-            mBluetoothGatt = ConnectedDvices.get(remoteDevice);
+
+        mBluetoothGatt = remoteDevice.connectGatt(mContext, true, mGattCallback);//自动连接
+
         ConnectedDvices.put(remoteDevice,mBluetoothGatt);
         Log.e(LOGTAG, "connecting mac-address:" + devicesAddress);
         delayConnectResponse(connectionTimeOut,remoteDevice);
@@ -215,12 +216,61 @@ public class BleController {
     }
 
     /**
+     * 发送数据
+     * @param bluetoothDevice
+     * @param buf
+     * @param writeCallback
+     */
+
+    public void writeBuffer_Device(BluetoothDevice bluetoothDevice, String serviceUUID, String characterUUID, byte[] buf, OnWriteCallback writeCallback) {
+        this.writeCallback = writeCallback;
+        if (!isEnable()) {
+            writeCallback.onFailed(OnWriteCallback.FAILED_BLUETOOTH_DISABLE);
+            Log.e(LOGTAG, "FAILED_BLUETOOTH_DISABLE");
+            return;
+        }
+        BluetoothGatt gatt = ConnectedDvices.get(bluetoothDevice);
+        BluetoothGattCharacteristic characteristic = getBluetoothGattCharacteristic(bluetoothDevice, serviceUUID, characterUUID);
+
+        if (null == characteristic) {
+            writeCallback.onFailed(OnWriteCallback.FAILED_INVALID_CHARACTER);
+            Log.e(LOGTAG, "FAILED_INVALID_CHARACTER");
+            return;
+        }
+
+        //设置数组进去
+        characteristic.setValue(buf);
+
+
+        //发送
+        boolean b = false;
+        if(gatt!=null){
+            b = gatt.writeCharacteristic(characteristic);
+        }else{
+            Log.e(LOGTAG, "*************************gatt is null");
+        }
+
+
+        Log.e(LOGTAG, "send:" + b + "data：" + bytesToHexString(buf));
+    }
+
+    /**
      * 返回已连接设备的HashMap
      * @return
      */
     public HashMap<BluetoothDevice,BluetoothGatt> getConnectedDvices(){
         return  ConnectedDvices;
     }
+
+    /**
+     * 返回设备和监听的属性
+     * @return
+     */
+    public HashMap<BluetoothDevice, BluetoothGattCharacteristic> getDevicesGattChar(){
+        return DevicesGattChar;
+    }
+
+
 
     /**
      * 设置读取数据的监听
@@ -263,7 +313,7 @@ public class BleController {
     /**
      * 将byte数组转为16进制字符串 此方法主要目的为方便Log的显示
      */
-    public String bytesToHexString(byte[] src) {
+    private String bytesToHexString(byte[] src) {
         StringBuilder stringBuilder = new StringBuilder("");
         if (src == null || src.length <= 0) {
             return null;
@@ -294,7 +344,7 @@ public class BleController {
      * 复位
      */
     private void reset() {
-//        isConnectResponse = false;
+        isConnectResponse = false;
         servicesMap.clear();
     }
 
@@ -308,11 +358,12 @@ public class BleController {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-//                if (!isConnectResponse && !isBreakByMyself) {
-//                    Log.e(LOGTAG, "connect timeout");
-//                    disConnection(bluetoothDevice);
+                if (!isConnectResponse) {
+                    Log.e(LOGTAG, "connect timeout");
+                    disConnection(bluetoothDevice);
 //                    reConnect();
-//                } else {
+                }
+//                else {
 //                    isBreakByMyself = false;
 //                }
             }
@@ -328,7 +379,10 @@ public class BleController {
             Log.e(LOGTAG, "disconnection error maybe no init");
             return;
         }
-        ConnectedDvices.get(bluetoothDevice).disconnect();
+        BluetoothGatt bluetoothGatt = ConnectedDvices.get(bluetoothDevice);
+        devicesServicesMap.remove(bluetoothGatt);
+        bluetoothGatt.disconnect();
+        ConnectedDvices.remove(bluetoothDevice);
         reset();
     }
 
@@ -380,10 +434,10 @@ public class BleController {
                     for (int j = 0; j < characteristicSize; j++) {
                         Log.d(LOGTAG,"characteristic:  "+ characteristics.get(j).getUuid().toString());
                         charMap.put(characteristics.get(j).getUuid().toString(), characteristics.get(j));
-                        if (characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT)
-                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD)) {
+                        if (characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char)
+                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD_Char)) {
                             if (enableNotification(true, characteristics.get(j))) {
-//                                isConnectResponse = true;
+                                isConnectResponse = true;
                                 connSuccess();
                             } else {
                                 reConnect();
@@ -392,6 +446,7 @@ public class BleController {
                     }
                     servicesMap.put(serviceUuid, charMap);
                 }
+                devicesServicesMap.put(gatt, servicesMap);
                 // TODO　打印搜索到的服务
 //                printServices(mBluetoothGatt);
             }
@@ -503,23 +558,33 @@ public class BleController {
      * @param serviceUUID   服务UUID
      * @param characterUUID 特征UUID
      */
-    private BluetoothGattCharacteristic getBluetoothGattCharacteristic(String serviceUUID, String characterUUID) {
+    private BluetoothGattCharacteristic getBluetoothGattCharacteristic(BluetoothDevice bluetoothDevice, String serviceUUID, String characterUUID) {
         if (!isEnable()) {
             throw new IllegalArgumentException(" Bluetooth is no enable please call BluetoothAdapter.enable()");
         }
-        if (null == mBluetoothGatt) {
-            Log.e(LOGTAG, "mBluetoothGatt is null");
+//        if (null == mBluetoothGatt) {
+//            Log.e(LOGTAG, "mBluetoothGatt is null");
+//            return null;
+//        }
+        BluetoothGatt bluetoothGatt = ConnectedDvices.get(bluetoothDevice);
+        if(bluetoothGatt==null){
+            Log.d(TAG, "设备已经断开连接");
             return null;
         }
 
-        //找服务
-        Map<String, BluetoothGattCharacteristic> bluetoothGattCharacteristicMap = servicesMap.get(serviceUUID);
+        HashMap<String, Map<String, BluetoothGattCharacteristic>> ServicesMap = devicesServicesMap.get(bluetoothGatt);
+        if(ServicesMap==null){
+            return null;
+        }
+
+        //找特定服务
+        Map<String, BluetoothGattCharacteristic> bluetoothGattCharacteristicMap = ServicesMap.get(serviceUUID);
         if (null == bluetoothGattCharacteristicMap) {
             Log.e(LOGTAG, "Not found the serviceUUID!");
             return null;
         }
 
-        //找特征
+        //找特定特征
         Set<Map.Entry<String, BluetoothGattCharacteristic>> entries = bluetoothGattCharacteristicMap.entrySet();
         BluetoothGattCharacteristic gattCharacteristic = null;
         for (Map.Entry<String, BluetoothGattCharacteristic> entry : entries) {
