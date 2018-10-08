@@ -16,7 +16,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -32,7 +31,6 @@ import cn.hitftcl.ble.callback.OnWriteCallback;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.PickerView;
-import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
 /**
  * Created by Administrator on 2018/6/22.
@@ -152,11 +150,65 @@ public class ConnectedFragment extends Fragment{
                             if(device.getAddress().equals(address)){
                                 Log.d(TAG,"地址："+device.getAddress());
 //                                mBleController.closeBleConn(device);
-                                byte[] buf =numbers[0].getBytes();
-                                mBleController.writeBuffer_Device(device, UUIDs.UUID_ENVIRONMENT_Service, UUIDs.UUID_ENVIRONMENT_Char,buf, new OnWriteCallback() {
+                                byte temp;
+                                switch (numbers[0]){
+                                    case "01":
+                                        temp=0x01;
+                                        break;
+                                    case "02":
+                                        temp = 0x02;
+                                        break;
+                                    case "03":
+                                        temp = 0x03;
+                                        break;
+                                    case "04":
+                                        temp = 0x04;
+                                        break;
+                                    case "05":
+                                        temp = 0x05;
+                                        break;
+                                    case "06":
+                                        temp = 0x06;
+                                        break;
+                                    case "07":
+                                        temp = 0x07;
+                                        break;
+                                    case "08":
+                                        temp = 0x08;
+                                        break;
+                                    case "09":
+                                        temp = 0x09;
+                                        break;
+                                    case "10":
+                                        temp = 0x0a;
+                                        break;
+                                    case "11":
+                                        temp = 0x0b;
+                                        break;
+                                    case "12":
+                                        temp = 0x0c;
+                                        break;
+                                    case "13":
+                                        temp = 0x0d;
+                                        break;
+                                    case "14":
+                                        temp = 0x0e;
+                                        break;
+                                    case "15":
+                                        temp = 0x0f;
+                                        break;
+                                    default:
+                                        temp = 0x01;
+                                        break;
+                                }
+//                                byte[] buf =numbers[0].getBytes();
+                                final byte[] buf = new byte[1];
+                                buf[0] = temp;
+//                                byte[] buf = ;
+                                mBleController.writeBuffer_Device(device, UUIDs.UUID_ENVIRONMENT_Service, UUIDs.UUID_ENVIRONMENT_Char_Write,buf, new OnWriteCallback() {
                                     @Override
                                     public void onSuccess() {
-                                        Log.d(TAG, "修改速率="+numbers[0]+"成功");
+                                        Log.d(TAG, "修改速率="+numbers[0]+"  "+buf[0]+"成功");
                                     }
 
                                     @Override

@@ -434,7 +434,7 @@ public class BleController {
                     for (int j = 0; j < characteristicSize; j++) {
                         Log.d(LOGTAG,"characteristic:  "+ characteristics.get(j).getUuid().toString());
                         charMap.put(characteristics.get(j).getUuid().toString(), characteristics.get(j));
-                        if (characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char)
+                        if (characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char_Notify)
                                 || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD_Char)) {
                             if (enableNotification(true, characteristics.get(j))) {
                                 isConnectResponse = true;
@@ -495,7 +495,7 @@ public class BleController {
                             writeCallback.onSuccess();
                         }
                     });
-                    Log.e(LOGTAG, "Send data success!");
+                    Log.d(TAG, "Send data success!");
                 } else {
                     runOnMainThread(new Runnable() {
                         @Override
@@ -503,7 +503,7 @@ public class BleController {
                             writeCallback.onFailed(OnWriteCallback.FAILED_OPERATION);
                         }
                     });
-                    Log.e(LOGTAG, "Send data failed!");
+                    Log.d(TAG, "Send data failed!");
                 }
             }
         }

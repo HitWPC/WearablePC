@@ -13,6 +13,7 @@ import android.widget.TextView;
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
 import cn.hitftcl.wearablepc.Bluetooth.BluetoothActivity;
+import cn.hitftcl.wearablepc.Bluetooth.ClassicBluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.SensorDataService;
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
@@ -121,9 +122,13 @@ public class IndexActivity extends AppCompatActivity {
                 return true;
 //            case R.id.about_us:
 //                return true;
-            case R.id.btset:
+            case R.id.bleset:
                 Intent btset_intent = new Intent(IndexActivity.this, BluetoothActivity.class);
                 startActivity(btset_intent);
+                return true;
+            case R.id.classicbtset:
+                Intent classic_intent = new Intent(IndexActivity.this, ClassicBluetoothActivity.class);
+                startActivity(classic_intent);
                 return true;
 //            case R.id.voicetest:
 //                Intent voice_intent = new Intent(IndexActivity.this, VoiceControlActivity.class);

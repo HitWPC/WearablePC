@@ -12,8 +12,10 @@ android {
         multiDexEnabled true
     }
 
-    android {compileOptions.encoding = "utf8"}
-
+    android { compileOptions.encoding = "utf8" }
+    configurations.all {
+        resolutionStrategy.force 'com.android.support:support-annotations:27.1.1'
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -41,4 +43,5 @@ dependencies {
     implementation files('libs/AMap3DMap_6.2.0_AMapSearch_6.1.0_20180427.jar')
     implementation project(path: ':ble')
     compile 'com.google.code.gson:gson:2.8.0'
+    compile project(path: ':classicblue')
 }

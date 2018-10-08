@@ -103,7 +103,7 @@ public class SensorDataService extends Service {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static synchronized void char6_store(byte[] data, String uuid) {
         switch (uuid){
-            case UUIDs.UUID_ENVIRONMENT_Char:
+            case UUIDs.UUID_ENVIRONMENT_Char_Notify:
                 deal_environment(data);
                 break;
             case UUIDs.UUID_BD_Char:
@@ -233,6 +233,10 @@ public class SensorDataService extends Service {
     }
 
     private static void deal_environment(byte[] data) {
+        if(data.length<12){
+            Log.d(TAG,"环境数据不完整！");
+            return;
+        }
         String showString="";
         if(data[1]==0){
             if(data[0]==0){

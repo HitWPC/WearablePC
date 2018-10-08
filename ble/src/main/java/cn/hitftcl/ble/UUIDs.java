@@ -23,9 +23,14 @@ public class UUIDs {
     public static final String UUID_ENVIRONMENT_Service = "0000fff0-0000-1000-8000-00805f9b34fb";
 
     /**
+     * 环境Write  Characteristic
+     */
+    public static final String UUID_ENVIRONMENT_Char_Write = "0000fff1-0000-1000-8000-00805f9b34fb";
+
+    /**
      * 环境NOTIFY  Characteristic
      */
-    public static final String UUID_ENVIRONMENT_Char = "0000fff6-0000-1000-8000-00805f9b34fb";
+    public static final String UUID_ENVIRONMENT_Char_Notify = "0000fff6-0000-1000-8000-00805f9b34fb";
 
 
 }
