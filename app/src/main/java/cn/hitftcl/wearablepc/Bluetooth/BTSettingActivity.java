@@ -14,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,7 +74,7 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
         });
     }
 
-    /**'
+    /**
      * 扫描外设
      */
     private void scanDevices() {
@@ -103,6 +104,11 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
 
             }
         });
+    }
+
+    private void stopScan(){
+        hideProgressDialog();
+        mBleController.stopScanBle();
     }
 
     public void showProgressDialog(String title, String message) {
@@ -159,4 +165,5 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
             }
         });
     }
+
 }

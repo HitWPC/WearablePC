@@ -122,6 +122,10 @@ public class SensorDataService extends Service {
             case UUIDs.UUID_KEYPad:
                 Log.d(TAG, "char6_store: 接受到薄膜键盘----"+new String(data));
                 break;
+            case UUIDs.UUID_Heart_Char_Notify:
+                System.out.println(data[1]==0x00);
+                break;
+
         }
     }
 

@@ -68,15 +68,18 @@ public class BleController {
     //默认扫描时间：5s
     private static final int SCAN_TIME = 5000;
     //默认连接超时时间:6s
-    private static final int CONNECTION_TIME_OUT = 10000;
+    private static final int CONNECTION_TIME_OUT = 8000;
     //是否是用户手动断开
 //    private boolean isBreakByMyself = false;
     //连接结果的回调
     private ConnectCallback connectCallback;
     //读操作请求队列
     private ReceiverRequestQueue mReceiverRequestQueue = new ReceiverRequestQueue();
+
+    private BleDeviceScanCallback bleDeviceScanCallback;
+
     //此属性一般不用修改
-    private static final String BLUETOOTH_NOTIFY_D = "00002902-0000-1000-8000-00805f9b34fb";
+    private static final String BLUETOOTH_NOTIFY_DESCRIPTOR = "00002902-0000-1000-8000-00805f9b34fb";
     //接收到数据的广播
     public final static String ACTION_DATA_AVAILABLE =
             "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
@@ -141,7 +144,7 @@ public class BleController {
 //            mBluetoothGatt.close();
 //        }
         reset();
-        final BleDeviceScanCallback bleDeviceScanCallback = new BleDeviceScanCallback(scanCallback);
+        bleDeviceScanCallback = new BleDeviceScanCallback(scanCallback);
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -151,6 +154,11 @@ public class BleController {
             }
         }, time <= 0 ? SCAN_TIME : time);
         mAdapter.startLeScan(bleDeviceScanCallback);
+    }
+
+    public void stopScanBle(){
+        mAdapter.stopLeScan(bleDeviceScanCallback);
+        Log.d(TAG,"停止扫描");
     }
 
 
@@ -173,7 +181,7 @@ public class BleController {
 //            mBluetoothGatt.close();
 //        }
         reset();
-
+        Log.e(LOGTAG, "connecting mac-address1111:" + devicesAddress);
         mBluetoothGatt = remoteDevice.connectGatt(mContext, true, mGattCallback);//自动连接
 
         ConnectedDvices.put(remoteDevice,mBluetoothGatt);
@@ -358,10 +366,11 @@ public class BleController {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                Log.d(LOGTAG, ""+isConnectResponse);
                 if (!isConnectResponse) {
                     Log.e(LOGTAG, "connect timeout");
                     disConnection(bluetoothDevice);
-//                    reConnect();
+                    connFailed();
                 }
 //                else {
 //                    isBreakByMyself = false;
@@ -398,7 +407,7 @@ public class BleController {
 
             if (newState == BluetoothProfile.STATE_CONNECTED) { //连接成功
 //                isBreakByMyself = false;
-                Log.d(LOGTAG,"onConnectionStateChange  success");
+                Log.d(TAG,"onConnectionStateChange  success");
                 mBluetoothGatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {   //断开连接
                 //断开连接后从已连接列表中删除该Device
@@ -434,14 +443,17 @@ public class BleController {
                     for (int j = 0; j < characteristicSize; j++) {
                         Log.d(LOGTAG,"characteristic:  "+ characteristics.get(j).getUuid().toString());
                         charMap.put(characteristics.get(j).getUuid().toString(), characteristics.get(j));
-                        if (characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char_Notify)
-                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD_Char)
-                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_Heart_Char_Notify)) {
+                        if ((serviceUuid.equals(UUIDs.UUID_ENVIRONMENT_Service)&&characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char_Notify))
+                                || (serviceUuid.equals(UUIDs.UUID_BD_Service)&&characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD_Char))
+                                || (serviceUuid.equals(UUIDs.UUID_Heart_Service)&&characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_Heart_Char_Notify))) {
+                            System.out.println("**************************1"+characteristics.get(j).getUuid().toString());
                             if (enableNotification(true, characteristics.get(j))) {
+                                System.out.println("**************************2"+characteristics.get(j).getUuid().toString());
                                 isConnectResponse = true;
                                 connSuccess();
                             } else {
-                                reConnect();
+                                System.out.println("**************************3"+characteristics.get(j).getUuid().toString());
+                                connFailed();
                             }
                         }
                     }
@@ -502,7 +514,7 @@ public class BleController {
             return false;
         if (!mBluetoothGatt.setCharacteristicNotification(characteristic, enable))
             return false;
-        BluetoothGattDescriptor clientConfig = characteristic.getDescriptor(UUID.fromString(BLUETOOTH_NOTIFY_D));
+        BluetoothGattDescriptor clientConfig = characteristic.getDescriptor(UUID.fromString(BLUETOOTH_NOTIFY_DESCRIPTOR));
         if (clientConfig == null)
             return false;
 
@@ -599,7 +611,7 @@ public class BleController {
 
 
     // TODO 此方法断开连接或连接失败时会被调用。可在此处理自动重连,内部代码可自行修改，如发送广播
-    private void reConnect() {
+    private void connFailed() {
         if(connectCallback != null) {
             runOnMainThread(new Runnable() {
                 @Override
