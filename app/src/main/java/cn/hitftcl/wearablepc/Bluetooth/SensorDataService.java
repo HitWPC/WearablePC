@@ -30,7 +30,10 @@ import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.Utils.ModelOperation.BDOperation;
 
 import cn.hitftcl.wearablepc.Utils.ModelOperation.EnviromentTableOperation;
+import cn.hitftcl.wearablepc.Utils.ModelOperation.HeartOperation;
 import cn.hitftcl.wearablepc.Utils.ThreadPool;
+
+import static com.defqx.classic.BluetoothSerial.bytes2HexString;
 
 public class SensorDataService extends Service {
     public final static  String TAG = "debug001";
@@ -103,7 +106,6 @@ public class SensorDataService extends Service {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static synchronized void char6_store(byte[] data, String uuid) {
-        Log.d(TAG, "char6_store: "+uuid);
         switch (uuid){
             case UUIDs.UUID_ENVIRONMENT_Char_Notify:
                 deal_environment(data);
@@ -123,7 +125,7 @@ public class SensorDataService extends Service {
                 Log.d(TAG, "char6_store: 接受到薄膜键盘----"+new String(data));
                 break;
             case UUIDs.UUID_Heart_Char_Notify:
-                System.out.println(data[1]==0x00);
+                deal_heart(data);
                 break;
 
         }
@@ -239,6 +241,24 @@ public class SensorDataService extends Service {
         }
 
         return latLng;
+    }
+
+    private static void deal_heart(byte[] data){
+        if(data.length<2){
+            Log.d(TAG,"心率数据不完整！");
+            return;
+        }
+        if(data[1]==0x00){
+            Log.d(TAG, "心率数据异常，请检查设备或佩戴人员");
+            return;
+        }
+        String heart_str = bytes2HexString(data);
+        char[] temp = heart_str.toCharArray();
+        int heart_int = (temp[2]-'0')*16+(temp[3]-'0');
+        if(HeartOperation.storeHeartRate(heart_int,MyIP)){
+            Log.d(TAG, "心率 "+heart_int+" 保存成功");
+        }
+
     }
 
     private static void deal_environment(byte[] data) {

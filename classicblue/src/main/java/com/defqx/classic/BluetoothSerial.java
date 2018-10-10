@@ -329,7 +329,7 @@ public class BluetoothSerial {
             }
         }
     };
-    private String bytes2HexString(byte[] paramArrayOfByte)
+    public static String bytes2HexString(byte[] paramArrayOfByte)
     {
         String str1 = "";
         int i = 0;

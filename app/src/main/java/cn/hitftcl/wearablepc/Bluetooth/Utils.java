@@ -193,8 +193,17 @@ public class Utils {
 		return d;
 	}
 
-	private static byte charToByte(char c) {
+	public static byte charToByte(char c) {
 		return (byte) "0123456789ABCDEF".indexOf(c);
 	}
+
+	public static int hexString2Int(String str){
+	    char[] charArr = str.toUpperCase().toCharArray();
+	    int total = 0;
+	    for(int i=0; i<charArr.length; i++){
+
+        }
+	    return total;
+    }
 
 }

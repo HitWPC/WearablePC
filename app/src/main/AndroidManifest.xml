@@ -103,8 +103,11 @@
             android:exported="true" />
 
         <activity android:name=".Bluetooth.BluetoothActivity" />
-        <activity android:name=".Bluetooth.ClassicBluetoothActivity"
-            android:theme="@style/IndexBarStyle"></activity>
+        <activity
+            android:name=".Bluetooth.ClassicBluetoothActivity"
+            android:theme="@style/IndexBarStyle" />
+        <activity android:name=".Bluetooth.HeartDataActivity" />
+        <activity android:name=".Bluetooth.HeartLineActivity"></activity>
     </application>
 
 </manifest>
