@@ -436,7 +436,8 @@ public class BleController {
                         charMap.put(characteristics.get(j).getUuid().toString(), characteristics.get(j));
                         if (characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char_Notify)
                                 || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD_Char)
-                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_Heart_Char_Notify)) {
+                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_Heart_Char_Notify)
+                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_KEYPad)) {
                             if (enableNotification(true, characteristics.get(j))) {
                                 isConnectResponse = true;
                                 connSuccess();
