@@ -92,7 +92,7 @@ public class IndexActivity extends AppCompatActivity {
             }
         });
 
-        //TODO 开启接收网络数据的服务
+        //TODO  开启接收网络数据的服务
         netService = new Intent(this, ReceiveService.class);
         startService(netService);
 
