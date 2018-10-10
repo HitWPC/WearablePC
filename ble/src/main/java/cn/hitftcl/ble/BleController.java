@@ -144,7 +144,7 @@ public class BleController {
 //            mBluetoothGatt.close();
 //        }
         reset();
-        bleDeviceScanCallback = new BleDeviceScanCallback(scanCallback);
+        final BleDeviceScanCallback bleDeviceScanCallback = new BleDeviceScanCallback(scanCallback);
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -181,7 +181,7 @@ public class BleController {
 //            mBluetoothGatt.close();
 //        }
         reset();
-        Log.e(LOGTAG, "connecting mac-address1111:" + devicesAddress);
+
         mBluetoothGatt = remoteDevice.connectGatt(mContext, true, mGattCallback);//自动连接
 
         ConnectedDvices.put(remoteDevice,mBluetoothGatt);
@@ -407,7 +407,7 @@ public class BleController {
 
             if (newState == BluetoothProfile.STATE_CONNECTED) { //连接成功
 //                isBreakByMyself = false;
-                Log.d(TAG,"onConnectionStateChange  success");
+                Log.d(LOGTAG,"onConnectionStateChange  success");
                 mBluetoothGatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {   //断开连接
                 //断开连接后从已连接列表中删除该Device
