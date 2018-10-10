@@ -18,6 +18,8 @@ public class Constant {
     public static final String imageInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/image";
     public static final String videoInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/video";
     public static final String voiceInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/voice";
+    public static final String userPasswordPath    = Environment.getExternalStorageDirectory() + "/HitWearable/userPassword";
+
     static {
         UserIPInfo me = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
         if(me!=null){

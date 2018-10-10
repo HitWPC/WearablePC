@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.amap.api.maps.CoordinateConverter;
 import com.amap.api.maps.model.LatLng;
+import com.autonavi.ae.pos.LocGSVData;
 
 import org.litepal.crud.DataSupport;
 
@@ -102,6 +103,7 @@ public class SensorDataService extends Service {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static synchronized void char6_store(byte[] data, String uuid) {
+        Log.d(TAG, "char6_store: "+uuid);
         switch (uuid){
             case UUIDs.UUID_ENVIRONMENT_Char_Notify:
                 deal_environment(data);
@@ -116,6 +118,9 @@ public class SensorDataService extends Service {
 
                 }
                 else    Log.d(TAG,temp_bd_data.toString());
+                break;
+            case UUIDs.UUID_KEYPad:
+                Log.d(TAG, "char6_store: 接受到薄膜键盘----"+new String(data));
                 break;
         }
     }

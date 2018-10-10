@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -49,6 +50,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
+import cn.hitftcl.wearablepc.Group.UserIPListActivity;
+import cn.hitftcl.wearablepc.Message.SecretListActivity;
 import cn.hitftcl.wearablepc.Model.SynMessage;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
@@ -73,6 +76,8 @@ public class MapActivity extends AppCompatActivity {
 
     private Button locationBtn;
     private Button synBtn;
+    private Button messageBtn;
+    private Button groupBtn;
     private List<UserIPInfo> group;
     private final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
 
@@ -97,6 +102,7 @@ public class MapActivity extends AppCompatActivity {
         setContentView(R.layout.activity_map);
 
 
+
         Intent myIntent = getIntent();
         String intent_content = myIntent.getStringExtra("Syn_Content");
         if(intent_content!=null && !intent_content.equals("")){
@@ -119,8 +125,22 @@ public class MapActivity extends AppCompatActivity {
             }
         }
 
-
-
+        groupBtn = (Button) findViewById(R.id.groupBtn);
+        messageBtn =(Button) findViewById(R.id.messageBtn);
+        groupBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MapActivity.this, UserIPListActivity.class);
+                startActivity(intent);
+            }
+        });
+        messageBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MapActivity.this, SecretListActivity.class);
+                startActivity(intent);
+            }
+        });
         //找到除自己以外的其他队员信息
         group = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_OTHER)).find(UserIPInfo.class);
 
@@ -507,6 +527,11 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
+    //定义键盘事件对程序的操控功能
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return super.onKeyDown(keyCode, event);
+    }
 
     private void drawMarker(LatLng latLng, String typeName){
         if(typeName.equals(SYMBOL_TYPE.TANC.name())){

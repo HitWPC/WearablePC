@@ -21,15 +21,9 @@
         <com.amap.api.maps.MapView
             android:id="@+id/map"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <Button
-            android:id="@+id/location_bt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/synBtn"
-            android:layout_alignParentRight="true"
-            android:text="定位" />
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true" />
 
         <Button
             android:id="@+id/synBtn"
@@ -38,6 +32,31 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
             android:text="同步" />
+        <Button
+            android:id="@+id/location_bt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/synBtn"
+            android:layout_alignParentRight="true"
+            android:text="定位" />
+
+
+        <Button
+            android:id="@+id/messageBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/location_bt"
+
+            android:text="通信" />
+        <Button
+            android:id="@+id/groupBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/messageBtn"
+
+            android:text="成员信息" />
     </RelativeLayout>
 
 </LinearLayout>

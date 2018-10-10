@@ -3,6 +3,7 @@ package cn.hitftcl.wearablepc.Login;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,13 +13,23 @@ import android.widget.Toast;
 
 import org.litepal.crud.DataSupport;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.IndexGrid.IndexActivity;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
-
+import cn.hitftcl.wearablepc.Utils.Constant;
+import cn.hitftcl.wearablepc.Utils.PERMISSION;
+import cn.hitftcl.wearablepc.Utils.RequestPermission;
 
 
 public class LoginActivity extends AppCompatActivity {
@@ -35,7 +46,8 @@ public class LoginActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
-
+        //TODO 申请存储器权限
+        RequestPermission.requestPermission(this, PERMISSION.STORGE);
         mUsername = (EditText)findViewById(R.id.id_username);
         mPassword = (EditText)findViewById(R.id.id_password);
         mButtonLogin = (Button)findViewById(R.id.id_btn_login);
@@ -43,11 +55,7 @@ public class LoginActivity extends AppCompatActivity {
         mButtonRegister = (Button)findViewById(R.id.id_btn_register);
         mHintMsg = (TextView)findViewById(R.id.id_hint_msg);
 
-        //存在该用户，直接记住用户名
-        if(self != null && self.getUsername() != null){
-            mUsername.setText(self.getUsername());
-//            mPassword.setText(self.getPassword());
-        }
+
 
         mButtonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,6 +117,7 @@ public class LoginActivity extends AppCompatActivity {
                     case 0:
                         mHintMsg.setText(R.string.success_register);
                         self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
+                        saveUserPassToFile(username,password);
                         break;
                     case 1:
                         mHintMsg.setText(R.string.field_required);
@@ -122,5 +131,54 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        File userPassFile = new File(Constant.userPasswordPath, "userPassword.temp");
+
+        if (userPassFile.exists()) {
+            try {
+                ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(userPassFile));
+                UserPass userPass = (UserPass) objectInputStream.readObject();
+                mPassword.setText(userPass.getPassword());
+                mUsername.setText(userPass.getUsername());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        super.onResume();
+    }
+
+    private void saveUserPassToFile(String username, String password){
+
+        File userDir = new File(Constant.userPasswordPath);
+        if (!userDir.exists()){
+            userDir.mkdirs();
+        }
+        File userFile = new File(userDir, "userPassword.temp");
+        if(!userFile.exists()){
+            try {
+                userFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+
+            FileOutputStream fileOutputStream = new FileOutputStream(userFile);
+            UserPass userPass = new UserPass();
+            userPass.setPassword(password);
+            userPass.setUsername(username);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(userPass);
+            Log.d("==========","保存成功");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

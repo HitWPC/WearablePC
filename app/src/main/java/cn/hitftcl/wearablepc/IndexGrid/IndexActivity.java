@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+
+import android.text.method.KeyListener;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -100,8 +104,7 @@ public class IndexActivity extends AppCompatActivity {
         sendSensorDataService = new Intent(this, SensorDataService.class);
         startService(sendSensorDataService);
 
-        //TODO 申请存储器权限
-        RequestPermission.requestPermission(this, PERMISSION.STORGE);
+
     }
 
 
@@ -142,5 +145,36 @@ public class IndexActivity extends AppCompatActivity {
         super.onDestroy();
         stopService(sensorDataService);
         stopService(netService);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode){
+            case KeyEvent.KEYCODE_0:
+                Intent intent0 = new Intent(IndexActivity.this, MapActivity.class);
+                startActivity(intent0);
+                break;
+            case KeyEvent.KEYCODE_1:
+//                        Intent intent1 = new Intent(IndexActivity.this, SensorActivity.class);
+//                        startActivity(intent1);
+                break;
+            case KeyEvent.KEYCODE_2:
+//                        Intent intent2 = new Intent(IndexActivity.this, ImageActivity.class);
+//                        startActivity(intent2);
+                break;
+            case KeyEvent.KEYCODE_3:
+//                        Intent intent3 = new Intent(IndexActivity.this, FtpFileListActivity.class);
+//                        startActivity(intent3);
+                break;
+            case KeyEvent.KEYCODE_4:
+                Intent intent4 = new Intent(IndexActivity.this, SecretListActivity.class);
+                startActivity(intent4);
+                break;
+            case KeyEvent.KEYCODE_5:
+                Intent intent5 = new Intent(IndexActivity.this, UserIPListActivity.class);
+                startActivity(intent5);
+                break;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }

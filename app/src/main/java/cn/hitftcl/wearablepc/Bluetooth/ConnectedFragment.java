@@ -31,6 +31,7 @@ import cn.hitftcl.ble.callback.OnWriteCallback;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.PickerView;
+import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
 /**
  * Created by Administrator on 2018/6/22.

@@ -435,7 +435,8 @@ public class BleController {
                         Log.d(LOGTAG,"characteristic:  "+ characteristics.get(j).getUuid().toString());
                         charMap.put(characteristics.get(j).getUuid().toString(), characteristics.get(j));
                         if (characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char_Notify)
-                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD_Char)) {
+                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD_Char)
+                                || characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_Heart_Char_Notify)) {
                             if (enableNotification(true, characteristics.get(j))) {
                                 isConnectResponse = true;
                                 connSuccess();
@@ -456,20 +457,6 @@ public class BleController {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-//            if (null != mReceiverRequestQueue) {
-//                HashMap<String, OnReceiverCallback> map = mReceiverRequestQueue.getMap();
-//                final byte[] rec = characteristic.getValue();
-//                Log.d(TAG, characteristic.getStringValue(0));
-//                for (String key : mReceiverRequestQueue.getMap().keySet()) {
-//                    final OnReceiverCallback onReceiverCallback = map.get(key);
-//                    runOnMainThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            onReceiverCallback.onRecive(rec);
-//                        }
-//                    });
-//                }
-//            }
         }
 
         //描述符被写了
