@@ -125,6 +125,7 @@ public class SensorDataService extends Service {
                 Log.d(TAG, "char6_store: 接受到薄膜键盘----"+new String(data));
                 break;
             case UUIDs.UUID_Heart_Char_Notify:
+                System.out.println("4444");
                 deal_heart(data);
                 break;
 
@@ -245,11 +246,11 @@ public class SensorDataService extends Service {
 
     private static void deal_heart(byte[] data){
         if(data.length<2){
-            Log.d(TAG,"心率数据不完整！");
+            System.out.println("心率数据不完整！");
             return;
         }
         if(data[1]==0x00){
-            Log.d(TAG, "心率数据异常，请检查设备或佩戴人员");
+            System.out.println("心率数据异常，请检查设备或佩戴人员");
             return;
         }
         String heart_str = bytes2HexString(data);
