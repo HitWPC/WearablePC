@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
@@ -60,6 +62,10 @@ public class HeartLineActivity extends AppCompatActivity{
         setContentView(R.layout.activity_heart_line);
         chartView=(LineChartView)findViewById(R.id.chartView);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("心率曲线实时监控");
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         showChangeLineChart();
     }
@@ -134,7 +140,7 @@ public class HeartLineActivity extends AppCompatActivity{
           6-x轴的大名
           Y轴也是这么设置，当你想点击不同的按钮，显示不同的信息时可用type进行处理
 */
-        axisX.setValues(mAxisXValues).setHasLines(true).setTextColor(Color.BLACK).setLineColor(Color.WHITE).setTextSize(12).setName("时间");;
+        axisX.setValues(mAxisXValues).setHasLines(true).setTextColor(Color.BLACK).setLineColor(Color.WHITE).setTextSize(12).setName("时间");
         axisY.setHasLines(true).setTextColor(Color.BLACK).setLineColor(Color.WHITE);
 
         axisY.setName("心率 (次/分钟)");
@@ -171,7 +177,7 @@ public class HeartLineActivity extends AppCompatActivity{
 //        这里可以固定x轴，让y轴变化，也可以x轴y轴都固定，也就是固定显示在你设定的区间里的点point（x，y）
         //=========================心率上下限
         v.top=120;
-        v.bottom=40;
+        v.bottom=50;
 //        这句话非常关键，上面两种设置，来确定最大可视化样式
 //        我们可以理解为，所有点放在linechart时，整个视图全看到时候的样子，也就是点很多很多，距离很紧密
         chartView.setMaximumViewport(v);
@@ -180,8 +186,8 @@ public class HeartLineActivity extends AppCompatActivity{
 //        但是我只显示5个点以内 刚才插入的点应该是...（4*24+8，-15.5）（4*24+9，-15.5）（4*24+10，-3.5）（4*24+11，20.0）（4*24+12，8.5）
 //        x轴最右边就应该是x=4*24+12 的点 最左边就应该是x=4*24+8的点
 //        当然这个非常灵活，也可以固定显示y轴 最小多少，最大多少
-        if(list.size()>=5)
-            v.left=list.get(list.size()-5).getDate().getMinutes()*60+list.get(list.size()-5).getDate().getSeconds();
+        if(list.size()>=7)
+            v.left=list.get(list.size()-7).getDate().getMinutes()*60+list.get(list.size()-5).getDate().getSeconds();
         else
             v.left=list.get(0).getDate().getMinutes()*60+list.get(0).getDate().getSeconds();
         v.right =list.get(list.size()-1).getDate().getMinutes()*60+list.get(list.size()-1).getDate().getSeconds();
@@ -235,6 +241,20 @@ public class HeartLineActivity extends AppCompatActivity{
         }
     };
 
+    /**
+     * toolbar返回按钮响应事件
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return true;
+    }
 
 }
 

@@ -125,7 +125,6 @@ public class SensorDataService extends Service {
                 Log.d(TAG, "char6_store: 接受到薄膜键盘----"+new String(data));
                 break;
             case UUIDs.UUID_Heart_Char_Notify:
-                System.out.println("4444");
                 deal_heart(data);
                 break;
 
