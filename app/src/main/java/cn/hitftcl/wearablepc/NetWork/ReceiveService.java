@@ -2,7 +2,6 @@ package cn.hitftcl.wearablepc.NetWork;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Environment;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
@@ -31,10 +30,9 @@ import java.util.ArrayList;
 import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.Model.BDTable;
-import cn.hitftcl.wearablepc.Model.EnviromentTable;
+import cn.hitftcl.wearablepc.Model.EnvironmentTable;
 import cn.hitftcl.wearablepc.Model.Msg;
 import cn.hitftcl.wearablepc.Model.Secret;
-import cn.hitftcl.wearablepc.Model.SynMessage;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.Utils.Constant;
@@ -108,7 +106,7 @@ public class ReceiveService extends Service {
                             //TODO 接收到传感器数据
                             String content = dataInputStream.readUTF();
                             Gson gson = new Gson();
-                            EnviromentTable enviromentTable =  gson.fromJson(content, new TypeToken<ArrayList<EnviromentTable>>(){}.getType());
+                            EnvironmentTable environmentTable =  gson.fromJson(content, new TypeToken<ArrayList<EnvironmentTable>>(){}.getType());
                             Log.d(TAG, content);
 
                         }else if(type.equals(TransType.BD_TYPE.name())){

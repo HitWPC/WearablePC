@@ -19,8 +19,10 @@ import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
 import cn.hitftcl.wearablepc.Bluetooth.BluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.ClassicBluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.SensorDataService;
+import cn.hitftcl.wearablepc.DataFusion.FusionActivity;
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
+import cn.hitftcl.wearablepc.NetWork.FusionService;
 import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.PERMISSION;
@@ -28,12 +30,12 @@ import cn.hitftcl.wearablepc.Utils.RequestPermission;
 
 public class IndexActivity extends AppCompatActivity {
     private final static String TAG = "debug001";
-    private Intent sensorDataService = null, netService = null, sendSensorDataService=null;
+    private Intent sensorDataService = null, netService = null, sendSensorDataService=null, fusionService=null;
 
     MyGridLayout grid;
     int[] srcs = { R.drawable.actions_booktag, R.drawable.actions_about, R.drawable.actions_comment,
             R.drawable.actions_account, R.drawable.actions_message, R.drawable.actions_account,};
-    String titles[] = { "地图", "感知", "通信", "无线", "条密", "小组"};
+    String titles[] = { "地图", "数据融合", "通信", "无线", "条密", "小组"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +71,8 @@ public class IndexActivity extends AppCompatActivity {
                         startActivity(intent0);
                         break;
                     case 1:
-//                        Intent intent1 = new Intent(IndexActivity.this, SensorActivity.class);
-//                        startActivity(intent1);
+                        Intent intent1 = new Intent(IndexActivity.this, FusionActivity.class);
+                        startActivity(intent1);
                         break;
                     case 2:
 //                        Intent intent2 = new Intent(IndexActivity.this, ImageActivity.class);
@@ -103,6 +105,11 @@ public class IndexActivity extends AppCompatActivity {
         //TODO 开启传感器数据接收服务
         sendSensorDataService = new Intent(this, SensorDataService.class);
         startService(sendSensorDataService);
+
+        //TODO 开启数据融合服务
+        fusionService = new Intent(this, FusionService.class);
+        startService(fusionService);
+
 
 
     }

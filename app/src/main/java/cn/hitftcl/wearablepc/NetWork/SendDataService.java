@@ -67,4 +67,16 @@ public class SendDataService extends Service {
         }
         return null;
     }
+
+    public String LatestHeartdata (){
+        ArrayList<BDTable> list = new ArrayList<>();
+        BDTable data = DataSupport.findLast(BDTable.class);
+        Date data_time = data.getRecordDate();
+        Date current = new Date();
+        if (current.getTime() - data_time.getTime()<= Max_Interval_Seconds){
+            Gson gson = new Gson();
+            return gson.toJson(list.add(data));
+        }
+        return null;
+    }
 }

@@ -101,13 +101,18 @@
             android:name=".NetWork.ReceiveService"
             android:enabled="true"
             android:exported="true" />
+        <service
+            android:name=".NetWork.FusionService"
+            android:enabled="true"
+            android:exported="true" />
 
         <activity android:name=".Bluetooth.BluetoothActivity" />
         <activity
             android:name=".Bluetooth.ClassicBluetoothActivity"
             android:theme="@style/IndexBarStyle" />
         <activity android:name=".Bluetooth.HeartDataActivity" />
-        <activity android:name=".Bluetooth.HeartLineActivity"></activity>
+        <activity android:name=".Bluetooth.HeartLineActivity" />
+        <activity android:name=".DataFusion.FusionActivity"></activity>
     </application>
 
 </manifest>

@@ -347,13 +347,13 @@ public class SensorDataService extends Service {
             str+=temp+",";
         }
         double temperature = Double.parseDouble(datas[0]);
-        double humidity = Double.parseDouble(datas[1]);
-        double pressure = Double.parseDouble(datas[2]);
+        double pressure = Double.parseDouble(datas[1]);
+        double humidity = Double.parseDouble(datas[2]);
         double SO2 = Double.parseDouble(datas[3]);
         double NO = Double.parseDouble(datas[4]);
         double voltage = Double.parseDouble(datas[5]);
         if(EnviromentTableOperation.SaveEnviromentTable(temperature,pressure,humidity,SO2,NO,voltage,MyIP)){
-            Log.d(TAG, "deal_environment: 环境数据保存成功！");
+            Log.d(TAG, "deal_environment: 环境数据保存成功！     "+pressure);
         }
         
         Log.d(TAG, str);

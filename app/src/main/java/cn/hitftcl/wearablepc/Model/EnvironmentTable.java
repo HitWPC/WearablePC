@@ -4,7 +4,7 @@ import org.litepal.crud.DataSupport;
 
 import java.util.Date;
 
-public class EnviromentTable extends DataSupport{
+public class EnvironmentTable extends DataSupport{
     private int id;
     private double temperature;
     private double pressure;
@@ -23,14 +23,14 @@ public class EnviromentTable extends DataSupport{
         this.IP = IP;
     }
 
-    public EnviromentTable() {
+    public EnvironmentTable() {
     }
 
     public Date getDate() {
         return date;
     }
 
-    public EnviromentTable(double temperature, double pressure, double humidity, double SO2, double NO, double voltage, Date date) {
+    public EnvironmentTable(double temperature, double pressure, double humidity, double SO2, double NO, double voltage, Date date) {
         this.temperature = temperature;
         this.pressure = pressure;
         this.humidity = humidity;
@@ -40,7 +40,7 @@ public class EnviromentTable extends DataSupport{
         this.date = date;
     }
 
-    public EnviromentTable(double temperature, double pressure, double humidity, double SO2, double NO, double voltage, Date date, String IP) {
+    public EnvironmentTable(double temperature, double pressure, double humidity, double SO2, double NO, double voltage, Date date, String IP) {
 
         this.temperature = temperature;
         this.pressure = pressure;
@@ -56,7 +56,7 @@ public class EnviromentTable extends DataSupport{
         this.date = date;
     }
 
-    public EnviromentTable(double temperature, double pressure, double humidity, double SO2, double NO, double voltage, String IP) {
+    public EnvironmentTable(double temperature, double pressure, double humidity, double SO2, double NO, double voltage, String IP) {
         this.temperature = temperature;
         this.pressure = pressure;
         this.humidity = humidity;

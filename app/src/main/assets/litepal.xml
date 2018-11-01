@@ -2,7 +2,7 @@
     <litepal>
         <dbname value="WearablePC"></dbname>
 
-        <version value="2"></version>
+        <version value="3"></version>
 
     <list>
         <mapping class="cn.hitftcl.wearablepc.Model.UserIPInfo"/>
@@ -10,7 +10,7 @@
         <mapping class="cn.hitftcl.wearablepc.Model.Secret"/>
         <mapping class="cn.hitftcl.wearablepc.Model.Expression"/>
         <mapping class="cn.hitftcl.wearablepc.Model.BDTable"/>
-        <mapping class="cn.hitftcl.wearablepc.Model.EnviromentTable"/>
+        <mapping class="cn.hitftcl.wearablepc.Model.EnvironmentTable"/>
         <mapping class="cn.hitftcl.wearablepc.Model.HeartTable"/>
     </list>
 </litepal>

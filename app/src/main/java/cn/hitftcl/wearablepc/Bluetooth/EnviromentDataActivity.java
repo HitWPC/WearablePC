@@ -13,8 +13,7 @@ import org.litepal.crud.DataSupport;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.hitftcl.wearablepc.Model.BDTable;
-import cn.hitftcl.wearablepc.Model.EnviromentTable;
+import cn.hitftcl.wearablepc.Model.EnvironmentTable;
 import cn.hitftcl.wearablepc.R;
 
 public class EnviromentDataActivity extends AppCompatActivity {
@@ -25,7 +24,7 @@ public class EnviromentDataActivity extends AppCompatActivity {
 
     private EnviromentDataAdapter enviromentDataAdapter;
 
-    private List<EnviromentTable> enviromentTableArrayList = new ArrayList<>();
+    private List<EnvironmentTable> environmentTableArrayList = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,11 +58,11 @@ public class EnviromentDataActivity extends AppCompatActivity {
     private void QueryAllEnvData(){       //全部数据
         int queryResultSum = 0;
 
-        enviromentTableArrayList.clear();
+        environmentTableArrayList.clear();
         enviromentDataAdapter.clearList();
         enviromentDataAdapter.notifyDataSetChanged();
-        enviromentTableArrayList = DataSupport.findAll(EnviromentTable.class);
-        queryResultSum = enviromentTableArrayList.size();
+        environmentTableArrayList = DataSupport.findAll(EnvironmentTable.class);
+        queryResultSum = environmentTableArrayList.size();
         if (queryResultSum <= 0){
             Log.d("无结果","0条结果");
             data_item_number.setText("共查询到"+queryResultSum+"条记录");
@@ -72,7 +71,7 @@ public class EnviromentDataActivity extends AppCompatActivity {
             int index = 1;
             Log.d("结果数目",""+queryResultSum);
 
-            for (EnviromentTable unit:enviromentTableArrayList){
+            for (EnvironmentTable unit: environmentTableArrayList){
                 enviromentDataAdapter.addData(index,unit.getTemperature(), unit.getHumidity(),unit.getPressure(),unit.getSO2(),unit.getNO(),unit.getVoltage());
                 index++;
                 enviromentDataAdapter.notifyDataSetChanged();
@@ -86,14 +85,14 @@ public class EnviromentDataActivity extends AppCompatActivity {
      */
     private void ClearAllEnvData(){
         int deleteSum = 0;
-        deleteSum = DataSupport.deleteAll(EnviromentTable.class);
+        deleteSum = DataSupport.deleteAll(EnvironmentTable.class);
         if (deleteSum <= 0){
             Log.d("删除了：","0条数据");
         }else{
             Log.d("删除了：",""+deleteSum+"条数据");
         }
         /*清空显示数据列表*/
-        enviromentTableArrayList.clear();
+        environmentTableArrayList.clear();
         enviromentDataAdapter.clearList();
         enviromentDataAdapter.notifyDataSetChanged();
         data_item_number.setText("共查询到0条记录");
