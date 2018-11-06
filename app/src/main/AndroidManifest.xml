@@ -112,7 +112,8 @@
             android:theme="@style/IndexBarStyle" />
         <activity android:name=".Bluetooth.HeartDataActivity" />
         <activity android:name=".Bluetooth.HeartLineActivity" />
-        <activity android:name=".DataFusion.FusionActivity"></activity>
+        <activity android:name=".DataFusion.FusionActivity" />
+        <activity android:name=".Message.ImageActivity"></activity>
     </application>
 
 </manifest>

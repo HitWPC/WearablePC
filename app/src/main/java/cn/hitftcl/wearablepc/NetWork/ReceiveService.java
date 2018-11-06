@@ -29,6 +29,7 @@ import java.util.ArrayList;
 
 import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
+import cn.hitftcl.wearablepc.Message.ImageActivity;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnvironmentTable;
 import cn.hitftcl.wearablepc.Model.Msg;
@@ -204,6 +205,14 @@ public class ReceiveService extends Service {
                             Vibrator vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
                             vibrator.vibrate(500);
                             updateUI(msg);
+
+                            if(content.equals("[图片]")){
+                                Log.d(TAG, "准备跳转");
+                                Intent intent = new Intent(ReceiveService.this, ImageActivity.class);
+                                intent.putExtra("PATH_INFO", file.getAbsolutePath());
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
+                                startActivity(intent);
+                            }
                         }else if(type.equals(TransType.SYN_COMMAND.name())){
                             //TODO 同步消息
                             String content = dataInputStream.readUTF();

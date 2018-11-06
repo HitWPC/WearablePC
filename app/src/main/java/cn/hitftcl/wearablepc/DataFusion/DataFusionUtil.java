@@ -65,12 +65,12 @@ public class DataFusionUtil {
         }
 
         //环境数据融合
-        double temperature = environmentTable.getTemperature();
-        double pressure = environmentTable.getPressure();
-        double humidity = environmentTable.getHumidity();
-        double so2 = environmentTable.getSO2();
-        double no = environmentTable.getNO();
         if(environmentTable!=null && fusionDate.getTime()- environmentTable.getDate().getTime()<=3000){
+            double temperature = environmentTable.getTemperature();
+            double pressure = environmentTable.getPressure();
+            double humidity = environmentTable.getHumidity();
+            double so2 = environmentTable.getSO2();
+            double no = environmentTable.getNO();
             fusionState.envAvailable = true;
             IP = environmentTable.getIP();
             //温度

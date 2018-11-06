@@ -119,10 +119,10 @@ public class FusionActivity extends AppCompatActivity {
                     ((TextView)findViewById(R.id.no)).setText("正常偏高");
                     break;
                 case 2:
-                    ((TextView)findViewById(R.id.no)).setText("偏高");
+                    ((TextView)findViewById(R.id.no)).setText("偏高，对喉部刺激较大，请注意防护");
                     break;
                 case 3:
-                    ((TextView)findViewById(R.id.no)).setText("过高");
+                    ((TextView)findViewById(R.id.no)).setText("过高，短时间暴露容易引起死亡，请尽快撤离");
                     break;
             }
             switch(fusionState.getSo2()){
@@ -133,10 +133,10 @@ public class FusionActivity extends AppCompatActivity {
                     ((TextView)findViewById(R.id.so2)).setText("正常偏高");
                     break;
                 case 2:
-                    ((TextView)findViewById(R.id.so2)).setText("偏高");
+                    ((TextView)findViewById(R.id.so2)).setText("偏高，对眼睛、鼻子、咽喉有刺激，请注意防护");
                     break;
                 case 3:
-                    ((TextView)findViewById(R.id.so2)).setText("过高");
+                    ((TextView)findViewById(R.id.so2)).setText("过高，长时间暴露可能有生命危险，请尽快撤离");
                     break;
             }
         }
