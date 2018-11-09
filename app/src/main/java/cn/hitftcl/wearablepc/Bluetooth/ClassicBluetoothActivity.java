@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,6 +21,12 @@ import com.defqx.classic.BluetoothDeviceListDialog;
 import com.defqx.classic.BluetoothSerial;
 import com.defqx.classic.BluetoothSerialListener;
 
+import org.litepal.crud.DataSupport;
+
+import java.util.Date;
+
+import cn.hitftcl.wearablepc.Model.DistanceTable;
+import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.R;
 
 public class ClassicBluetoothActivity extends AppCompatActivity
@@ -37,6 +44,9 @@ public class ClassicBluetoothActivity extends AppCompatActivity
 
     private boolean crlf = false;
 
+    public static final String MyIP = (DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class)).getIp();
+
+    public static final String TAG = "debug001";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -241,6 +251,10 @@ public class ClassicBluetoothActivity extends AppCompatActivity
         // Print the incoming message on the terminal screen
         if(!distance.equals("E")){
             double dis = Integer.parseInt(distance)/1000.0;
+            DistanceTable distanceTable = new DistanceTable(dis, new Date(),MyIP);
+            if(distanceTable.save()){
+                Log.d(TAG, "测量结果 "+dis+"m 保存成功");
+            }
             tvTerminal.append(getString(R.string.terminal_message_template,
                     bluetoothSerial.getConnectedDeviceName(),
                     "本次测量结果为 "+dis+"m"));
@@ -284,5 +298,15 @@ public class ClassicBluetoothActivity extends AppCompatActivity
         }
     };
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode==KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0){
+            Intent intent = new Intent();
+            intent.putExtra("testDis", "hello");
+            setResult(RESULT_OK, intent);
+            finish();
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }
 

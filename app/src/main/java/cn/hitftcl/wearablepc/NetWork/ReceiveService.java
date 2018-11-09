@@ -85,6 +85,10 @@ public class ReceiveService extends Service {
                     try {
                         //建立连接
 //                        serverSocket.setReuseAddress(true);
+                        if(socket == null){
+                            Thread.sleep(5000);
+                            continue;
+                        }
                         socket = serverSocket.accept();
                         //发送者信息
                         String senderAddr = socket.getInetAddress().getHostAddress();
@@ -229,7 +233,9 @@ public class ReceiveService extends Service {
                     } catch (IOException e) {
                         e.printStackTrace();
                         Log.d(TAG,"RecieveService:error########################");
-                    }finally {
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } finally {
                         try {
                             if (bufferedReader != null) {
                                 bufferedReader.close();

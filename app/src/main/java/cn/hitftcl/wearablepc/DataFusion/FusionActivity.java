@@ -1,12 +1,23 @@
 package cn.hitftcl.wearablepc.DataFusion;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.os.Build;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
+import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.NetWork.FusionService;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.ThreadPool;
@@ -14,6 +25,8 @@ import cn.hitftcl.wearablepc.Utils.ThreadPool;
 public class FusionActivity extends AppCompatActivity {
 
     FusionState fusionState = null;
+
+//    Button shownoti = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +38,15 @@ public class FusionActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("数据融合结果");
+
+
+//        shownoti = findViewById(R.id.showniti);
+//        shownoti.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                showNotification(2, "我是标题","我是内容");
+//            }
+//        });
 
         ThreadPool.getInstance().execute(new Runnable() {
             @Override
@@ -44,6 +66,52 @@ public class FusionActivity extends AppCompatActivity {
         });
 
     }
+
+//    public void showNotification(int level, String title, String content) {
+//        Intent intent = new Intent(this, MapActivity.class);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+//
+//        NotificationManager notificationManager = (NotificationManager) getSystemService
+//                (NOTIFICATION_SERVICE);
+//        String NOTIFICATION_CHANNEL_ID = "my_channel_id_01";
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "My Notifications", NotificationManager.IMPORTANCE_HIGH);
+//
+//            // Configure the notification channel.
+//            notificationChannel.setDescription("Channel description");
+//            notificationChannel.enableLights(true);
+//            notificationChannel.setLightColor(Color.RED);
+//            notificationChannel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
+//            notificationChannel.enableVibration(true);
+//            notificationManager.createNotificationChannel(notificationChannel);
+//        }
+//
+//        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+//                .setContentTitle(title)
+//                .setContentText(content)
+//                .setWhen(System.currentTimeMillis())
+//                .setSmallIcon(R.drawable.danger)
+//                .setContentIntent(pendingIntent)
+//                .setAutoCancel(true)
+//                .setDefaults(Notification.DEFAULT_SOUND);
+//        switch (level){
+//            case 1: //较严重
+//                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_one));
+//                break;
+//            case 2:
+//                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_two));
+//                break;
+//            case 3:
+//                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_three));
+//                break;
+//            default:
+//                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_one));
+//                break;
+//        }
+//        Notification notification = builder.build();
+//        notificationManager.notify(1, notification);
+//    }
+
 
     private void parseFusionRes(FusionState fusionState) {
         if(fusionState.heartAvailable){

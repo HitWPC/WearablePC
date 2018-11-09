@@ -1,16 +1,25 @@
 package cn.hitftcl.wearablepc.NetWork;
 
+import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import org.litepal.crud.DataSupport;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -19,11 +28,13 @@ import java.util.TimerTask;
 import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.UUIDs;
 import cn.hitftcl.ble.callback.OnWriteCallback;
+import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.DataFusion.DataFusionUtil;
 import cn.hitftcl.wearablepc.DataFusion.FusionState;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnvironmentTable;
 import cn.hitftcl.wearablepc.Model.HeartTable;
+import cn.hitftcl.wearablepc.R;
 
 /**
  * Created by Administrator on 2018/11/1.
@@ -43,6 +54,8 @@ public class FusionService extends Service {
     public static int ENV_SPEED_DEFAULT = 1;  //  1次/1秒
     public static int ENV_SPEED_MAX = 16;
     public static int ENV_SPEED_CURRENT = 1;
+
+    public static int lastNotifyLevel = 0;
 
 //    private static UserIPInfo CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(true)).findFirst(UserIPInfo.class);
 
@@ -71,9 +84,95 @@ public class FusionService extends Service {
                 EnvironmentTable environmentTable = DataSupport.findLast(EnvironmentTable.class);
                 BDTable bdTable = DataSupport.findLast(BDTable.class);
                 fusionResult = DataFusionUtil.situation1Fusion(heartTable, environmentTable, bdTable);
+                judgeAndShowNotification();
                 speedChange();
             }
         };
+    }
+
+    private void judgeAndShowNotification() {
+        int tempLevel = -1;
+        StringBuilder sb = new StringBuilder();
+        if(fusionResult!=null && fusionResult.envAvailable){
+            if(fusionResult.getSo2()==3 || fusionResult.getNo()==3){
+                tempLevel = Math.max(tempLevel, 3);
+                if(fusionResult.getSo2()==3){
+                    sb.append("SO2浓度过高，请尽快撤离！");
+                }
+                if(fusionResult.getNo()==3){
+                    sb.append("NO浓度过高，请尽快撤离！");
+                }
+            }else if(fusionResult.getSo2()==2 || fusionResult.getNo()==2 ){
+                tempLevel = Math.max(tempLevel, 2);
+                if(fusionResult.getSo2()==3){
+                    sb.append("SO2浓度偏高，请注意防护！");
+                }
+                if(fusionResult.getNo()==3){
+                    sb.append("NO浓度偏高，请注意防护！");
+                }
+            }else if(fusionResult.getPressure()==4 || fusionResult.getPressure()==0 || fusionResult.getTemperature()==0 || fusionResult.getTemperature()==4 || fusionResult.getHumidity()==4){
+                tempLevel = Math.max(tempLevel, 1);
+                sb.append("温湿度气压异常，请注意！");
+            }
+        }
+        if(fusionResult!=null && fusionResult.heartAvailable){
+            if(fusionResult.getHeartState()==0){
+                tempLevel = Math.max(tempLevel, 2);
+                sb.append("心率过低，请注意！");
+            }else if(fusionResult.getHeartState()==4){
+                tempLevel = Math.max(tempLevel, 1);
+                sb.append("心率过高，请注意！");
+            }
+        }
+        if(tempLevel!=-1 && tempLevel!=lastNotifyLevel){
+            lastNotifyLevel = tempLevel;
+            showNotification(tempLevel, "体征/环境 异常", sb.toString());
+        }
+    }
+
+    private void showNotification(int level, String title, String content) {
+        Intent intent = new Intent(this, MapActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService
+                (NOTIFICATION_SERVICE);
+        String NOTIFICATION_CHANNEL_ID = "my_channel_id_01";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "My Notifications", NotificationManager.IMPORTANCE_HIGH);
+
+            // Configure the notification channel.
+            notificationChannel.setDescription("Channel description");
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
+            notificationChannel.enableVibration(true);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+                .setContentTitle(title)
+                .setContentText(content)
+                .setWhen(System.currentTimeMillis())
+                .setSmallIcon(R.drawable.danger)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setDefaults(Notification.DEFAULT_SOUND);
+        switch (level){
+            case 1: //较严重
+                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_one));
+                break;
+            case 2:
+                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_two));
+                break;
+            case 3:
+                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_three));
+                break;
+            default:
+                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_one));
+                break;
+        }
+        Notification notification = builder.build();
+        notificationManager.notify(1, notification);
     }
 
     private void speedChange() {

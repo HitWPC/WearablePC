@@ -34,13 +34,19 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.amap.api.maps.model.LatLng;
+
 import org.json.JSONObject;
 import org.litepal.crud.DataSupport;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import cn.hitftcl.wearablepc.Bluetooth.ClassicBluetoothActivity;
+import cn.hitftcl.wearablepc.Model.BDTable;
+import cn.hitftcl.wearablepc.Model.DistanceTable;
 import cn.hitftcl.wearablepc.Model.Expression;
 import cn.hitftcl.wearablepc.Model.Msg;
 import cn.hitftcl.wearablepc.Model.Secret;
@@ -57,6 +63,10 @@ import cn.hitftcl.wearablepc.Utils.UriUtil;
 
 public class SecretActivity extends AppCompatActivity {
     public static final String TAG = "debug001";
+
+    public static final int REQUEST_CODE_PHOTO = 1;
+    public static final int REQUEST_CODE_SENDFILE = 2;
+    public static final int REQUEST_CODE_DISTANCE = 3;
 
     //蓝牙有关其他变量、常量
     private final int RESULT_CODE_BTDEVICE = 0;
@@ -77,6 +87,7 @@ public class SecretActivity extends AppCompatActivity {
     private Button mButtonVoice;
     private Button mButtonSecret;
     private Button mButtonFile;
+    private Button mButtonPhoto;
 
     private Button mButtonBackVoice;
     private Button mButtonBackSecret;
@@ -100,6 +111,8 @@ public class SecretActivity extends AppCompatActivity {
     
     //文件路径
     private String filePath;
+
+    private String result = null;  //拍照后图片识别结果
 
     private final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
     private int userId;
@@ -155,6 +168,7 @@ public class SecretActivity extends AppCompatActivity {
         mButtonSecret = (Button)findViewById(R.id.id_button_secret);
         mButtonVoice = (Button)findViewById(R.id.id_button_voice);
         mButtonFile = (Button)findViewById(R.id.id_button_file);
+        mButtonPhoto = findViewById(R.id.id_button_takephoto);
 
         //Button：返回按钮
         mButtonBackSecret = (Button)findViewById(R.id.id_button_back_secret);
@@ -285,7 +299,17 @@ public class SecretActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("*/*");//无类型限制
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
-                startActivityForResult(intent, 1);
+                startActivityForResult(intent, REQUEST_CODE_SENDFILE);
+            }
+        });
+
+        //跳转到USB拍照应用
+        mButtonPhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClassName("cn.edu.hit.ftcl.wearablepc.UVCCamera", "cn.edu.hit.ftcl.wearablepc.UVCCamera.MainActivity");
+                startActivityForResult(intent, REQUEST_CODE_PHOTO);
             }
         });
 
@@ -438,40 +462,112 @@ public class SecretActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == Activity.RESULT_OK) {
-            UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
-            Uri uri = data.getData();
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {//4.4以后
-                try{
-                    filePath = UriUtil.getPath(this, uri);
-//                    Toast.makeText(this,filePath,Toast.LENGTH_SHORT).show();
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        switch (requestCode){
+            case REQUEST_CODE_PHOTO:
+                Log.d(TAG, "REQUEST_CODE_PHOTO："+resultCode);
+                if(resultCode == RESULT_OK){
+                    String pngPath = data.getStringExtra("PNGPath");
+                    result = data.getStringExtra("Result");
+                    Log.d(TAG, "pngPath:"+pngPath);
+                    Log.d(TAG, "result:"+result);
+                    filePath = pngPath;
                     int catagory = Msg.CATAGORY_IMAGE;
-                    if(MediaTypeJudgeUtil.isImageFileType(filePath)){
-                        catagory = Msg.CATAGORY_IMAGE;
-                        Log.d(TAG, "发送图片");
-                    }else if(MediaTypeJudgeUtil.isVideoFileType(filePath)){
-                        catagory = Msg.CATAGORY_VIDEO;
-                        Log.d(TAG, "发送视频");
-                    }
                     //数据库新增
-                    File file = new File(filePath);
-                    Msg msg = new Msg(self.getId(), userId, filePath, System.currentTimeMillis(), Msg.TYPE_SENT, catagory);
-                    msg.save();
-                    //发送图片到接收端
-                    NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.FILE_TYPE, filePath);
-                    mDataMsgs.add(msg);
-                    //view更新数据
-                    mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
-                    //设置位置
-                    mRecyclerView.scrollToPosition(mDataMsgs.size() - 1);
-                }catch (Exception e){
-                    e.printStackTrace();
+                    if(filePath!=null && !filePath.equals("")){
+                        File file = new File(filePath);
+                        Msg msg = new Msg(self.getId(), userId, filePath, System.currentTimeMillis(), Msg.TYPE_SENT, catagory);
+                        msg.save();
+                        //发送图片到接收端
+                        UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
+                        NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.FILE_TYPE, filePath);
+                        mDataMsgs.add(msg);
+                        //view更新数据
+                        mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
+                        //设置位置
+                        mRecyclerView.scrollToPosition(mDataMsgs.size() - 1);
+
+                        //跳转到测距仪界面
+                        Intent intent = new Intent(this, ClassicBluetoothActivity.class);
+                        startActivityForResult(intent, REQUEST_CODE_DISTANCE);
+                    }
                 }
-            } else {//4.4以下下系统调用方法
+                break;
+            case REQUEST_CODE_SENDFILE:
+                if (resultCode == RESULT_OK) {
+                    UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
+                    Uri uri = data.getData();
+                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {//4.4以后
+                        try{
+                            filePath = UriUtil.getPath(this, uri);
+//                    Toast.makeText(this,filePath,Toast.LENGTH_SHORT).show();
+                            int catagory = Msg.CATAGORY_IMAGE;
+                            if(MediaTypeJudgeUtil.isImageFileType(filePath)){
+                                catagory = Msg.CATAGORY_IMAGE;
+                                Log.d(TAG, "发送图片");
+                            }else if(MediaTypeJudgeUtil.isVideoFileType(filePath)){
+                                catagory = Msg.CATAGORY_VIDEO;
+                                Log.d(TAG, "发送视频");
+                            }
+                            //数据库新增
+                            File file = new File(filePath);
+                            Msg msg = new Msg(self.getId(), userId, filePath, System.currentTimeMillis(), Msg.TYPE_SENT, catagory);
+                            msg.save();
+                            //发送图片到接收端
+                            NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.FILE_TYPE, filePath);
+                            mDataMsgs.add(msg);
+                            //view更新数据
+                            mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
+                            //设置位置
+                            mRecyclerView.scrollToPosition(mDataMsgs.size() - 1);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    } else {//4.4以下下系统调用方法
 //                path = getRealPathFromURI(uri);
-                Toast.makeText(this, "系统版本过低", Toast.LENGTH_SHORT).show();
-            }
+                        Toast.makeText(this, "系统版本过低", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
+            case REQUEST_CODE_DISTANCE:
+                if(resultCode==RESULT_OK){
+                    String content = "";
+                    if(result!=null){
+                        if(result.length()>2) {    //TFResults []
+                            content += "自动识别结果：";
+                            content += result.substring(1,result.length());
+                            content+="。";
+                        }else{
+                            content+="暂无识别结果";
+                        }
+                        result = null;
+                    }
+                    DistanceTable distanceTable = DataSupport.findLast(DistanceTable.class);
+                    if (distanceTable!=null){
+                        if(new Date().getTime()-distanceTable.getDate().getTime()<60000){
+                            double dis = distanceTable.getDistance();
+                            content += "目标距离我:"+dis+"m。";
+                        }
+                    }
+                    BDTable bdTable = DataSupport.findLast(BDTable.class);
+                    if(bdTable!=null && (new Date().getTime()-bdTable.getRecordDate().getTime()<5000)){
+                        content += "我的位置："+bdTable.getLatitude()+"，"+bdTable.getLongitude()+"。";
+                    }
+                    if(!content.equals("")){
+                        UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
+                        Msg msg = new Msg(self.getId(), userId, content, System.currentTimeMillis(), Msg.TYPE_SENT, Msg.CATAGORY_TEXT);
+                        msg.save();
+                        NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(), TransType.TEXT_TYPE, content);
+                        mDataMsgs.add(msg);
+                        //view更新数据
+                        mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
+                        //设置位置
+                        mRecyclerView.scrollToPosition(mDataMsgs.size() - 1);
+                    }
+                }
+                break;
+            default:
+                break;
         }
     }
 

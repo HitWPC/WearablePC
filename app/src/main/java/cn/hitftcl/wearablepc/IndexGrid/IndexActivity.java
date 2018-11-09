@@ -33,9 +33,9 @@ public class IndexActivity extends AppCompatActivity {
     private Intent sensorDataService = null, netService = null, sendSensorDataService=null, fusionService=null;
 
     MyGridLayout grid;
-    int[] srcs = { R.drawable.actions_booktag, R.drawable.actions_about, R.drawable.actions_comment,
-            R.drawable.actions_account, R.drawable.actions_message, R.drawable.actions_account,};
-    String titles[] = { "地图", "数据融合", "通信", "无线", "条密", "小组"};
+    int[] srcs = { R.drawable.actions_booktag, R.drawable.actions_about,
+            R.drawable.actions_message, R.drawable.actions_account, R.drawable.camera_usb, R.drawable.camera_wifi};
+    String titles[] = { "地图", "数据融合", "条密", "小组", "USB摄像头", "wifi摄像头"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,20 +75,22 @@ public class IndexActivity extends AppCompatActivity {
                         startActivity(intent1);
                         break;
                     case 2:
-//                        Intent intent2 = new Intent(IndexActivity.this, ImageActivity.class);
-//                        startActivity(intent2);
-                        break;
-                    case 3:
-//                        Intent intent3 = new Intent(IndexActivity.this, FtpFileListActivity.class);
-//                        startActivity(intent3);
-                        break;
-                    case 4:
                         Intent intent4 = new Intent(IndexActivity.this, SecretListActivity.class);
                         startActivity(intent4);
                         break;
-                    case 5:
+                    case 3:
                         Intent intent5 = new Intent(IndexActivity.this, UserIPListActivity.class);
                         startActivity(intent5);
+                        break;
+                    case 4:
+                        Intent intent6 = new Intent();
+                        intent6.setClassName("cn.edu.hit.ftcl.wearablepc.UVCCamera", "cn.edu.hit.ftcl.wearablepc.UVCCamera.MainActivity");
+                        startActivity(intent6);
+                        break;
+                    case 5:
+                        Intent intent7 = new Intent();
+                        intent7.setClassName("cn.edu.hit.ftcl.wearablepc.wificamera", "cn.edu.hit.ftcl.wearablepc.wificamera.thecamhi.main.MainActivity");
+                        startActivity(intent7);
                         break;
                 }
             }
@@ -152,6 +154,8 @@ public class IndexActivity extends AppCompatActivity {
         super.onDestroy();
         stopService(sensorDataService);
         stopService(netService);
+        stopService(sendSensorDataService);
+        stopService(fusionService);
     }
 
     @Override
