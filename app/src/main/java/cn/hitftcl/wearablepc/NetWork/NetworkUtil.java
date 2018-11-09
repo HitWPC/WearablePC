@@ -102,6 +102,7 @@ public class NetworkUtil {
      * @param content
      */
     public static void sendByTCP(final String addr, final int port, final TransType type, final String content){
+
         exec.execute(new Runnable() {
             @Override
             public void run() {
@@ -110,6 +111,7 @@ public class NetworkUtil {
                 SocketAddress socketAddress = new InetSocketAddress(addr, port);
                 // 设置连接超时时间
                 try {
+                    Log.d(TAG, "addr:"+addr);
                     mSocket.connect(socketAddress, CONNECT_TIMEOUT);
                     Log.d(TAG, "connected...");
 
