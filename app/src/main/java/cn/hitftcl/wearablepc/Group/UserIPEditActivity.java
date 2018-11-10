@@ -19,8 +19,10 @@ import net.vidageek.mirror.dsl.Mirror;
 
 import org.litepal.crud.DataSupport;
 
+import java.util.List;
 import java.util.Set;
 
+import cn.hitftcl.wearablepc.IndexGrid.IndexActivity;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
@@ -124,17 +126,21 @@ public class UserIPEditActivity extends AppCompatActivity {
                     boolean res = userIPInfo.save();
                     Log.d(TAG,isCaptain+" "+res);
                     Log.d(TAG, "shujuku  "+DataSupport.find(UserIPInfo.class, userId).isCaptain());
-
-
-                    Intent intent = new Intent();
-                    intent.putExtra("result", "edit");
-                    intent.putExtra("position", position);
-                    intent.putExtra("ip", ip);
-                    intent.putExtra("port", port);
-                    intent.putExtra("blueMac", BlueMac);
-                    intent.putExtra("isCaptain", isCaptain);
-                    setResult(RESULT_OK, intent);
-                    finish();
+                    List<UserIPInfo> userIPInfo1 = DataSupport.findAll(UserIPInfo.class);
+                    if(userIPInfo1.size()==1){
+                        Intent intent1 = new Intent(UserIPEditActivity.this, IndexActivity.class);
+                        startActivity(intent1);
+                    }else{
+                        Intent intent = new Intent();
+                        intent.putExtra("result", "edit");
+                        intent.putExtra("position", position);
+                        intent.putExtra("ip", ip);
+                        intent.putExtra("port", port);
+                        intent.putExtra("blueMac", BlueMac);
+                        intent.putExtra("isCaptain", isCaptain);
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    }
                 }
                 else{
                     Toast.makeText(MyApplication.getContext(), "请填写正确的蓝牙地址！", Toast.LENGTH_SHORT).show();
