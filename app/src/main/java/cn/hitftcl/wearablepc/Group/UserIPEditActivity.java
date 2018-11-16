@@ -111,7 +111,13 @@ public class UserIPEditActivity extends AppCompatActivity {
                                         Toast.makeText(getApplicationContext(), "密钥错误！",Toast.LENGTH_LONG).show();
                                     }
                                 }
-                            }).setNegativeButton("取消",null).show();
+                            }).setNegativeButton("取消",new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                isCaptain = false;
+                                captainCheck.setChecked(false);
+                            }
+                        }).show();
                 }
 
                 Log.d(TAG,"check changed="+isCaptain);
