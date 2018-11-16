@@ -1,9 +1,13 @@
 package cn.hitftcl.wearablepc.Group;
 
+import android.app.AlertDialog;
+import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -20,16 +24,18 @@ import net.vidageek.mirror.dsl.Mirror;
 import org.litepal.crud.DataSupport;
 
 import java.util.List;
-import java.util.Set;
 
 import cn.hitftcl.wearablepc.IndexGrid.IndexActivity;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.Utils.Constant;
 
 public class UserIPEditActivity extends AppCompatActivity {
     public final String TAG = "debug001";
+
+    private final static String CAPTAIN_KEY = "1234";
 
     private EditText mEditTextUsername;
 
@@ -38,8 +44,9 @@ public class UserIPEditActivity extends AppCompatActivity {
     private EditText mEditTextPort;
 
     private EditText mEditBlueMac;
-    private Button useSelf;
+    private Button useSelfBT, userSelfIP;
     private Button mButtonEdit;
+
 
     private Button mButtonDelete;
 
@@ -75,7 +82,8 @@ public class UserIPEditActivity extends AppCompatActivity {
         mEditTextPort = (EditText)findViewById(R.id.id_port);
         mEditTextPort.setText(String.valueOf(userIPInfo.getPort()));
 
-        useSelf = (Button)findViewById(R.id.user_self_mac);
+        useSelfBT = (Button)findViewById(R.id.user_self_mac);
+        userSelfIP = findViewById(R.id.user_self_ip);
         mButtonEdit = (Button)findViewById(R.id.id_btn_edit);
         mButtonDelete = (Button)findViewById(R.id.id_btn_delete);
 
@@ -87,6 +95,25 @@ public class UserIPEditActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 isCaptain = b;
+                if(isCaptain==true){
+                    final EditText et = new EditText(compoundButton.getContext());
+
+                    new AlertDialog.Builder(compoundButton.getContext()).setTitle("请输入队长验证密钥")
+                            .setIcon(android.R.drawable.sym_def_app_icon)
+                            .setView(et)
+                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                    if(!et.getText().toString().equals(CAPTAIN_KEY)){
+                                        isCaptain = false;
+                                        captainCheck.setChecked(false);
+                                        Toast.makeText(getApplicationContext(), "密钥错误！",Toast.LENGTH_LONG).show();
+                                    }
+                                }
+                            }).setNegativeButton("取消",null).show();
+                }
+
                 Log.d(TAG,"check changed="+isCaptain);
             }
         });
@@ -96,56 +123,32 @@ public class UserIPEditActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String ip = mEditTextIP.getText().toString().trim();
                 int port = Integer.parseInt(mEditTextPort.getText().toString().trim());
-                String BlueMac = mEditBlueMac.getText().toString().trim();
-//                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-//                Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
-//                boolean isMacExisted = false;
-//                Log.d("本机蓝牙地址",""+mBluetoothAdapter.getAddress().equals(BlueMac));
-//
-//                for(BluetoothDevice bonddevice:devices) {
-//                    if(bonddevice.getAddress().equals(BlueMac)){
-//                        isMacExisted = true;
-//                        break;
-//                    }
-//                }
-//                if(mBluetoothAdapter.getAddress().equals(BlueMac))
-//                    isMacExisted = true;
-                boolean isMacExisted = true;
-                Log.d("本机蓝牙地址",""+ isMacExisted);
-                if(isMacExisted){
-                    userIPInfo.setBlueMac(BlueMac);
-                    userIPInfo.setIp(ip);
-                    userIPInfo.setPort(port);
-                    userIPInfo.setCaptain(isCaptain);
+
+                userIPInfo.setIp(ip);
+                userIPInfo.setPort(port);
+                userIPInfo.setCaptain(isCaptain);
+                if(userIPInfo.save()){
                     if(userIPInfo.getType()==0){
                         Constant.MY_IP = ip;
                         Constant.MY_PORT = port;
                     }
-//                    int res = userIPInfo.update(userId);
-//                    int res = userIPInfo.updateAll("id=?",String.valueOf(userId));
-                    boolean res = userIPInfo.save();
-                    Log.d(TAG,isCaptain+" "+res);
-                    Log.d(TAG, "shujuku  "+DataSupport.find(UserIPInfo.class, userId).isCaptain());
                     List<UserIPInfo> userIPInfo1 = DataSupport.findAll(UserIPInfo.class);
                     if(userIPInfo1.size()==1){
+                        Log.d(TAG, "有1个");
                         Intent intent1 = new Intent(UserIPEditActivity.this, IndexActivity.class);
                         startActivity(intent1);
                     }else{
+                        Log.d(TAG, "有多个");
                         Intent intent = new Intent();
                         intent.putExtra("result", "edit");
                         intent.putExtra("position", position);
                         intent.putExtra("ip", ip);
                         intent.putExtra("port", port);
-                        intent.putExtra("blueMac", BlueMac);
                         intent.putExtra("isCaptain", isCaptain);
                         setResult(RESULT_OK, intent);
                         finish();
                     }
                 }
-                else{
-                    Toast.makeText(MyApplication.getContext(), "请填写正确的蓝牙地址！", Toast.LENGTH_SHORT).show();
-                }
-
             }
         });
 
@@ -165,7 +168,7 @@ public class UserIPEditActivity extends AppCompatActivity {
 
             }
         });
-        useSelf.setOnClickListener(new View.OnClickListener() {
+        useSelfBT.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -179,6 +182,13 @@ public class UserIPEditActivity extends AppCompatActivity {
                 } else {
                     return;
                 }
+            }
+        });
+
+        userSelfIP.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mEditTextIP.setText(NetworkUtil.getLocalIP(MyApplication.getContext()));
             }
         });
     }

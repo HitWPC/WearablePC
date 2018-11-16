@@ -48,8 +48,9 @@ public class SendDataService extends Service {
         timerTask = new TimerTask() {
             @Override
             public void run() {
+                //向队长发送地理位置数据
                 String BD_Data_Json = LatestBDdata();
-                if (BD_Data_Json!=null){
+                if (BD_Data_Json!=null && CaptainInfo!=null){
                     NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.BD_TYPE,BD_Data_Json);
                 }
             }

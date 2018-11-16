@@ -5,7 +5,11 @@ package cn.hitftcl.wearablepc.NetWork;
  * Created by hzf on 2017/5/16.
  */
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -460,7 +464,6 @@ public class NetworkUtil {
      * @param targetIP
      * @param textTargetPort
      */
-    @Deprecated
     public static void sendTextByDatagram(final String messageSend, final String targetIP, final int textTargetPort){
         new Thread() {
             @Override
@@ -486,5 +489,30 @@ public class NetworkUtil {
         Date curdate = new Date(System.currentTimeMillis());
         String str = format.format(curdate);
         return str;
+    }
+
+    /**
+     * 获取本机IP
+     * @param context
+     * @return
+     */
+    public static String getLocalIP(Context context){
+        //获取wifi服务
+        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        //判断wifi是否开启
+        if (!wifiManager.isWifiEnabled()) {
+            wifiManager.setWifiEnabled(true);
+        }
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        int ipAddress = wifiInfo.getIpAddress();
+        return intToIp(ipAddress);
+    }
+
+    private static String intToIp(int i) {
+
+        return (i & 0xFF ) + "." +
+                ((i >> 8 ) & 0xFF) + "." +
+                ((i >> 16 ) & 0xFF) + "." +
+                ( i >> 24 & 0xFF) ;
     }
 }

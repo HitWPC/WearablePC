@@ -23,8 +23,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
@@ -256,7 +259,53 @@ public class ReceiveService extends Service {
                     }
                 }
             }
-        }).start();;
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                DatagramSocket ds = null;
+                while (true){
+                    try {
+                        ds = new DatagramSocket(8005);
+                        byte[] buf = new byte[1024];
+                        DatagramPacket dp = new DatagramPacket(buf,buf.length);
+                        ds.receive(dp);
+                        String receiveInfo = new String(dp.getData(), 0, dp.getLength(), "GBK");
+                        String[] temp = receiveInfo.split(" ");
+                        UserIPInfo user = DataSupport.where("username = ?", temp[0]).findFirst(UserIPInfo.class);
+                        if(user==null){
+                            UserIPInfo u = new UserIPInfo(temp[0], temp[1], Integer.parseInt(temp[2]));
+                            u.setCaptain(temp[3].equals("true")?true:false);
+                            if(u.save()){
+                                Log.d(TAG, "新增队员成功:"+receiveInfo);
+                            }
+                        }else if(!user.getIp().equals(temp[1]) || user.getPort()!=Integer.parseInt(temp[2]) || (user.isCaptain()+"")!=temp[3]){
+                            user.setIp(temp[1]);
+                            user.setPort(Integer.parseInt(temp[2]));
+                            user.setCaptain(temp[3].equals("true")?true:false);
+                            if(user.update(user.getId())==1){
+                                Log.d(TAG, "修改队员成功:"+receiveInfo);
+                            }
+                        }
+                    } catch (SocketException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }finally {
+                        if(ds!=null){
+                            ds.close();
+                        }
+                    }
+                }
+
+
+
+
+
+            }
+        }).start();
         return super.onStartCommand(intent, flags, startId);
     }
 

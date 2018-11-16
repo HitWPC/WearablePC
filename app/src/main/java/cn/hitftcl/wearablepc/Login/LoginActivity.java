@@ -74,6 +74,7 @@ public class LoginActivity extends AppCompatActivity {
                             Intent intent = new Intent(LoginActivity.this, IndexActivity.class)
                                     .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
+
                         }else {
                         Toast.makeText(MyApplication.getContext(), "请设置您的IP地址和端口号", Toast.LENGTH_SHORT).show();
                         //打开新的Intent并清除栈里的其他Intent
