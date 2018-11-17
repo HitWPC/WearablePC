@@ -152,7 +152,7 @@ public class NetworkUtil {
 
                     }
                     //发送文本类型
-                    else if(typeName.equals(TransType.TEXT_TYPE.name())){
+                    else if(typeName.equals(TransType.TEXT_TYPE.name()) || type.equals(TransType.FUSION_RES.name())){
                         dataOutputStream.flush();
                     }
                     //发送传感器数据类型 转换后的Gson（String类型）

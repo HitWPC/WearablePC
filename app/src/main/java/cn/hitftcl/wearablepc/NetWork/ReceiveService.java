@@ -128,7 +128,11 @@ public class ReceiveService extends Service {
                             Log.d(TAG, content);
                             BD_Partner_Singleton.getInstance().setBD_Map(BD_list); //将队友北斗数据存入缓存
 
-                        }else if(type.equals(TransType.FILE_TYPE.name())){
+                        }else if(type.equals(TransType.FUSION_RES.name())){
+                            //TODO 接收到融合数据
+
+
+                        } else if(type.equals(TransType.FILE_TYPE.name())){
                             //TODO 接收到文件类型数据
                             String fileName = dataInputStream.readUTF();
 //                            Log.d(TAG, "接收到文件类型数据 "+ fileName);

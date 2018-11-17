@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.hitftcl.wearablepc.DataFusion.FusionState;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 
@@ -53,8 +54,25 @@ public class SendDataService extends Service {
                 if (BD_Data_Json!=null && CaptainInfo!=null){
                     NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.BD_TYPE,BD_Data_Json);
                 }
+                //向队长发送体征环境融合数据
+                FusionState fusionState = LatestFusionResult();
+                if(fusionState!=null && CaptainInfo!=null){
+                    String fusionStr = new Gson().toJson(fusionState, FusionState.class);
+                    NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr);
+                }
             }
         };
+    }
+
+    /**
+     * 获取最新的数据融合结果
+     * @return
+     */
+    private FusionState LatestFusionResult() {
+        FusionState state = FusionService.getFusionResult();
+        if(state!=null && new Date().getTime()-state.getFusionTime().getTime()<5000)
+            return state;
+        return null;
     }
 
     public String LatestBDdata (){

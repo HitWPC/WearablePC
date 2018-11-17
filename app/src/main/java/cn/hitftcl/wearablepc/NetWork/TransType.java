@@ -9,5 +9,6 @@ public enum TransType {
     SENSOR_TYPE,
     BD_TYPE,
     TEXT_TYPE,
-    SYN_COMMAND
+    SYN_COMMAND,
+    FUSION_RES
 }
