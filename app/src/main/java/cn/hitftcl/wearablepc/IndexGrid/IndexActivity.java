@@ -25,6 +25,7 @@ import cn.hitftcl.wearablepc.Message.SecretListActivity;
 import cn.hitftcl.wearablepc.NetWork.FusionService;
 import cn.hitftcl.wearablepc.NetWork.ReceiveService;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.ServiceManage.ServiceManageActivity;
 import cn.hitftcl.wearablepc.Utils.PERMISSION;
 import cn.hitftcl.wearablepc.Utils.RequestPermission;
 
@@ -141,6 +142,10 @@ public class IndexActivity extends AppCompatActivity {
             case R.id.classicbtset:
                 Intent classic_intent = new Intent(IndexActivity.this, ClassicBluetoothActivity.class);
                 startActivity(classic_intent);
+                return true;
+            case R.id.seviceManage:
+                Intent service_intent = new Intent(IndexActivity.this, ServiceManageActivity.class);
+                startActivity(service_intent);
                 return true;
 //            case R.id.voicetest:
 //                Intent voice_intent = new Intent(IndexActivity.this, VoiceControlActivity.class);

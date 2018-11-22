@@ -12,6 +12,10 @@
         android:id="@+id/classicbtset"
         android:title="连接测距仪" />
     <item
+        android:id="@+id/seviceManage"
+        android:title="系统服务管理" />
+
+    <item
         android:id="@+id/voicetest"
         android:title="语音测试"
         app:showAsAction="never"/>
