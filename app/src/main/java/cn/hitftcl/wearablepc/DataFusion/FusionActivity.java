@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -12,20 +13,40 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import org.litepal.crud.DataSupport;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
+import cn.hitftcl.wearablepc.IndexGrid.IndexActivity;
+import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.NetWork.FusionService;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.Utils.Constant;
 import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
 public class FusionActivity extends AppCompatActivity {
 
     FusionState fusionState = null;
-
+    private TextView fusionTime;
+    private List<UserIPInfo> mData = new ArrayList<>();
+    private UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
+    UserFusionAdapter mAdapter=null;
+    TextView othersStatus;
 //    Button shownoti = null;
 
     @Override
@@ -48,14 +69,48 @@ public class FusionActivity extends AppCompatActivity {
 //            }
 //        });
 
+        fusionTime = findViewById(R.id.fusionTime);
+//        fusionTime.setText("融合时间:unknown");
+        othersStatus = findViewById(R.id.others_status);
+        if (self.isCaptain()){
+            ListView mListView;
+            othersStatus.setVisibility(View.VISIBLE);
+            mData = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_OTHER)).find(UserIPInfo.class);
+            mAdapter = new UserFusionAdapter(FusionActivity.this, R.layout.fusionstate_item, mData);
+            mListView = (ListView)findViewById(R.id.id_list_fusion);
+            mListView.setAdapter(mAdapter);
+            mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                    UserIPInfo clicked = mData.get(position);
+                    Intent intent = new Intent(FusionActivity.this, FusionSelect.class);
+                    intent.putExtra("user_ip",clicked.getIp());
+                    intent.putExtra("uname", clicked.getUsername());
+                    startActivity(intent);
+                }
+            });
+        }
+
         ThreadPool.getInstance().execute(new Runnable() {
             @Override
             public void run() {
                 while (true){
-                    fusionState = FusionService.getFusionResult();
-                    if(fusionState!=null){
-                        parseFusionRes(fusionState);
-                    }
+
+                    FusionActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            fusionState = FusionService.getFusionResult();
+                                if(fusionState!=null){
+                                parseFusionRes(fusionState);
+                            }
+
+                            //解析队员是否安全
+                            if(self.isCaptain()){
+                                mAdapter.notifyDataSetChanged();
+                            }
+                        }
+
+                    });
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException e) {
@@ -112,8 +167,65 @@ public class FusionActivity extends AppCompatActivity {
 //        notificationManager.notify(1, notification);
 //    }
 
+    public class UserFusionAdapter extends ArrayAdapter<UserIPInfo> {
+        private int resourceId;
+
+        public UserFusionAdapter(Context context, int resource, List<UserIPInfo> objects) {
+            super(context, resource, objects);
+            resourceId = resource;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            UserIPInfo userIPInfo = getItem(position);
+            View view;
+            ViewHolder viewHolder;
+            if(convertView == null){
+                view = LayoutInflater.from(getContext()).inflate(resourceId, parent, false);
+                viewHolder = new ViewHolder();
+                viewHolder.username = (TextView)view.findViewById(R.id.id_username);
+                viewHolder.status = (TextView)view.findViewById(R.id.id_status);
+                view.setTag(viewHolder);
+            }else{
+                view = convertView;
+                viewHolder = (ViewHolder)view.getTag();
+            }
+            viewHolder.username.setText(userIPInfo.getUsername());
+            String userIp = userIPInfo.getIp();
+            FusionState partner = null;
+            for (Map.Entry<String,FusionState> entry: IndexActivity.fusionStateMap.entrySet()){
+                if (entry.getKey().equals(userIp)){
+                    partner=entry.getValue();
+                    break;
+                }
+            }
+            String env = "环境：";
+            String body = "体征：";
+            if(partner!=null && new Date().getTime()-partner.getFusionTime().getTime()<5000){
+                if(!partner.envAvailable)  env+="unknown";
+                else if(partner.isEnvNormal())  env+= "正常";
+                else  env+= "异常";
+
+                if(!partner.heartAvailable)  body+="unknown";
+                else if(partner.isBodyNormal())  body+= "正常";
+                else  body+= "异常";
+            }else{
+                env+= "unknown";
+                body+="unknown";
+            }
+
+            viewHolder.status.setText(env+"\t"+body);
+            return view;
+        }
+
+        class ViewHolder{
+            TextView username;
+            TextView status;
+        }
+    }
 
     private void parseFusionRes(FusionState fusionState) {
+        fusionTime.setText("融合时间："+Constant.dateFormat.format(fusionState.getFusionTime()));
         if(fusionState.heartAvailable){
             if(fusionState.isBodyNormal()){
                 ((TextView)findViewById(R.id.body)).setText("正常");

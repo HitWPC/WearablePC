@@ -88,6 +88,7 @@
         <activity android:name=".BDMap.MapActivity" />
         <activity android:name=".Bluetooth.GeoDataActivity" />
         <activity android:name=".Bluetooth.EnviromentDataActivity" />
+        <activity android:name=".DataFusion.FusionSelect" />
         <activity
             android:name=".BDMap.offlinemap.OfflineMapActivity"
             android:screenOrientation="portrait" />
@@ -98,11 +99,19 @@
             android:enabled="true"
             android:exported="true" />
         <service
+            android:name=".NetWork.SendDataService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
             android:name=".NetWork.ReceiveService"
             android:enabled="true"
             android:exported="true" />
         <service
             android:name=".NetWork.FusionService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".NetWork.BroadcastService"
             android:enabled="true"
             android:exported="true" />
 
@@ -115,7 +124,12 @@
         <activity android:name=".DataFusion.FusionActivity" />
         <activity android:name=".Message.ImageActivity" />
         <activity android:name=".Bluetooth.EnvLineActivity" />
-        <activity android:name=".ServiceManage.ServiceManageActivity"></activity>
+        <activity android:name=".ServiceManage.ServiceManageActivity" />
+
+        <service
+            android:name=".NetWork.ServiceManageService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

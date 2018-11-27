@@ -2,13 +2,17 @@ package cn.hitftcl.wearablepc.DataFusion;
 
 import com.amap.api.maps.model.LatLng;
 
+import java.io.Serializable;
+import java.text.ParseException;
 import java.util.Date;
+
+import cn.hitftcl.wearablepc.Utils.Constant;
 
 /**
  * Created by Administrator on 2018/10/30.
  */
 
-public class FusionState {
+public class FusionState implements Serializable{
     public boolean heartAvailable = false;
     public boolean envAvailable = false;
     public boolean bdAvailable = false;
@@ -31,7 +35,7 @@ public class FusionState {
 
     private LatLng BD_Position;
     private String IP;
-    private Date fusionTime;
+    private String fusionTime;
 
     public FusionState() {
     }
@@ -47,7 +51,7 @@ public class FusionState {
         this.no = no;
         this.BD_Position = BD_Position;
         this.IP = IP;
-        this.fusionTime = fusionTime;
+        this.fusionTime = Constant.dateFormat.format(fusionTime);
     }
 
     public LatLng getBD_Position() {
@@ -67,11 +71,17 @@ public class FusionState {
     }
 
     public Date getFusionTime() {
-        return fusionTime;
+        try {
+            return Constant.dateFormat.parse(fusionTime);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return new Date(System.currentTimeMillis()-24*60*3600);
+
+        }
     }
 
     public void setFusionTime(Date fusionTime) {
-        this.fusionTime = fusionTime;
+        this.fusionTime = Constant.dateFormat.format(fusionTime);
     }
 
     public boolean isBodyNormal() {
@@ -136,5 +146,25 @@ public class FusionState {
 
     public void setNo(int no) {
         this.no = no;
+    }
+
+    @Override
+    public String toString() {
+        return "FusionState{" +
+                "heartAvailable=" + heartAvailable +
+                ", envAvailable=" + envAvailable +
+                ", bdAvailable=" + bdAvailable +
+                ", isBodyNormal=" + isBodyNormal +
+                ", isEnvNormal=" + isEnvNormal +
+                ", heartState=" + heartState +
+                ", temperature=" + temperature +
+                ", humidity=" + humidity +
+                ", pressure=" + pressure +
+                ", so2=" + so2 +
+                ", no=" + no +
+                ", BD_Position=" + BD_Position +
+                ", IP='" + IP + '\'' +
+                ", fusionTime=" + fusionTime +
+                '}';
     }
 }

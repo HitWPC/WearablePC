@@ -1,7 +1,9 @@
 package cn.hitftcl.wearablepc.Group;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -18,6 +20,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.litepal.crud.DataSupport;
 
@@ -29,6 +35,7 @@ import java.util.List;
 import cn.hitftcl.wearablepc.Message.SecretActivity;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.NetWork.BroadcastService;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.R;
 
@@ -42,7 +49,14 @@ public class UserIPListActivity extends AppCompatActivity {
     private UserIPAdapter mAdapter;
     private List<UserIPInfo> mData = new ArrayList<>();
     private ListView mListView;
-    private Button mButton, sendIP;
+    private Button mButton, sendIP,manageService;
+    private Boolean StartService=false;
+
+    Intent broadcastService = null;
+
+    UserIPInfo self =null;
+
+    private BroadcastReceiver mBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,19 +78,45 @@ public class UserIPListActivity extends AppCompatActivity {
         //Button
         mButton = (Button) findViewById(R.id.id_btn_plus);
         sendIP = findViewById(R.id.id_btn_sendBroadcast);
+        manageService=(Button)findViewById(R.id.id_btn_manageService);
 
-        final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
+        self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
         if(self.getIp()==null || self.getPort()<1024){
             sendIP.setVisibility(View.GONE);
         }
 
+        broadcastService = new Intent(UserIPListActivity.this,BroadcastService.class);
+
+
+
+        //开启或关闭广播
+        manageService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (StartService==false){
+                    StartService=true;
+                    manageService.setText("关闭广播");
+                    startService(broadcastService);
+                    Toast.makeText(getApplicationContext(), "广播已开启", Toast.LENGTH_SHORT).show();
+
+                }else {
+                    StartService=false;
+                    manageService.setText("开启广播");
+                    stopService(broadcastService);
+                    Toast.makeText(getApplicationContext(), "广播已关闭", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+
         sendIP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    String username = self.getUsername();
+                    UserIPInfo selfInfo = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
+                    String username = selfInfo.getUsername();
                     String MY_IP = NetworkUtil.getLocalIP(MyApplication.getContext());
-                    int port = self.getPort();
-                    boolean isCaptain = self.isCaptain();
+                    int port = selfInfo.getPort();
+                    boolean isCaptain = selfInfo.isCaptain();
                     String sendContent = username+" "+MY_IP+" "+port+" "+isCaptain;
                     NetworkUtil.sendTextByDatagram(sendContent, "255.255.255.255", 8005);
             }
@@ -121,6 +161,46 @@ public class UserIPListActivity extends AppCompatActivity {
     }
 
     /**
+     * 本地广播接收器
+     */
+    class MyBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String content = intent.getStringExtra("personInfo");
+            UserIPInfo user= new Gson().fromJson(content,UserIPInfo.class);
+            Log.d(TAG,"before-add-size:---->"+mData.size());
+            boolean flag = false;
+            UserIPInfo oldUserInfo = null;
+            for (UserIPInfo userIPInfo:mData){
+                if (userIPInfo.getId()==user.getId()){
+                    flag=true;
+                    oldUserInfo = userIPInfo;
+                }
+            }
+            System.out.println("*********"+flag);
+            if (flag){
+                mData.remove(oldUserInfo);
+            }
+            mData.add(user);
+            Log.d(TAG,"after-add-size:---->"+mData.size());
+            //view更新数据
+            mAdapter.notifyDataSetChanged();
+
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mBroadcastReceiver = new MyBroadcastReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BroadcastService.Broadcast_Service_Action);
+        registerReceiver(mBroadcastReceiver, intentFilter);
+    }
+
+    /**
      * toolbar返回按钮响应事件
      * @param item
      * @return
@@ -135,6 +215,14 @@ public class UserIPListActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(StartService==true){
+            stopService(broadcastService);
+            Toast.makeText(this, "广播已关闭", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

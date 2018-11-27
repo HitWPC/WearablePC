@@ -29,9 +29,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Map;
 
 import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
+import cn.hitftcl.wearablepc.DataFusion.FusionState;
+import cn.hitftcl.wearablepc.IndexGrid.IndexActivity;
+import cn.hitftcl.wearablepc.Login.EncryptionUtil;
 import cn.hitftcl.wearablepc.Message.ImageActivity;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnvironmentTable;
@@ -40,6 +44,7 @@ import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.Utils.Constant;
+import cn.hitftcl.wearablepc.Utils.EncryptUtil;
 import cn.hitftcl.wearablepc.Utils.MediaTypeJudgeUtil;
 
 /**
@@ -49,6 +54,8 @@ import cn.hitftcl.wearablepc.Utils.MediaTypeJudgeUtil;
 public class ReceiveService extends Service {
 
     public final static  String TAG = "debug001";
+
+    private Thread thread = null;
 
     public final static String ACTION_MESSAGE_RECEIVE =
             "com.hitwearable.LOCAL_BROADCAST_SECRET";
@@ -62,14 +69,12 @@ public class ReceiveService extends Service {
     ServerSocket serverSocket = null;
     @Override
     public void onCreate() {
-        Log.d(TAG,"onCreate - Thread ID = " + Thread.currentThread().getId());
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand - startId = " + startId + ", Thread ID = " + Thread.currentThread().getId());
-        new Thread(new Runnable() {
+        thread = new Thread(new Runnable() {
             @Override
             public void run() {
 
@@ -103,26 +108,26 @@ public class ReceiveService extends Service {
                         //获取输入流
                         DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
                         //获得输入
-                        String  type = dataInputStream.readUTF();
+                        String  type = EncryptUtil.decryptPassword(dataInputStream.readUTF());
                         Msg msg=null;
                         if(type.equals(TransType.TEXT_TYPE.name())){
                             //TODO 接收到文本信息
-                            String content = dataInputStream.readUTF();
-                            msg=saveMsg(self, sender, content, Msg.CATAGORY_TEXT);
+                            String content = EncryptUtil.decryptPassword(dataInputStream.readUTF());
+                            msg=saveMsg(self, sender, content, Msg.CATAGORY_TEXT, System.currentTimeMillis());
                             broadcastUpdate(ACTION_MESSAGE_RECEIVE);
                             Vibrator vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
                             vibrator.vibrate(500);
                             updateUI(msg);
                         }else if(type.equals(TransType.SENSOR_TYPE.name())){
                             //TODO 接收到传感器数据
-                            String content = dataInputStream.readUTF();
+                            String content = EncryptUtil.decryptPassword(dataInputStream.readUTF());
                             Gson gson = new Gson();
                             EnvironmentTable environmentTable =  gson.fromJson(content, new TypeToken<ArrayList<EnvironmentTable>>(){}.getType());
                             Log.d(TAG, content);
 
                         }else if(type.equals(TransType.BD_TYPE.name())){
                             //TODO 接收到北斗数据
-                            String content = dataInputStream.readUTF();
+                            String content = EncryptUtil.decryptPassword(dataInputStream.readUTF());
                             Gson gson = new Gson();
                             ArrayList<BDTable> BD_list =  gson.fromJson(content, new TypeToken<ArrayList<BDTable>>(){}.getType());
                             Log.d(TAG, content);
@@ -130,11 +135,25 @@ public class ReceiveService extends Service {
 
                         }else if(type.equals(TransType.FUSION_RES.name())){
                             //TODO 接收到融合数据
-
+                            Log.d(TAG, "接收到融合数据");
+                            String content=EncryptUtil.decryptPassword(dataInputStream.readUTF());
+                            Gson gson=new Gson();
+                            FusionState fusionState=gson.fromJson(content,FusionState.class);
+                            Boolean exist=false;
+                            for (Map.Entry<String,FusionState> entry: IndexActivity.fusionStateMap.entrySet()){
+                                if (entry.getKey().equals(sender.getIp())){
+                                    entry.setValue(fusionState);
+                                    exist=true;
+                                    break;
+                                }
+                            }
+                            if (exist==false){
+                                IndexActivity.fusionStateMap.put(sender.getIp(),fusionState);
+                            }
 
                         } else if(type.equals(TransType.FILE_TYPE.name())){
                             //TODO 接收到文件类型数据
-                            String fileName = dataInputStream.readUTF();
+                            String fileName = EncryptUtil.decryptPassword(dataInputStream.readUTF());
 //                            Log.d(TAG, "接收到文件类型数据 "+ fileName);
 //                            String prefix=fileName.substring(fileName.lastIndexOf(".")+1);
 //                            Log.d(TAG, "prefix of received file: "+ prefix);
@@ -175,6 +194,7 @@ public class ReceiveService extends Service {
                                     imageDir.mkdirs();
                                 }
                                 file = new File(imageDir, fileName.substring(fileName.lastIndexOf("/")+1));
+                                Log.d(TAG, "file is null?"+(file==null));
                             }else if(MediaTypeJudgeUtil.isAudioFileType(fileName)){
                                 catagory = Msg.CATAGORY_VOICE;
                                 content = "[语音]";
@@ -214,7 +234,19 @@ public class ReceiveService extends Service {
                                 dataOutputStream.write(buf, 0, read);
                             }
                             dataOutputStream.flush();
-                            msg=saveMsg(self, sender, file.getAbsolutePath(), catagory);
+                            long current = System.currentTimeMillis();
+                            msg=saveMsg(self, sender, file.getAbsolutePath(), catagory, current);
+
+                            Secret secret = DataSupport.where("user_id = ?", String.valueOf(sender.getId())).findFirst(Secret.class);
+                            if (secret != null) {
+                                secret.setContent(content);
+                                secret.setTime(current);
+                                secret.save();
+                            } else {
+                                Secret addSecret = new Secret(sender.getId(), sender.getUsername(), "[语音]", current);
+                                addSecret.save();
+                            }
+
                             broadcastUpdate(ACTION_MESSAGE_RECEIVE);
                             Vibrator vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
                             vibrator.vibrate(500);
@@ -223,6 +255,7 @@ public class ReceiveService extends Service {
                             if(content.equals("[图片]")){
                                 Log.d(TAG, "准备跳转");
                                 Intent intent = new Intent(ReceiveService.this, ImageActivity.class);
+                                intent.putExtra("IP_INFO", sender.getUsername());
                                 intent.putExtra("PATH_INFO", file.getAbsolutePath());
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
                                 startActivity(intent);
@@ -263,53 +296,8 @@ public class ReceiveService extends Service {
                     }
                 }
             }
-        }).start();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                DatagramSocket ds = null;
-                while (true){
-                    try {
-                        ds = new DatagramSocket(8005);
-                        byte[] buf = new byte[1024];
-                        DatagramPacket dp = new DatagramPacket(buf,buf.length);
-                        ds.receive(dp);
-                        String receiveInfo = new String(dp.getData(), 0, dp.getLength(), "GBK");
-                        String[] temp = receiveInfo.split(" ");
-                        UserIPInfo user = DataSupport.where("username = ?", temp[0]).findFirst(UserIPInfo.class);
-                        if(user==null){
-                            UserIPInfo u = new UserIPInfo(temp[0], temp[1], Integer.parseInt(temp[2]));
-                            u.setCaptain(temp[3].equals("true")?true:false);
-                            if(u.save()){
-                                Log.d(TAG, "新增队员成功:"+receiveInfo);
-                            }
-                        }else if(!user.getIp().equals(temp[1]) || user.getPort()!=Integer.parseInt(temp[2]) || (user.isCaptain()+"")!=temp[3]){
-                            user.setIp(temp[1]);
-                            user.setPort(Integer.parseInt(temp[2]));
-                            user.setCaptain(temp[3].equals("true")?true:false);
-                            if(user.update(user.getId())==1){
-                                Log.d(TAG, "修改队员成功:"+receiveInfo);
-                            }
-                        }
-                    } catch (SocketException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }finally {
-                        if(ds!=null){
-                            ds.close();
-                        }
-                    }
-                }
-
-
-
-
-
-            }
-        }).start();
+        });
+        thread.start();
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -333,13 +321,15 @@ public class ReceiveService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind - Thread ID = " + Thread.currentThread().getId());
         return null;
     }
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy - Thread ID = " + Thread.currentThread().getId());
+
+//        if(thread!=null){
+//            thread.interrupt();
+//        }
         super.onDestroy();
     }
 
@@ -349,9 +339,8 @@ public class ReceiveService extends Service {
      * @param sender
      * @param content
      */
-    private Msg saveMsg(UserIPInfo self, UserIPInfo sender, String content, int type){
+    private Msg saveMsg(UserIPInfo self, UserIPInfo sender, String content, int type, long current){
         Msg msg = new Msg();
-        long current = System.currentTimeMillis();
         msg.setSender(sender.getId());
         msg.setReceiver(self.getId());
         msg.setPath(content);

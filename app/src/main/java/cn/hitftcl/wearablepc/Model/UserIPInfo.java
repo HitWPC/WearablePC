@@ -110,4 +110,18 @@ public class UserIPInfo extends DataSupport {
     public boolean isCaptain(){
         return isCaptain>0;
     }
+
+    @Override
+    public String toString() {
+        return "UserIPInfo{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", ip='" + ip + '\'' +
+                ", port=" + port +
+                ", BlueMac='" + BlueMac + '\'' +
+                ", type=" + type +
+                ", isCaptain=" + isCaptain +
+                '}';
+    }
 }

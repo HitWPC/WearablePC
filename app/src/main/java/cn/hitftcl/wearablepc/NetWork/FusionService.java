@@ -74,7 +74,6 @@ public class FusionService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "FusionService启动了");
         bleController = BleController.getInstance().init(this);
         timer = new Timer();
         timerTask = new TimerTask() {
@@ -88,6 +87,12 @@ public class FusionService extends Service {
                 speedChange();
             }
         };
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        timer.cancel();
     }
 
     private void judgeAndShowNotification() {

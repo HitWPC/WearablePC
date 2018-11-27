@@ -28,7 +28,7 @@ public class SendDataService extends Service {
     private  static int Max_Interval_Seconds = 2000;
     private static int Timer_Interval = 1000;
 
-    private static UserIPInfo CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(true)).findFirst(UserIPInfo.class);
+    private UserIPInfo CaptainInfo = null;
 
     @Nullable
     @Override
@@ -49,6 +49,8 @@ public class SendDataService extends Service {
         timerTask = new TimerTask() {
             @Override
             public void run() {
+                Log.d(TAG, "数据融合123");
+                CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(1)).findFirst(UserIPInfo.class);
                 //向队长发送地理位置数据
                 String BD_Data_Json = LatestBDdata();
                 if (BD_Data_Json!=null && CaptainInfo!=null){
@@ -56,9 +58,10 @@ public class SendDataService extends Service {
                 }
                 //向队长发送体征环境融合数据
                 FusionState fusionState = LatestFusionResult();
-                if(fusionState!=null && CaptainInfo!=null){
-                    String fusionStr = new Gson().toJson(fusionState, FusionState.class);
+                if(fusionState!=null && CaptainInfo!=null && CaptainInfo.getType()!=0 && (fusionState.heartAvailable||fusionState.envAvailable||fusionState.bdAvailable)){
+                    String fusionStr = new Gson().toJson(fusionState);
                     NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr);
+                    Log.d(TAG, "向队长发送融合数据成功");
                 }
             }
         };
@@ -78,6 +81,8 @@ public class SendDataService extends Service {
     public String LatestBDdata (){
         ArrayList<BDTable> list = new ArrayList<>();
         BDTable data = DataSupport.findLast(BDTable.class);
+        if(data==null)
+            return null;
         Date data_time = data.getRecordDate();
         Date current = new Date();
         if (current.getTime() - data_time.getTime()<= Max_Interval_Seconds){
@@ -97,5 +102,11 @@ public class SendDataService extends Service {
             return gson.toJson(list.add(data));
         }
         return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        timer.cancel();
+        super.onDestroy();
     }
 }

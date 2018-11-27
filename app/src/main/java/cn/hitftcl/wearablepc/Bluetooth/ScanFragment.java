@@ -54,7 +54,7 @@ public class ScanFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_scan, container,false);
 
         // TODO 第一步：检查BLE兼容性，申请权限
-        checkBLE();
+//        checkBLE();  在index界面做
 
         // TODO 第二步：初始化
         mBleController = BleController.getInstance().init(getContext());
@@ -84,7 +84,10 @@ public class ScanFragment extends Fragment {
                     @Override
                     public void onConnSuccess() {
                         hideProgressDialog();
-                        Toast.makeText(getContext(), "连接成功", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "连接成功", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "连接成功---position----->"+address+"  "+position);
+                        Log.d(TAG, "bluetoothDevices---size----->"+bluetoothDevices.size());
+                        Log.d(TAG, "btDevices---size----->"+btDevices.size());
                         bluetoothDevices.remove(position);
                         btDevices.remove(position);
                         adapter.notifyDataSetChanged();
@@ -161,31 +164,5 @@ public class ScanFragment extends Fragment {
         }
     }
 
-    /**
-     * 检查BLE，申请权限
-     */
-    private void checkBLE() {
-        // Use this check to determine whether BLE is supported on the device.  Then you can
-        // selectively disable BLE-related features.
-        if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(getContext(), R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-            getActivity().finish();
-        }
-        requestLocationPermission();
-    }
 
-    /**
-     * 动态申请位置权限
-     */
-    private void requestLocationPermission(){
-        Log.d(TAG, "requestLocationPermission: 申请权限");
-        if (Build.VERSION.SDK_INT >= 23){
-            int check = ContextCompat.checkSelfPermission(getContext(),android.Manifest.permission.ACCESS_COARSE_LOCATION);
-            if (check != PermissionChecker.PERMISSION_GRANTED){
-                requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},0);
-            }else{
-                return;
-            }
-        }
-    }
 }

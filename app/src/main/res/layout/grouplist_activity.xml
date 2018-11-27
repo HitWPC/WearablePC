@@ -74,6 +74,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="广播IP"/>
+        <Button
+            android:id="@+id/id_btn_manageService"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开启广播"/>
     </LinearLayout>
 
 </LinearLayout>

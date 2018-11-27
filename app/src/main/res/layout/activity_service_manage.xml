@@ -14,6 +14,13 @@
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="Tips：默认自动管理,自动管理模式关闭后将切换成手动模式哦！"
+        android:textSize="16sp"
+        android:layout_margin="10dp"/>
 
     <TableLayout
         android:layout_width="match_parent"
@@ -27,12 +34,81 @@
                 android:layout_margin="10dp"
                 android:text="自动管理"/>
             <com.suke.widget.SwitchButton
-                android:id="@+id/switch_button"
+                android:id="@+id/auto_button"
                 android:layout_margin="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </TableRow>
 
+        <TableRow android:gravity="center_horizontal">
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:text="一键开启"/>
+            <com.suke.widget.SwitchButton
+                android:id="@+id/chooseAll_button"
+                android:layout_margin="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </TableRow>
+
+        <TableRow android:gravity="center_horizontal">
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:text="网络通信服务"/>
+            <com.suke.widget.SwitchButton
+                android:id="@+id/net_service"
+                android:layout_margin="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </TableRow>
+
+        <TableRow android:gravity="center_horizontal">
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:text="蓝牙接收服务"/>
+            <com.suke.widget.SwitchButton
+                android:id="@+id/bt_receive_service"
+                android:layout_margin="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </TableRow>
+
+        <TableRow android:gravity="center_horizontal">
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:text="数据上报服务"/>
+            <com.suke.widget.SwitchButton
+                android:id="@+id/data_send_service"
+                android:layout_margin="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </TableRow>
+
+        <TableRow android:gravity="center_horizontal">
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:text="数据融合服务"/>
+            <com.suke.widget.SwitchButton
+                android:id="@+id/data_fusion_service"
+                android:layout_margin="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </TableRow>
 
     </TableLayout>
 

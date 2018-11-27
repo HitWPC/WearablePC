@@ -91,6 +91,8 @@ public class UserIPEditActivity extends AppCompatActivity {
         Log.d(TAG, "     "+userIPInfo.isCaptain());
         captainCheck.setChecked(userIPInfo.isCaptain());
 
+        isCaptain = captainCheck.isChecked();
+
         captainCheck.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {

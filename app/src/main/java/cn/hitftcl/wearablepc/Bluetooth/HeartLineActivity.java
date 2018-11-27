@@ -11,15 +11,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import org.litepal.crud.DataSupport;
+
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import cn.hitftcl.wearablepc.Model.HeartCache;
 import cn.hitftcl.wearablepc.Model.HeartTable;
 import cn.hitftcl.wearablepc.R;
 import lecho.lib.hellocharts.formatter.LineChartValueFormatter;
@@ -35,9 +34,12 @@ import lecho.lib.hellocharts.model.Viewport;
 import lecho.lib.hellocharts.view.LineChartView;
 
 public class HeartLineActivity extends AppCompatActivity{
+
+    public static final String TAG = "debug001";
     private long currentVersion = 0;
     private LineChartView chartView;
     Timer timer;
+    private List<HeartTable> heartDataList;
 
 
     //    折线集合（add多个line就会显示对条线）
@@ -110,6 +112,7 @@ public class HeartLineActivity extends AppCompatActivity{
 //        线的透明度
 //        chartline.setAreaTransparency(0);
 //        点的大小
+
         chartline.setPointRadius(2);
 //        点上的标注信息，刚才 pointValues里面每个点的标注
         chartline.setCubic(true);
@@ -169,6 +172,7 @@ public class HeartLineActivity extends AppCompatActivity{
         chartView.setInteractive(true);
 //        可放大
         chartView.setZoomEnabled(true);
+        chartView.setMaxZoom(2);
 //        我这边设置横向滚动
         chartView.setContainerScrollEnabled(true, ContainerScrollType.HORIZONTAL);
 //        设置可视化视图样式，这里能做的东西非常多，
@@ -194,20 +198,6 @@ public class HeartLineActivity extends AppCompatActivity{
 //        确定上两句话的设置
         chartView.setCurrentViewport(v);
 
-//        还可以设置当前的动画效果，有兴趣的同学可以试一试
-//        chartView.setViewportAnimationListener(new ChartAnimationListener() {
-//            @Override
-//            public void onAnimationStarted() {
-//            }
-//            @Override
-//            public void onAnimationFinished() {
-//                chartView.setMaximumViewport(v);
-//                chartView.setViewportAnimationListener(null);
-//
-//            }
-//        });
-//        chartView.setCurrentViewport(v);
-
     }
 
 
@@ -221,11 +211,17 @@ public class HeartLineActivity extends AppCompatActivity{
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(HeartCache.getVersion()!=currentVersion){
+                heartDataList = DataSupport.select("*").order("date desc").limit(10).find(HeartTable.class);
+                if(heartDataList!=null && heartDataList.size()>0){
                     Message message = new Message();
                     message.what = 0;
                     handler.sendMessage(message);
                 }
+//                if(HeartCache.getVersion()!=currentVersion){
+//                    Message message = new Message();
+//                    message.what = 0;
+//                    handler.sendMessage(message);
+//                }
             }
         },1000,1000);
     }
@@ -234,12 +230,19 @@ public class HeartLineActivity extends AppCompatActivity{
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case 0:
-                    setKLine(HeartCache.getHeartDataCache());
+//                    setKLine(HeartCache.getHeartDataCache());
+                    setKLine(heartDataList);
                     break;
             }
             super.handleMessage(msg);
         }
     };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        timer.cancel();
+    }
 
     /**
      * toolbar返回按钮响应事件

@@ -20,8 +20,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import cn.hitftcl.wearablepc.Model.EnvironmentTable;
-import cn.hitftcl.wearablepc.Model.HeartCache;
-import cn.hitftcl.wearablepc.Model.HeartTable;
 import cn.hitftcl.wearablepc.R;
 import lecho.lib.hellocharts.formatter.LineChartValueFormatter;
 import lecho.lib.hellocharts.formatter.SimpleLineChartValueFormatter;
@@ -121,9 +119,8 @@ public class EnvLineActivity extends AppCompatActivity{
     }
 
     public void setKLine(List<EnvironmentTable> envDataList){
-        Log.d(TAG, "进入setKLine");
-        setChart(0, tempView, chartlines1, mAxisXValues1, pointValues1, chartline1, lineChartData1,chartValueFormatter1, axisX1, axisY1,30,-30);
-        setChart(1, humidtyView, chartlines2, mAxisXValues2, pointValues2, chartline2, lineChartData2,chartValueFormatter2, axisX2, axisY2, 40, 0);
+        setChart(0, tempView, chartlines1, mAxisXValues1, pointValues1, chartline1, lineChartData1,chartValueFormatter1, axisX1, axisY1,40,-30);
+        setChart(1, humidtyView, chartlines2, mAxisXValues2, pointValues2, chartline2, lineChartData2,chartValueFormatter2, axisX2, axisY2, 100, 0);
         setChart(2, pressureView, chartlines3, mAxisXValues3, pointValues3, chartline3, lineChartData3,chartValueFormatter3, axisX3, axisY3,120, 80);
         setChart(3, so2View, chartlines4, mAxisXValues4, pointValues4, chartline4, lineChartData4,chartValueFormatter4, axisX4, axisY4, 30, 0);
         setChart(4, noView, chartlines5, mAxisXValues5, pointValues5, chartline5, lineChartData5,chartValueFormatter5, axisX5, axisY5, 30, 0);
@@ -153,7 +150,6 @@ public class EnvLineActivity extends AppCompatActivity{
                           Axis axisY,
                           float up,
                           float down){
-        Log.d(TAG, "进入setChart");
 //清空数据，将不影响下一次点击按钮 传过来一个新的list的显示
         chartlines.clear();
         mAxisXValues.clear();
@@ -301,7 +297,6 @@ public class EnvLineActivity extends AppCompatActivity{
         v.right =envDataList.get(envDataList.size()-1).getDate().getMinutes()*60+envDataList.get(envDataList.size()-1).getDate().getSeconds();
 //        确定上两句话的设置
         chartView.setCurrentViewport(v);
-        Log.d(TAG, "type:"+type);
     }
 
 

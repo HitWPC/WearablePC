@@ -1,18 +1,32 @@
 package cn.hitftcl.wearablepc.IndexGrid;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
 
-import android.text.method.KeyListener;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
@@ -20,18 +34,24 @@ import cn.hitftcl.wearablepc.Bluetooth.BluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.ClassicBluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.SensorDataService;
 import cn.hitftcl.wearablepc.DataFusion.FusionActivity;
+import cn.hitftcl.wearablepc.DataFusion.FusionState;
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
 import cn.hitftcl.wearablepc.NetWork.FusionService;
 import cn.hitftcl.wearablepc.NetWork.ReceiveService;
+import cn.hitftcl.wearablepc.NetWork.SendDataService;
+import cn.hitftcl.wearablepc.NetWork.ServiceManageService;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.ServiceManage.ServiceInfo;
 import cn.hitftcl.wearablepc.ServiceManage.ServiceManageActivity;
-import cn.hitftcl.wearablepc.Utils.PERMISSION;
-import cn.hitftcl.wearablepc.Utils.RequestPermission;
+import cn.hitftcl.wearablepc.Utils.Constant;
 
 public class IndexActivity extends AppCompatActivity {
+    public static Map<String,FusionState> fusionStateMap=new HashMap<String,FusionState>();
     private final static String TAG = "debug001";
-    private Intent sensorDataService = null, netService = null, sendSensorDataService=null, fusionService=null;
+    private Intent sensorDataService = null, netService = null, sendDataService =null, fusionService=null;
+
+    public static boolean isServiceInit=false;
 
     MyGridLayout grid;
     int[] srcs = { R.drawable.actions_booktag, R.drawable.actions_about,
@@ -97,23 +117,95 @@ public class IndexActivity extends AppCompatActivity {
             }
         });
 
-        //TODO 开启接收网络数据的服务
-        netService = new Intent(this, ReceiveService.class);
-        startService(netService);
-
-        //TODO 开启传感器数据接收服务
-        sensorDataService = new Intent(this, SensorDataService.class);
-        startService(sensorDataService);
-
-        //TODO 开启传感器数据接收服务
-        sendSensorDataService = new Intent(this, SensorDataService.class);
-        startService(sendSensorDataService);
-
-        //TODO 开启数据融合服务
-        fusionService = new Intent(this, FusionService.class);
-        startService(fusionService);
+        checkBLE();
 
 
+        //TODO 初始化服务
+        if(!isServiceInit){
+            File file = new File(Constant.serviceInfoPath, "service.temp");
+            if (file.exists()){
+                try {
+                    ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file));
+                    ServiceInfo serviceInfo = (ServiceInfo)objectInputStream.readObject();
+                    System.out.println(serviceInfo);
+                    parseServiceInfo(serviceInfo);
+                    isServiceInit = true;
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                Intent intent =new Intent(IndexActivity.this, ServiceManageService.class);
+                startService(intent);
+            }
+        }
+
+//        //TODO 开启接收网络数据的服务
+//        netService = new Intent(this, ReceiveService.class);
+//        startService(netService);
+//
+//        //TODO 开启传感器数据接收服务
+//        sensorDataService = new Intent(this, SensorDataService.class);
+//        startService(sensorDataService);
+//
+//        //TODO 开启数据上报服务
+//        sendDataService = new Intent(this, SendDataService.class);
+//        startService(sendDataService);
+//
+//        //TODO 开启数据融合服务
+//        fusionService = new Intent(this, FusionService.class);
+//        startService(fusionService);
+
+
+
+    }
+
+    private void parseServiceInfo(ServiceInfo serviceInfo) {
+        if(ServiceManageActivity.netReceiveService==null)
+            ServiceManageActivity.netReceiveService = new Intent(this, ReceiveService.class);
+        if(ServiceManageActivity.sensorDataService==null)
+            ServiceManageActivity.sensorDataService = new Intent(this, SensorDataService.class);
+        if(ServiceManageActivity.sendDataService==null)
+            ServiceManageActivity.sendDataService = new Intent(this, SendDataService.class);
+        if(ServiceManageActivity.fusionService==null)
+            ServiceManageActivity.fusionService = new Intent(this, FusionService.class);
+
+        if(serviceInfo.isAuto()){
+            Intent intent =new Intent(IndexActivity.this, ServiceManageService.class);
+            startService(intent);
+            ServiceManageActivity.serviceInfo.setAuto(true);
+            return;
+        }
+        if(serviceInfo.isAll()){
+            startService(ServiceManageActivity.netReceiveService);
+            startService(ServiceManageActivity.sensorDataService);
+            startService(ServiceManageActivity.sendDataService);
+            startService(ServiceManageActivity.fusionService);
+            ServiceManageActivity.serviceInfo.setNetService(true);
+            ServiceManageActivity.serviceInfo.setBtReceiveService(true);
+            ServiceManageActivity.serviceInfo.setDataSendService(true);
+            ServiceManageActivity.serviceInfo.setDataFusionService(true);
+            ServiceManageActivity.serviceInfo.setAll(true);
+            return;
+        }
+        if(serviceInfo.isNetService()){
+            startService(ServiceManageActivity.netReceiveService);
+            ServiceManageActivity.serviceInfo.setNetService(true);
+        }
+        if (serviceInfo.isDataFusionService()){
+            startService(ServiceManageActivity.fusionService);
+            ServiceManageActivity.serviceInfo.setDataFusionService(true);
+        }
+        if (serviceInfo.isBtReceiveService()){
+            startService(ServiceManageActivity.sensorDataService);
+            ServiceManageActivity.serviceInfo.setBtReceiveService(true);
+        }
+        if (serviceInfo.isDataSendService()){
+            startService(ServiceManageActivity.sendDataService);
+            ServiceManageActivity.serviceInfo.setDataSendService(true);
+        }
 
     }
 
@@ -157,10 +249,35 @@ public class IndexActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopService(sensorDataService);
-        stopService(netService);
-        stopService(sendSensorDataService);
-        stopService(fusionService);
+        String filePath = Constant.serviceInfoPath;
+        File dir = new File(filePath);
+        if (!dir.exists()){
+            dir.mkdirs();
+        }
+        File file = new File(dir, "service.temp");
+        if(!file.exists()){
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            ServiceInfo serviceInfo = ServiceManageActivity.serviceInfo;
+            System.out.println(serviceInfo);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(serviceInfo);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        stopService(sensorDataService);
+//        stopService(netService);
+//        stopService(sendDataService);
+//        stopService(fusionService);
     }
 
     @Override
@@ -193,4 +310,34 @@ public class IndexActivity extends AppCompatActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
+
+    /**
+     * 检查BLE，申请权限
+     */
+    private void checkBLE() {
+        // Use this check to determine whether BLE is supported on the device.  Then you can
+        // selectively disable BLE-related features.
+        if (!this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
+            this.finish();
+        }
+        requestLocationPermission();
+    }
+
+    /**
+     * 动态申请位置权限
+     */
+    private void requestLocationPermission(){
+        Log.d(TAG, "requestLocationPermission: 申请权限");
+        if (Build.VERSION.SDK_INT >= 23){
+            int check = ContextCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_COARSE_LOCATION);
+            if (check != PermissionChecker.PERMISSION_GRANTED){
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},0);
+            }else{
+                return;
+            }
+        }
+    }
+
+
 }

@@ -4,6 +4,8 @@ import android.os.Environment;
 
 import org.litepal.crud.DataSupport;
 
+import java.text.SimpleDateFormat;
+
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 
 /**
@@ -19,6 +21,9 @@ public class Constant {
     public static final String videoInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/video";
     public static final String voiceInfoPath = Environment.getExternalStorageDirectory() + "/HitWearable/voice";
     public static final String userPasswordPath    = Environment.getExternalStorageDirectory() + "/HitWearable/userPassword";
+    public static final String serviceInfoPath    = Environment.getExternalStorageDirectory() + "/HitWearable/serviceInfo";
+    public static final SimpleDateFormat dateFormat = new SimpleDateFormat(
+            "yyyy-MM-dd HH:mm:ss");
 
     static {
         UserIPInfo me = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);

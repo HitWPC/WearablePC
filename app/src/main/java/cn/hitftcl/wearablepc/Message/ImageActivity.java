@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,15 +17,20 @@ import cn.hitftcl.wearablepc.R;
 public class ImageActivity extends AppCompatActivity {
     public static final String TAG="debug001";
     private ImageView imageView;
+    private TextView fromWho;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image);
 
         Intent intent = getIntent();
+        String uname = intent.getStringExtra("IP_INFO");
         String path = intent.getStringExtra("PATH_INFO");
 
         imageView = findViewById(R.id.img);
+        fromWho = findViewById(R.id.fromWho);
+
+        fromWho.setText("本条消息来自："+uname);
 
         Log.d(TAG, path);
         setImageSrc(path);

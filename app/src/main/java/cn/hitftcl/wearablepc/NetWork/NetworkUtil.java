@@ -8,6 +8,8 @@ package cn.hitftcl.wearablepc.NetWork;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -44,6 +46,7 @@ import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
+import cn.hitftcl.wearablepc.Utils.EncryptUtil;
 
 /**
  * 网络操作工具类
@@ -103,10 +106,12 @@ public class NetworkUtil {
      * @param addr
      * @param port
      * @param type
-     * @param content
+     * @param _content
      */
-    public static void sendByTCP(final String addr, final int port, final TransType type, final String content){
-
+    public static void sendByTCP(final String addr, final int port, final TransType type, final String _content){
+        final String content = EncryptUtil.encryptPassword(_content);
+        Log.d(TAG, "加密前："+_content);
+        Log.d(TAG, "加密后："+content);
         exec.execute(new Runnable() {
             @Override
             public void run() {
@@ -122,13 +127,13 @@ public class NetworkUtil {
                     // 设置读流超时时间，必须在获取流之前设置
                     mSocket.setSoTimeout(INPUT_STREAM_READ_TIMEOUT);
                     DataOutputStream dataOutputStream = new DataOutputStream(mSocket.getOutputStream());
-                    dataOutputStream.writeUTF(typeName);
+                    dataOutputStream.writeUTF(EncryptUtil.encryptPassword(typeName));
                     dataOutputStream.writeUTF(content);
 
                     //发送文件类型
 
                     if(typeName.equals(TransType.FILE_TYPE.name())){
-                        DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(content)));
+                        DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(_content)));
 
                         int bufferSize = 1024;
                         byte[] buffer = new byte[bufferSize];
@@ -515,4 +520,36 @@ public class NetworkUtil {
                 ((i >> 16 ) & 0xFF) + "." +
                 ( i >> 24 & 0xFF) ;
     }
+
+
+    public static final int TYPE_NONE = -1;
+    public static final int TYPE_MOBILE = 0;
+    public static final int TYPE_WIFI = 1;
+
+    /**
+     * 获取网络状态
+     *
+     * @param context
+     * @return one of TYPE_NONE, TYPE_MOBILE, TYPE_WIFI
+     * @permission android.permission.ACCESS_NETWORK_STATE
+     */
+    public static final int getNetWorkStates(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        if (activeNetworkInfo == null || !activeNetworkInfo.isConnected()) {
+            return TYPE_NONE;//没网
+        }
+
+        int type = activeNetworkInfo.getType();
+        switch (type) {
+            case ConnectivityManager.TYPE_MOBILE:
+                return TYPE_MOBILE;//移动数据
+            case ConnectivityManager.TYPE_WIFI:
+                return TYPE_WIFI;//WIFI
+            default:
+                break;
+        }
+        return TYPE_NONE;
+    }
+
 }

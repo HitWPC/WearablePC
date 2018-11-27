@@ -511,8 +511,18 @@ public class SecretActivity extends AppCompatActivity {
                             }
                             //数据库新增
                             File file = new File(filePath);
-                            Msg msg = new Msg(self.getId(), userId, filePath, System.currentTimeMillis(), Msg.TYPE_SENT, catagory);
+                            long current =System.currentTimeMillis();
+                            Msg msg = new Msg(self.getId(), userId, filePath, current, Msg.TYPE_SENT, catagory);
                             msg.save();
+                            Secret secret = DataSupport.where("user_id = ?", String.valueOf(userId)).findFirst(Secret.class);
+                            if (secret != null) {
+                                secret.setContent("[文件]");
+                                secret.setTime(current);
+                                secret.save();
+                            } else {
+                                Secret addSecret = new Secret(userId, userIPInfo.getUsername(), "[文件]", current);
+                                addSecret.save();
+                            }
                             //发送图片到接收端
                             NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.FILE_TYPE, filePath);
                             mDataMsgs.add(msg);

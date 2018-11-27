@@ -182,7 +182,8 @@ public class BleController {
 //        }
         reset();
 
-        mBluetoothGatt = remoteDevice.connectGatt(mContext, true, mGattCallback);//自动连接
+//        mBluetoothGatt = remoteDevice.connectGatt(mContext, false, mGattCallback);//自动连接
+        mBluetoothGatt = remoteDevice.connectGatt(mContext, false, new BleGattCallback());//自动连接
 
         ConnectedDvices.put(remoteDevice,mBluetoothGatt);
         Log.e(LOGTAG, "connecting mac-address:" + devicesAddress);
@@ -388,11 +389,22 @@ public class BleController {
             Log.e(LOGTAG, "disconnection error maybe no init");
             return;
         }
-        BluetoothGatt bluetoothGatt = ConnectedDvices.get(bluetoothDevice);
-        devicesServicesMap.remove(bluetoothGatt);
-        bluetoothGatt.disconnect();
-        ConnectedDvices.remove(bluetoothDevice);
-        reset();
+        for(Map.Entry<BluetoothDevice, BluetoothGatt> temp: ConnectedDvices.entrySet()){
+            if(temp.getKey().getAddress().equals(bluetoothDevice.getAddress())){
+                temp.getValue().disconnect();
+                Log.d(TAG, "sssssssize-----》"+ConnectedDvices.size());
+                ConnectedDvices.remove(temp.getKey());
+                Log.d(TAG, "sssssssize-----》"+ConnectedDvices.size());
+                reset();
+                return;
+            }
+        }
+//        BluetoothGatt bluetoothGatt = ConnectedDvices.get(bluetoothDevice);
+//        if(bluetoothGatt!=null){
+//        devicesServicesMap.remove(bluetoothGatt);
+//        bluetoothGatt.disconnect();
+//        ConnectedDvices.remove(bluetoothDevice);
+//        reset();}
     }
 
 
@@ -404,7 +416,7 @@ public class BleController {
     private class BleGattCallback extends BluetoothGattCallback {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-
+            Log.d(LOGTAG,"status  "+status+"  new status "+newState);
             if (newState == BluetoothProfile.STATE_CONNECTED) { //连接成功
 //                isBreakByMyself = false;
                 Log.d(LOGTAG,"onConnectionStateChange  success");
@@ -414,6 +426,7 @@ public class BleController {
                 for(Map.Entry<BluetoothDevice, BluetoothGatt> entry : ConnectedDvices.entrySet()){
                     if(entry.getValue().equals(gatt)){
                         entry.getValue().close();
+                        gatt.close();
                         ConnectedDvices.remove(entry.getKey());
                         break;
                     }
