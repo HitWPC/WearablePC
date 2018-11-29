@@ -262,7 +262,7 @@ public class ReceiveService extends Service {
                             }
                         }else if(type.equals(TransType.SYN_COMMAND.name())){
                             //TODO 同步消息
-                            String content = dataInputStream.readUTF();
+                            String content = EncryptUtil.decryptPassword(dataInputStream.readUTF());
                             if(!Constant.isMapActivityFront){
                                 //TODO MapActivity 不在前台
                                 Intent mapIntent = new Intent(ReceiveService.this, MapActivity.class);

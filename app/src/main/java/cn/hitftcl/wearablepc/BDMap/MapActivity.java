@@ -107,6 +107,7 @@ public class MapActivity extends AppCompatActivity {
         String intent_content = myIntent.getStringExtra("Syn_Content");
         if(intent_content!=null && !intent_content.equals("")){
 //            SynMessage synMessage = new Gson().fromJson(intent_content, new TypeToken<SynMessage>(){}.getType());
+            Log.d(TAG, "intent_content--->"+intent_content);
             MapInfo mapInfo =  new Gson().fromJson(intent_content, new TypeToken<MapInfo>(){}.getType());
             parseMapInfo(mapInfo);
         }else{

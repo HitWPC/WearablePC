@@ -2,7 +2,9 @@ package cn.hitftcl.wearablepc.Bluetooth;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -29,6 +31,11 @@ public class EnviromentDataActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_enviro_data);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("环境实时数据");
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         envLV = (ListView) findViewById(R.id.detail_env_listview);
         enviromentDataAdapter = new EnviromentDataAdapter(this);
@@ -96,5 +103,20 @@ public class EnviromentDataActivity extends AppCompatActivity {
         enviromentDataAdapter.clearList();
         enviromentDataAdapter.notifyDataSetChanged();
         data_item_number.setText("共查询到0条记录");
+    }
+
+    /**
+     * toolbar返回按钮响应事件
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return true;
     }
 }

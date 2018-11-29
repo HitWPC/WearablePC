@@ -47,4 +47,19 @@ public class UUIDs {
      * 心率NOTIFY Characteristic
      */
     public static final String UUID_Heart_Char_Notify = "00002a37-0000-1000-8000-00805f9b34fb";
+
+    /**
+     * 动作NOTIFY Service
+     */
+    public static final String UUID_Action_Char_Service = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+
+    /**
+     * 动作NOTIFY Characteristic
+     */
+    public static final String UUID_Action_Char_Notify = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+
+    /**
+     * 动作WRITE Characteristic
+     */
+    public static final String UUID_Action_Char_Write = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
 }

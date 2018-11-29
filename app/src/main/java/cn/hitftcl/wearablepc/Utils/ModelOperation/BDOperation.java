@@ -1,7 +1,5 @@
 package cn.hitftcl.wearablepc.Utils.ModelOperation;
 
-import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.amap.api.maps.model.LatLng;
@@ -9,7 +7,7 @@ import com.amap.api.maps.model.LatLng;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Clock;
+import java.util.Calendar;
 import java.util.Date;
 
 import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
@@ -21,6 +19,10 @@ public class BDOperation {
         Log.d(TAG, "++++++++lat_double："+latitude + "   lng_double:"+longitude+"   times:"+time);
 
         Date date=parseTimes(time);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.HOUR, 8);// 24小时制
+        date = cal.getTime();
         BDTable bdtable = new BDTable(longitude,latitude,date,IP);
         if (bdtable.save())
         {

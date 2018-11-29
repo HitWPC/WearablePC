@@ -7,6 +7,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+        <Button
+            android:id="@+id/sendBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:textSize="@dimen/font_32"
+            android:text="send"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

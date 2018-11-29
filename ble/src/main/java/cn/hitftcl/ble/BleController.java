@@ -458,8 +458,10 @@ public class BleController {
                         charMap.put(characteristics.get(j).getUuid().toString(), characteristics.get(j));
                         if ((serviceUuid.equals(UUIDs.UUID_ENVIRONMENT_Service)&&characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char_Notify))
                                 || (serviceUuid.equals(UUIDs.UUID_BD_Service)&&characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_BD_Char))
-                                || (serviceUuid.equals(UUIDs.UUID_Heart_Service)&&characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_Heart_Char_Notify))) {
+                                || (serviceUuid.equals(UUIDs.UUID_Heart_Service)&&characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_Heart_Char_Notify))
+                                || (serviceUuid.equals(UUIDs.UUID_Action_Char_Service)&&characteristics.get(j).getUuid().toString().equals(UUIDs.UUID_Action_Char_Notify))) {
                             System.out.println("**************************1"+characteristics.get(j).getUuid().toString());
+
                             if (enableNotification(true, characteristics.get(j))) {
                                 System.out.println("**************************2"+characteristics.get(j).getUuid().toString());
                                 isConnectResponse = true;

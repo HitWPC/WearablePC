@@ -2,7 +2,9 @@ package cn.hitftcl.wearablepc.Bluetooth;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -30,6 +32,11 @@ public class HeartDataActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_heart_data);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("心率实时数据");
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         heartLV = (ListView) findViewById(R.id.detail_heart_listview);
         heartDataAdapter = new HeartDataAdapter(this);
@@ -97,5 +104,20 @@ public class HeartDataActivity extends AppCompatActivity {
         heartDataAdapter.clearList();
         heartDataAdapter.notifyDataSetChanged();
         data_item_number.setText("共查询到0条记录");
+    }
+
+    /**
+     * toolbar返回按钮响应事件
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return true;
     }
 }

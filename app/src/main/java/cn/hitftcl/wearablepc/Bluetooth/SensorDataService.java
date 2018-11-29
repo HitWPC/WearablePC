@@ -127,8 +127,39 @@ public class SensorDataService extends Service {
             case UUIDs.UUID_Heart_Char_Notify:
                 deal_heart(data);
                 break;
+            case UUIDs.UUID_Action_Char_Notify:
+                Log.d(TAG, byteToFloatAll(data));
+                break;
 
         }
+    }
+
+    /**
+     * 动作传感器解析
+     * @param Array
+     * @return
+     */
+    public static String byteToFloatAll(byte[] Array)
+    {
+        short accum = 0, Pos = 1, i;
+        float accel = 0.0f;
+        String s = new String(" ");
+        s += "all acc";
+        for(i=0; i<3; i++) {
+            accum = 0;
+            accum = (short)((Array[Pos + 2*i + 1] & 0xFF)| ((Array[Pos + 2*i + 0] & 0xFF) << 8));
+            accel = accum/16384.0f;
+            s += " "+Float.toString(accel);
+        }
+        Pos += 2*3;
+        s += "  gyro";
+        for(i=0; i<3; i++) {
+            accum = 0;
+            accum = (short)((Array[Pos + 2*i + 1] & 0xFF)|((Array[Pos + 2*i + 0] & 0xFF) << 8));
+            accel = accum/16.4f;
+            s += " "+Float.toString(accel);
+        }
+        return s;
     }
 
     private static String ifHasDataNeeded(StringBuffer sb){

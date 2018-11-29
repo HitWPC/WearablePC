@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -46,6 +47,8 @@ public class ConnectedFragment extends Fragment{
     private ListView connnectedLv;
 
     private SimpleAdapter adapter;
+
+    private Button send;
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -57,6 +60,32 @@ public class ConnectedFragment extends Fragment{
         connnectedLv = v.findViewById(R.id.connnectedLv);
         adapter = new SimpleAdapter(getContext(), conn_btDevices, android.R.layout.simple_list_item_2,new String[]{"名称","地址"},new int[]{android.R.id.text1,android.R.id.text2});
         connnectedLv.setAdapter(adapter);
+
+        send = v.findViewById(R.id.sendBtn);
+
+        send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                HashMap<BluetoothDevice, BluetoothGatt> map = BleController.getInstance().getConnectedDvices();
+                if(map.size()==1){
+                    for(Map.Entry<BluetoothDevice, BluetoothGatt> temp: map.entrySet()){
+                        BluetoothDevice device = temp.getKey();
+                        byte[] buf = {0x01,0x01,0x02,0x00,0x01,0x00,0x00,0x0a};
+                        BleController.getInstance().writeBuffer_Device(device, UUIDs.UUID_Action_Char_Service, UUIDs.UUID_Action_Char_Write, buf, new OnWriteCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d(TAG, "写suc");
+                            }
+
+                            @Override
+                            public void onFailed(int state) {
+                                Log.d(TAG, "写fail");
+                            }
+                        });
+                    }
+                }
+            }
+        });
 
 //        connnectedLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 //            @Override
