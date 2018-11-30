@@ -70,7 +70,7 @@ public class ConnectedFragment extends Fragment{
                 if(map.size()==1){
                     for(Map.Entry<BluetoothDevice, BluetoothGatt> temp: map.entrySet()){
                         BluetoothDevice device = temp.getKey();
-                        byte[] buf = {0x01,0x01,0x02,0x00,0x01,0x00,0x00,0x0a};
+                        byte[] buf = {0x01,0x01,0x02,0x00,0x03,0x00,0x00,0x0a};
                         BleController.getInstance().writeBuffer_Device(device, UUIDs.UUID_Action_Char_Service, UUIDs.UUID_Action_Char_Write, buf, new OnWriteCallback() {
                             @Override
                             public void onSuccess() {

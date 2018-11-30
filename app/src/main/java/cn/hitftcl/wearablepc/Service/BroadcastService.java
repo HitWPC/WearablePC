@@ -1,4 +1,4 @@
-package cn.hitftcl.wearablepc.NetWork;
+package cn.hitftcl.wearablepc.Service;
 
 import android.app.Service;
 import android.content.Intent;

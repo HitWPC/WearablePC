@@ -1,4 +1,4 @@
-package cn.hitftcl.wearablepc.NetWork;
+package cn.hitftcl.wearablepc.Service;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -14,6 +14,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import cn.hitftcl.ble.BleController;
+import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.ServiceManage.ServiceManageActivity;
 
 public class ServiceManageService extends Service {

@@ -1,4 +1,4 @@
-package cn.hitftcl.wearablepc.Bluetooth;
+package cn.hitftcl.wearablepc.Service;
 
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
@@ -27,6 +27,7 @@ import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.UUIDs;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
 import cn.hitftcl.wearablepc.Utils.ModelOperation.BDOperation;
 
 import cn.hitftcl.wearablepc.Utils.ModelOperation.EnviromentTableOperation;
@@ -129,6 +130,8 @@ public class SensorDataService extends Service {
                 break;
             case UUIDs.UUID_Action_Char_Notify:
                 Log.d(TAG, byteToFloatAll(data));
+                BroadCastUtil.broadcastUpdate(BroadCastUtil.sensorAction, "sensorData", byteToFloatAll(data));
+
                 break;
 
         }

@@ -1,4 +1,4 @@
-package cn.hitftcl.wearablepc.NetWork;
+package cn.hitftcl.wearablepc.Service;
 
 import android.app.Service;
 import android.content.Intent;
@@ -23,11 +23,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -35,7 +32,6 @@ import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.DataFusion.FusionState;
 import cn.hitftcl.wearablepc.IndexGrid.IndexActivity;
-import cn.hitftcl.wearablepc.Login.EncryptionUtil;
 import cn.hitftcl.wearablepc.Message.ImageActivity;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnvironmentTable;
@@ -43,6 +39,7 @@ import cn.hitftcl.wearablepc.Model.Msg;
 import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.NetWork.TransType;
 import cn.hitftcl.wearablepc.Utils.Constant;
 import cn.hitftcl.wearablepc.Utils.EncryptUtil;
 import cn.hitftcl.wearablepc.Utils.MediaTypeJudgeUtil;

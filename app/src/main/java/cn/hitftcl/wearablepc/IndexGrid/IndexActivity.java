@@ -32,15 +32,17 @@ import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
 import cn.hitftcl.wearablepc.Bluetooth.BluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.ClassicBluetoothActivity;
-import cn.hitftcl.wearablepc.Bluetooth.SensorDataService;
+import cn.hitftcl.wearablepc.Service.ActionAdaptiveService;
+import cn.hitftcl.wearablepc.Service.SensorDataService;
 import cn.hitftcl.wearablepc.DataFusion.FusionActivity;
 import cn.hitftcl.wearablepc.DataFusion.FusionState;
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
-import cn.hitftcl.wearablepc.NetWork.FusionService;
-import cn.hitftcl.wearablepc.NetWork.ReceiveService;
-import cn.hitftcl.wearablepc.NetWork.SendDataService;
-import cn.hitftcl.wearablepc.NetWork.ServiceManageService;
+import cn.hitftcl.wearablepc.Service.ActionOriginService;
+import cn.hitftcl.wearablepc.Service.FusionService;
+import cn.hitftcl.wearablepc.Service.ReceiveService;
+import cn.hitftcl.wearablepc.Service.SendDataService;
+import cn.hitftcl.wearablepc.Service.ServiceManageService;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.ServiceManage.ServiceInfo;
 import cn.hitftcl.wearablepc.ServiceManage.ServiceManageActivity;
@@ -49,7 +51,7 @@ import cn.hitftcl.wearablepc.Utils.Constant;
 public class IndexActivity extends AppCompatActivity {
     public static Map<String,FusionState> fusionStateMap=new HashMap<String,FusionState>();
     private final static String TAG = "debug001";
-    private Intent sensorDataService = null, netService = null, sendDataService =null, fusionService=null;
+    private Intent sensorDataService = null, netService = null, sendDataService =null, fusionService=null, serviceManageService=null;
 
     public static boolean isServiceInit=false;
 
@@ -137,8 +139,13 @@ public class IndexActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }else{
-                Intent intent =new Intent(IndexActivity.this, ServiceManageService.class);
-                startService(intent);
+                Log.d(TAG, "开启服务管理……");
+                if (!ServiceManageActivity.serviceInfo.isAuto()){
+                    serviceManageService =new Intent(IndexActivity.this, ServiceManageService.class);
+                    startService(serviceManageService);
+                    ServiceManageActivity.serviceInfo.setAuto(true);
+                }
+
             }
         }
 
@@ -158,8 +165,8 @@ public class IndexActivity extends AppCompatActivity {
 //        fusionService = new Intent(this, FusionService.class);
 //        startService(fusionService);
 
-
-
+            Intent actionOriginService = new Intent(this, ActionAdaptiveService.class);
+            startService(actionOriginService);
     }
 
     private void parseServiceInfo(ServiceInfo serviceInfo) {
@@ -173,10 +180,13 @@ public class IndexActivity extends AppCompatActivity {
             ServiceManageActivity.fusionService = new Intent(this, FusionService.class);
 
         if(serviceInfo.isAuto()){
-            Intent intent =new Intent(IndexActivity.this, ServiceManageService.class);
-            startService(intent);
-            ServiceManageActivity.serviceInfo.setAuto(true);
-            return;
+            if (!ServiceManageActivity.serviceInfo.isAuto()){
+                serviceManageService =new Intent(IndexActivity.this, ServiceManageService.class);
+                startService(serviceManageService);
+                ServiceManageActivity.serviceInfo.setAuto(true);
+                return;
+            }
+
         }
         if(serviceInfo.isAll()){
             startService(ServiceManageActivity.netReceiveService);
@@ -236,6 +246,7 @@ public class IndexActivity extends AppCompatActivity {
                 startActivity(classic_intent);
                 return true;
             case R.id.seviceManage:
+
                 Intent service_intent = new Intent(IndexActivity.this, ServiceManageActivity.class);
                 startActivity(service_intent);
                 return true;
@@ -249,6 +260,12 @@ public class IndexActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        if (serviceManageService != null) {
+            stopService(serviceManageService);
+            ServiceManageActivity.serviceInfo.setAuto(false);
+            serviceManageService = null;
+        }
         String filePath = Constant.serviceInfoPath;
         File dir = new File(filePath);
         if (!dir.exists()){

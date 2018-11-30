@@ -6,27 +6,22 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import com.suke.widget.SwitchButton;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
-import cn.hitftcl.wearablepc.Bluetooth.SensorDataService;
-import cn.hitftcl.wearablepc.NetWork.FusionService;
-import cn.hitftcl.wearablepc.NetWork.ReceiveService;
-import cn.hitftcl.wearablepc.NetWork.SendDataService;
-import cn.hitftcl.wearablepc.NetWork.ServiceManageService;
+import cn.hitftcl.wearablepc.Service.SensorDataService;
+import cn.hitftcl.wearablepc.Service.FusionService;
+import cn.hitftcl.wearablepc.Service.ReceiveService;
+import cn.hitftcl.wearablepc.Service.SendDataService;
+import cn.hitftcl.wearablepc.Service.ServiceManageService;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.Constant;
-import cn.hitftcl.wearablepc.Utils.ServiceManageUtils;
 
 public class ServiceManageActivity extends AppCompatActivity implements SwitchButton.OnCheckedChangeListener {
     public static final String TAG = "debug001";
