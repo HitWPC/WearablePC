@@ -165,7 +165,7 @@ public class IndexActivity extends AppCompatActivity {
 //        fusionService = new Intent(this, FusionService.class);
 //        startService(fusionService);
 
-            Intent actionOriginService = new Intent(this, ActionAdaptiveService.class);
+            Intent actionOriginService = new Intent(this, ActionOriginService.class);
             startService(actionOriginService);
     }
 

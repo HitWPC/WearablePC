@@ -25,6 +25,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.clj.fastble.BleManager;
+import com.clj.fastble.callback.BleScanCallback;
+import com.clj.fastble.data.BleDevice;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,10 +45,13 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
     private Button scanBtn, stopScanBtn;
     private ListView scanDevices;
     //搜索结果列表
-    private List<BluetoothDevice> bluetoothDevices = new ArrayList<>();
+
     private static List<BluetoothDevice> connedDevices = new ArrayList<>();
     //BLE 模块
-    private BleController mBleController;
+//    private BleController mBleController;
+    private BleManager bleManager = null;
+
+    private DeviceListAdapter deviceAdapter = null;
 
 
 
@@ -58,9 +65,16 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
         checkBLE();
 
         // TODO 第二步：初始化
-        mBleController = BleController.getInstance().init(this);
+        bleManager = BleManager.getInstance();
+        bleManager.init(getApplication());
+        bleManager.getInstance()
+                .enableLog(true)
+                .setReConnectCount(1, 5000)
+                .setConnectOverTime(20000)
+                .setOperateTimeout(5000);
 
         // TODO 获取控件，监听按钮点击事件
+        deviceAdapter = new DeviceListAdapter(this);
         scanDevices = findViewById(R.id.mDeviceList1);
 
         scanBtn = findViewById(R.id.startScan);
@@ -69,46 +83,36 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
         scanBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                scanDevices();
+                startScan();
             }
         });
     }
 
-    /**
-     * 扫描外设
-     */
-    private void scanDevices() {
-
-        showProgressDialog("请稍后", "正在搜索设备");
-
-        mBleController.scanBle(0, new ScanCallback() {
+    private void startScan() {
+        BleManager.getInstance().scan(new BleScanCallback() {
             @Override
-            public void onSuccess() {
+            public void onScanStarted(boolean success) {
+                deviceAdapter.clearScanDevice();
+                deviceAdapter.notifyDataSetChanged();
+                showProgressDialog("请稍后", "正在搜索设备");
+            }
+
+            @Override
+            public void onLeScan(BleDevice bleDevice) {
+                super.onLeScan(bleDevice);
+            }
+
+            @Override
+            public void onScanning(BleDevice bleDevice) {
+                deviceAdapter.addDevice(bleDevice);
+                deviceAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onScanFinished(List<BleDevice> scanResultList) {
                 hideProgressDialog();
-
-                if (bluetoothDevices.size() > 0) {
-                    Log.d(TAG, "设备数量"+bluetoothDevices.size());
-                    scanDevices.setAdapter(new DeviceListAdapter(BTSettingActivity.this, bluetoothDevices));
-                    scanDevices.setOnItemClickListener(BTSettingActivity.this);
-                } else {
-                    Toast.makeText(BTSettingActivity.this, "未搜索到Ble设备", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onScanning(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                if (!bluetoothDevices.contains(device)) {
-                    bluetoothDevices.add(device);
-                    Log.d(TAG,"NAME: "+device.getName()+"  ADDR: "+device.getAddress());
-                }
-
             }
         });
-    }
-
-    private void stopScan(){
-        hideProgressDialog();
-        mBleController.stopScanBle();
     }
 
     public void showProgressDialog(String title, String message) {
@@ -146,24 +150,25 @@ public class BTSettingActivity extends AppCompatActivity implements AdapterView.
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        showProgressDialog("请稍后", "正在连接设备");
-
+//        showProgressDialog("请稍后", "正在连接设备");
+        Log.d(TAG, "&&&&&&&&&");
         // TODO 点击条目后,获取地址，根据地址连接设备
-        String address = bluetoothDevices.get(i).getAddress();
-        mBleController.connect(0, address, new ConnectCallback() {
-            @Override
-            public void onConnSuccess() {
-                hideProgressDialog();
-                Toast.makeText(BTSettingActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
-//                startActivity(new Intent(MainActivity.this,SendAndReciveActivity.class));
-            }
-
-            @Override
-            public void onConnFailed() {
-                hideProgressDialog();
-                Toast.makeText(BTSettingActivity.this, "连接超时，请重试", Toast.LENGTH_SHORT).show();
-            }
-        });
+        String address = deviceAdapter.getItem(i).getMac();
+        Toast.makeText(BTSettingActivity.this, "连接成功 "+address, Toast.LENGTH_SHORT).show();
+//        mBleController.connect(0, address, new ConnectCallback() {
+//            @Override
+//            public void onConnSuccess() {
+//                hideProgressDialog();
+//                Toast.makeText(BTSettingActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
+////                startActivity(new Intent(MainActivity.this,SendAndReciveActivity.class));
+//            }
+//
+//            @Override
+//            public void onConnFailed() {
+//                hideProgressDialog();
+//                Toast.makeText(BTSettingActivity.this, "连接超时，请重试", Toast.LENGTH_SHORT).show();
+//            }
+//        });
     }
 
 }

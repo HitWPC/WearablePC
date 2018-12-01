@@ -43,7 +43,7 @@ public class ActionOriginService extends Service{
     private ArrayList<Long> timeList = new ArrayList<>();
 
     //正常采样率
-    public static final int SAMPLE_FREQ = 60;
+    public static final int SAMPLE_FREQ = 50;
     public static final int SAMPLE_DELAY = 20000;
 
     //2秒采集到的数据量
@@ -136,9 +136,6 @@ public class ActionOriginService extends Service{
 
     private ActionData parseContent(String content) {
         String[] temp = content.split(" ");
-        for (String s : temp) {
-            Log.d(TAG,"temp->"+s);
-        }
 
         float x = Float.parseFloat(temp[3]);
         float y = Float.parseFloat(temp[4]);

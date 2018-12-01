@@ -3,6 +3,7 @@ package com.clj.fastble.callback;
 
 import com.clj.fastble.exception.BleException;
 
+
 public abstract class BleNotifyCallback extends BleBaseCallback {
 
     public abstract void onNotifySuccess();

@@ -323,11 +323,12 @@ public class ReceiveService extends Service {
 
     @Override
     public void onDestroy() {
-
+        stopSelf();
 //        if(thread!=null){
 //            thread.interrupt();
 //        }
         super.onDestroy();
+        stopSelf();
     }
 
     /**

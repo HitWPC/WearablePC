@@ -132,10 +132,6 @@ public class ActionAdaptiveService extends Service{
 
     private ActionData parseContent(String content) {
         String[] temp = content.split(" ");
-        for (String s : temp) {
-            Log.d(TAG,"temp->"+s);
-        }
-
         float x = Float.parseFloat(temp[3]);
         float y = Float.parseFloat(temp[4]);
         float z = Float.parseFloat(temp[5]);

@@ -47,4 +47,5 @@ dependencies {
     implementation files('libs/hellocharts-library-1.5.8.jar')
     compile 'com.github.zcweng:switch-button:0.0.3@aar'
     implementation files('libs/libsvm.jar')
+    compile project(path: ':fastBle')
 }
