@@ -27,6 +27,7 @@ import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.UUIDs;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
 import cn.hitftcl.wearablepc.Utils.ModelOperation.BDOperation;
 
 import cn.hitftcl.wearablepc.Utils.ModelOperation.EnviromentTableOperation;
@@ -128,7 +129,9 @@ public class SensorDataService extends Service {
                 deal_heart(data);
                 break;
             case UUIDs.UUID_Action_Char_Notify:
-                Log.d(TAG, byteToFloatAll(data));
+                String sensor_data = byteToFloatAll(data);
+                BroadCastUtil.broadcastUpdate(MyApplication.getContext(),BroadCastUtil.sensorAction,"action_data",sensor_data);
+                Log.d(TAG, sensor_data);
                 break;
 
         }
@@ -390,4 +393,5 @@ public class SensorDataService extends Service {
         Log.d(TAG, str);
 
     }
+
 }
