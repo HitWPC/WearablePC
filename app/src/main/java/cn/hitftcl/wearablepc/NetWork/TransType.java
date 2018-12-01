@@ -10,5 +10,7 @@ public enum TransType {
     BD_TYPE,
     TEXT_TYPE,
     SYN_COMMAND,
-    FUSION_RES
+    FUSION_RES,
+    ONLINE_ASK,
+    ONLINE_ACK
 }

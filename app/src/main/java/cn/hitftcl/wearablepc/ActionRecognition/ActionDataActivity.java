@@ -13,33 +13,36 @@ import android.widget.TextView;
 import org.litepal.crud.DataSupport;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import cn.hitftcl.wearablepc.ActionRecognition.model.FeaVector;
 import cn.hitftcl.wearablepc.Model.HeartTable;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.Utils.Constant;
 
-public class HeartDataActivity extends AppCompatActivity {
+public class ActionDataActivity extends AppCompatActivity {
 
     private ListView heartLV;
     private Button refresh, clear;
     private TextView data_item_number;
 
-    private HeartDataAdapter heartDataAdapter;
+    private ActionDataAdapter actionDataAdapter;
 
-    private List<HeartTable> heartTableArrayList = new ArrayList<>();
+    private List<FeaVector> feaVectors = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_heart_data);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle("心率实时数据");
+        toolbar.setTitle("动作识别结果");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         heartLV = (ListView) findViewById(R.id.detail_heart_listview);
-        heartDataAdapter = new HeartDataAdapter(this);
-        heartLV.setAdapter(heartDataAdapter);
+        actionDataAdapter = new ActionDataAdapter(this);
+        heartLV.setAdapter(actionDataAdapter);
 
         data_item_number =(TextView) findViewById(R.id.heartDataNumberer);
 
@@ -65,11 +68,11 @@ public class HeartDataActivity extends AppCompatActivity {
     private void QueryAllHeartData(){       //全部数据
         int queryResultSum = 0;
 
-        heartTableArrayList.clear();
-        heartDataAdapter.clearList();
-        heartDataAdapter.notifyDataSetChanged();
-        heartTableArrayList = DataSupport.findAll(HeartTable.class);
-        queryResultSum = heartTableArrayList.size();
+        feaVectors.clear();
+        actionDataAdapter.clearList();
+        actionDataAdapter.notifyDataSetChanged();
+        feaVectors = DataSupport.findAll(FeaVector.class);
+        queryResultSum = feaVectors.size();
         if (queryResultSum <= 0){
             Log.d("无结果","0条结果");
             data_item_number.setText("共查询到"+queryResultSum+"条记录");
@@ -78,10 +81,10 @@ public class HeartDataActivity extends AppCompatActivity {
             int index = 1;
             Log.d("结果数目",""+queryResultSum);
 
-            for (HeartTable unit:heartTableArrayList){
-                heartDataAdapter.addData(index,unit.getDate(), unit.getRate());
+            for (FeaVector unit:feaVectors){
+                actionDataAdapter.addData(index, Constant.actionTcategory.get(unit.getCategory()), new Date(unit.getStartTime()), new Date(unit.getEndTime()));
                 index++;
-                heartDataAdapter.notifyDataSetChanged();
+                actionDataAdapter.notifyDataSetChanged();
             }
         }
         data_item_number.setText("共查询到"+queryResultSum+"条记录");
@@ -99,9 +102,9 @@ public class HeartDataActivity extends AppCompatActivity {
             Log.d("删除了：",""+deleteSum+"条数据");
         }
         /*清空显示数据列表*/
-        heartTableArrayList.clear();
-        heartDataAdapter.clearList();
-        heartDataAdapter.notifyDataSetChanged();
+        feaVectors.clear();
+        actionDataAdapter.clearList();
+        actionDataAdapter.notifyDataSetChanged();
         data_item_number.setText("共查询到0条记录");
     }
 

@@ -206,7 +206,8 @@ public class SecretActivity extends AppCompatActivity {
                         addSecret.save();
                     }
                     //发送数据
-                    NetworkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), TransType.TEXT_TYPE, content);
+                    Boolean res = NetworkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), TransType.TEXT_TYPE, content);
+                    showToast(res);
                     mDataMsgs.add(msg);
                     //view更新数据
                     mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
@@ -249,8 +250,8 @@ public class SecretActivity extends AppCompatActivity {
                     addSecret.save();
                 }
                 //发送数据
-                NetworkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), TransType.FILE_TYPE, filePath);
-
+                Boolean res = NetworkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), TransType.FILE_TYPE, filePath);
+                showToast(res);
                 mDataMsgs.add(msg);
                 //view更新数据
                 mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
@@ -466,7 +467,8 @@ public class SecretActivity extends AppCompatActivity {
                         msg.save();
                         //发送图片到接收端
                         UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
-                        NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.FILE_TYPE, filePath);
+                        Boolean res= NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.FILE_TYPE, filePath);
+                        showToast(res);
                         mDataMsgs.add(msg);
                         //view更新数据
                         mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
@@ -510,7 +512,8 @@ public class SecretActivity extends AppCompatActivity {
                                 addSecret.save();
                             }
                             //发送图片到接收端
-                            NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.FILE_TYPE, filePath);
+                            Boolean res = NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.FILE_TYPE, filePath);
+                            showToast(res);
                             mDataMsgs.add(msg);
                             //view更新数据
                             mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
@@ -553,7 +556,8 @@ public class SecretActivity extends AppCompatActivity {
                         UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
                         Msg msg = new Msg(self.getId(), userId, content, System.currentTimeMillis(), Msg.TYPE_SENT, Msg.CATAGORY_TEXT);
                         msg.save();
-                        NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(), TransType.TEXT_TYPE, content);
+                        Boolean res = NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(), TransType.TEXT_TYPE, content);
+                        showToast(res);
                         mDataMsgs.add(msg);
                         //view更新数据
                         mAdapter.notifyItemInserted(mDataMsgs.size() - 1);
@@ -564,6 +568,14 @@ public class SecretActivity extends AppCompatActivity {
                 break;
             default:
                 break;
+        }
+    }
+
+    public static void showToast(Boolean b){
+        if(b){
+            Toast.makeText(MyApplication.getContext(), "发送消息成功", Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(MyApplication.getContext(), "发送消息失败", Toast.LENGTH_SHORT).show();
         }
     }
 

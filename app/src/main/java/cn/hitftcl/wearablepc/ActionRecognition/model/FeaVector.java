@@ -23,6 +23,14 @@ public class FeaVector extends DataSupport{
         this.endTime = endTime;
     }
 
+    public FeaVector(ArrayList<Double> feature, long startTime, long endTime, int category, int origin) {
+        this.feature = feature;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.category = category;
+        this.origin = origin;
+    }
+
     public FeaVector(){
 
     }

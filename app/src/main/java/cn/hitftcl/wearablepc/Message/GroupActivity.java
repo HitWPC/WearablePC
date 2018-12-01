@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -62,9 +63,11 @@ public class GroupActivity extends AppCompatActivity {
         //数据初始化
         initUserIPInfoAndExpression();
 
-        //Toolbar
+        //设置ToolBar
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_group);
+        toolbar.setTitle("选择发送队友");
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //ListView：userip列表
         mAdapter = new UserIPAdapter(GroupActivity.this, R.layout.secret_item_userip_group, mDatas);
@@ -133,10 +136,18 @@ public class GroupActivity extends AppCompatActivity {
                         }
                     }
                     //TODO: 发送数据，需要改成调用广播接口
+                    StringBuilder sb = new StringBuilder();
                     for (UserIPInfo ele : mDatasGroup){
-                        NetworkUtil.sendByTCP(ele.getIp(), ele.getPort(), TransType.TEXT_TYPE, content);
+                        Boolean res = NetworkUtil.sendByTCP(ele.getIp(), ele.getPort(), TransType.TEXT_TYPE, content);
+                        if(!res)
+                            sb.append("发送至 "+ele.getUsername()+" 失败").append("\n");
                     }
-                    Toast.makeText(MyApplication.getContext(), "发送成功", Toast.LENGTH_SHORT).show();
+                    if(sb.length()!=0){
+                        Toast.makeText(MyApplication.getContext(), sb.toString(), Toast.LENGTH_LONG).show();
+                    }else{
+                        Toast.makeText(MyApplication.getContext(), "消息广播成功", Toast.LENGTH_SHORT).show();
+                    }
+
                 }
             }
         });
@@ -251,5 +262,20 @@ public class GroupActivity extends AppCompatActivity {
             TextView port;
             CheckBox checkBox;
         }
+    }
+
+    /**
+     * toolbar返回按钮响应事件
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return true;
     }
 }

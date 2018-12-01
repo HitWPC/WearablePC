@@ -68,7 +68,7 @@ public class UserIPEditActivity extends AppCompatActivity {
         final int userId = intent.getIntExtra("user_id", 0);
         final int position = intent.getIntExtra("position", -1);
         final UserIPInfo userIPInfo = DataSupport.find(UserIPInfo.class, userId);
-
+        Log.d(TAG, "userId "+userId+" position "+position+" userIPInfo "+(userIPInfo==null));
         mEditTextUsername = (EditText)findViewById(R.id.id_username);
         mEditTextUsername.setText(userIPInfo.getUsername());
         mEditTextUsername.setEnabled(false);

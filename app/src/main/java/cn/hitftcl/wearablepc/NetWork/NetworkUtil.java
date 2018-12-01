@@ -38,8 +38,11 @@ import java.net.SocketAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 import cn.hitftcl.wearablepc.Model.Msg;
 import cn.hitftcl.wearablepc.Model.Secret;
@@ -61,46 +64,83 @@ public class NetworkUtil {
 
     private static final Executor exec = Executors.newCachedThreadPool();//使用可缓存线程池
 
-    /**
-     * 接收数据1110
-     */
-    public void receiveByTCP(){
-        new Thread(new Runnable() {
-            @Override
-            public void run()
-            {
-                ServerSocket serverSocket = null;
-                try
-                {
-                    int selfPort = self.getPort();
-                    //ServerSocket
-                    serverSocket = new ServerSocket(selfPort);
-                    while(serverSocket != null && !serverSocket.isClosed()) {
-                        while (true) {
-                            Socket socket = serverSocket.accept();
-                            Log.d("NetworkUtil", "accepted...");
-                            ReceiveRunnable runnable = new ReceiveRunnable(socket);
-                            exec.execute(runnable);
+    static class SendCallable implements Callable<Boolean> {
+        private String addr;
+        private int port;
+        private TransType type;
+        private String content;
+        private String _content;
+
+        public SendCallable(String addr, int port, TransType type, String content, String _content) {
+            this.addr = addr;
+            this.port = port;
+            this.type = type;
+            this.content = content;
+            this._content = _content;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
+            String typeName = type.name();
+            Socket mSocket = new Socket();
+            SocketAddress socketAddress = new InetSocketAddress(addr, port);
+            // 设置连接超时时间
+            try {
+                Log.d(TAG, "addr:" + addr);
+                mSocket.connect(socketAddress, CONNECT_TIMEOUT);
+                Log.d(TAG, "connected...");
+
+                // 设置读流超时时间，必须在获取流之前设置
+                mSocket.setSoTimeout(INPUT_STREAM_READ_TIMEOUT);
+                DataOutputStream dataOutputStream = new DataOutputStream(mSocket.getOutputStream());
+                dataOutputStream.writeUTF(EncryptUtil.encryptPassword(typeName));
+                dataOutputStream.writeUTF(content);
+
+                //发送文件类型
+
+                if (typeName.equals(TransType.FILE_TYPE.name())) {
+                    DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(_content)));
+
+                    int bufferSize = 1024;
+                    byte[] buffer = new byte[bufferSize];
+                    while (true) {
+                        int readLength = 0;
+                        if (dataInputStream != null) {
+                            readLength = dataInputStream.read(buffer);
                         }
+                        if (readLength == -1) {
+                            break;
+                        }
+                        dataOutputStream.write(buffer, 0, readLength);
                     }
+                    dataOutputStream.flush();
 
-                    serverSocket.close();
-                    serverSocket = null;
+                    dataInputStream.close();
+                    dataInputStream = null;
+
                 }
-                catch(BindException bindException){
-                    try {
-                        serverSocket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                //发送文本类型
+                else if (typeName.equals(TransType.TEXT_TYPE.name()) || type.equals(TransType.FUSION_RES.name())) {
+                    dataOutputStream.flush();
                 }
-                catch (IOException e){
-                    e.printStackTrace();
+                //发送传感器数据类型 转换后的Gson（String类型）
+                else if (typeName.equals(TransType.SENSOR_TYPE.name()) || typeName.equals(TransType.BD_TYPE.name())) {
+                    dataOutputStream.flush();
                 }
+
+                //关闭流和socket
+                dataOutputStream.close();
+                mSocket.close();
+
+                dataOutputStream = null;
+                mSocket = null;
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
             }
-        }).start();
+        }
     }
-
     /**
      * 发送数据
      * @param addr
@@ -108,212 +148,29 @@ public class NetworkUtil {
      * @param type
      * @param _content
      */
-    public static void sendByTCP(final String addr, final int port, final TransType type, final String _content){
+    public static Boolean sendByTCP(final String addr, final int port, final TransType type, final String _content){
         final String content = EncryptUtil.encryptPassword(_content);
-        Log.d(TAG, "加密前："+_content);
-        Log.d(TAG, "加密后："+content);
-        exec.execute(new Runnable() {
-            @Override
-            public void run() {
-                String typeName = type.name();
-                Socket mSocket = new Socket();
-                SocketAddress socketAddress = new InetSocketAddress(addr, port);
-                // 设置连接超时时间
-                try {
-                    Log.d(TAG, "addr:"+addr);
-                    mSocket.connect(socketAddress, CONNECT_TIMEOUT);
-                    Log.d(TAG, "connected...");
-
-                    // 设置读流超时时间，必须在获取流之前设置
-                    mSocket.setSoTimeout(INPUT_STREAM_READ_TIMEOUT);
-                    DataOutputStream dataOutputStream = new DataOutputStream(mSocket.getOutputStream());
-                    dataOutputStream.writeUTF(EncryptUtil.encryptPassword(typeName));
-                    dataOutputStream.writeUTF(content);
-
-                    //发送文件类型
-
-                    if(typeName.equals(TransType.FILE_TYPE.name())){
-                        DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(_content)));
-
-                        int bufferSize = 1024;
-                        byte[] buffer = new byte[bufferSize];
-                        while (true)
-                        {
-                            int readLength = 0;
-                            if (dataInputStream != null)
-                            {
-                                readLength = dataInputStream.read(buffer);
-                            }
-                            if (readLength == -1)
-                            {
-                                break;
-                            }
-                            dataOutputStream.write(buffer, 0, readLength);
-                        }
-                        dataOutputStream.flush();
-
-                        dataInputStream.close();
-                        dataInputStream = null;
-
-                    }
-                    //发送文本类型
-                    else if(typeName.equals(TransType.TEXT_TYPE.name()) || type.equals(TransType.FUSION_RES.name())){
-                        dataOutputStream.flush();
-                    }
-                    //发送传感器数据类型 转换后的Gson（String类型）
-                    else if(typeName.equals(TransType.SENSOR_TYPE.name()) || typeName.equals(TransType.BD_TYPE.name())){
-                        dataOutputStream.flush();
-                    }
-
-                    //关闭流和socket
-                    dataOutputStream.close();
-                    mSocket.close();
-                    dataOutputStream = null;
-                    mSocket = null;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+//        Log.d(TAG, "加密前："+_content);
+//        Log.d(TAG, "加密后："+content);
+        SendCallable sendCallable = new SendCallable(addr, port, type, content,_content);
+        FutureTask<Boolean> oneTask = new FutureTask<Boolean>(sendCallable);
+        new Thread(oneTask).start();
+        try{
+            Boolean res = oneTask.get();
+            return res;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return false;
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            return  false;
+        }
     }
 
     /**
      * 接收线程：处理接收到的数据
      */
-    class ReceiveRunnable implements Runnable {
-        private Socket mSocket;
 
-        ReceiveRunnable(Socket socket) {
-            this.mSocket = socket;
-        }
-
-        @Override
-        public void run() {
-            try {
-                // 给读取流设置超时时间，否则会一直在read()那阻塞
-                mSocket.setSoTimeout(INPUT_STREAM_READ_TIMEOUT);
-                //发送方IP地址
-                String senderAddr = mSocket.getInetAddress().getHostAddress();
-                UserIPInfo sender = DataSupport.where("ip = ?", senderAddr).findFirst(UserIPInfo.class);
-
-                //数据流操作
-                DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(mSocket.getInputStream()));
-
-                Msg msg = new Msg();
-                String receivedType = dataInputStream.readUTF();
-                if(receivedType.equals("text")){//接收的是文本
-                    String content = dataInputStream.readUTF();
-                    //msg表add
-                    long current = System.currentTimeMillis();
-                    msg.setSender(sender.getId());
-                    msg.setReceiver(self.getId());
-                    msg.setPath(content);
-                    msg.setTime(current);
-                    msg.setType(Msg.TYPE_RECEIVED);
-                    msg.setCatagory(Msg.CATAGORY_TEXT);
-                    msg.save();
-                    //secret表update
-                    Secret secret = DataSupport.where("user_id = ?", String.valueOf(sender.getId())).findFirst(Secret.class);
-                    if(secret != null){
-                        secret.setContent(content);
-                        secret.setTime(current);
-                        secret.save();
-                    }else {
-                        Secret addSecret = new Secret(sender.getId(), sender.getUsername(), content, current);
-                        addSecret.save();
-                    }
-                }else if(receivedType.equals("file")){//接收的是文件
-                    String fileName = dataInputStream.readUTF();
-                    //后缀名不同，消息种类不同
-                    String prefix=fileName.substring(fileName.lastIndexOf(".")+1);
-                    Log.d(TAG, "prefix of received file: "+ prefix);
-                    int catagory = 0;
-                    String content = "";
-                    String dirName = "";
-                    switch(prefix){
-                        case "amr":
-                            catagory = Msg.CATAGORY_VOICE;
-                            content = "[语音]";
-                            dirName = "/voice";
-                            break;
-                        case "jpg":
-                            catagory = Msg.CATAGORY_IMAGE;
-                            content = "[图片]";
-                            dirName = "/image";
-                            break;
-                        case "mp4":
-                        case "avi":
-                            catagory = Msg.CATAGORY_VIDEO;
-                            content = "[视频]";
-                            dirName = "/video";
-                            break;
-                        default:
-                            break;
-                    }
-
-                    Log.d(TAG, "savePath: " + fileName);
-                    DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(new BufferedOutputStream(new FileOutputStream(fileName))));
-
-                    int bufferSize = 1024;
-                    byte[] buf = new byte[bufferSize];
-                    while (true) {
-                        int read = 0;
-                        if (dataInputStream != null) {
-                            read = dataInputStream.read(buf);
-                        }
-                        if (read == -1) {
-                            break;
-                        }
-                        dataOutputStream.write(buf, 0, read);
-                    }
-
-                    //msg表add
-                    long current = System.currentTimeMillis();
-                    msg.setSender(sender.getId());
-                    msg.setReceiver(self.getId());
-                    msg.setPath(fileName);
-                    msg.setTime(current);
-                    msg.setType(Msg.TYPE_RECEIVED);
-                    msg.setCatagory(catagory);
-                    Log.d(TAG, "msg add result: "+ msg.save());
-                    //secret表update
-                    Secret secret = DataSupport.where("user_id = ?", String.valueOf(sender.getId())).findFirst(Secret.class);
-                    if(secret != null){
-                        secret.setContent(content);
-                        secret.setTime(current);
-                        Log.d(TAG, "secret update result: " + secret.save());
-                    }else {
-                        Secret addSecret = new Secret(sender.getId(), sender.getUsername(), content, current);
-                        Log.d(TAG, "secret add result: " + addSecret.save());
-                    }
-
-                    dataOutputStream.close();
-                    dataOutputStream = null;
-                }
-                //通知更新UI
-                if(msg.getCatagory() == Msg.CATAGORY_TEXT || msg.getCatagory() == Msg.CATAGORY_VOICE) {
-                    Log.d(TAG, "broadcast to secret activity");
-                    Intent intent = new Intent("com.hitwearable.LOCAL_BROADCAST_SECRET");
-                    intent.putExtra("msg", msg);
-                    localBroadcastManager.sendBroadcast(intent);
-                }else{
-                    Log.d(TAG, "broadcast to image activity");
-                    Intent intent = new Intent("com.hitwearable.LOCAL_BROADCAST_IMAGE");
-                    intent.putExtra("msg", msg);
-                    localBroadcastManager.sendBroadcast(intent);
-                }
-
-                Log.d(TAG, "接受完毕");
-
-                dataInputStream.close();
-                mSocket.close();
-                dataInputStream = null;
-                mSocket = null;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     /**
      * 接收文件

@@ -30,6 +30,7 @@ import cn.hitftcl.ble.UUIDs;
 import cn.hitftcl.ble.callback.OnWriteCallback;
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.DataFusion.DataFusionUtil;
+import cn.hitftcl.wearablepc.DataFusion.FusionActivity;
 import cn.hitftcl.wearablepc.DataFusion.FusionState;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnvironmentTable;
@@ -92,7 +93,10 @@ public class FusionService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        timer.cancel();
+        if(timer!=null)
+            timer.cancel();
+        if(timerTask!=null)
+            timerTask.cancel();
     }
 
     private void judgeAndShowNotification() {
@@ -136,9 +140,8 @@ public class FusionService extends Service {
     }
 
     private void showNotification(int level, String title, String content) {
-        Intent intent = new Intent(this, MapActivity.class);
+            Intent intent = new Intent(this, FusionActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
         NotificationManager notificationManager = (NotificationManager) getSystemService
                 (NOTIFICATION_SERVICE);
         String NOTIFICATION_CHANNEL_ID = "my_channel_id_01";

@@ -10,6 +10,8 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.clj.fastble.BleManager;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -53,7 +55,7 @@ public class ServiceManageService extends Service {
             timerTask = new TimerTask() {
                 @Override
                 public void run() {
-                    if(BleController.getInstance().getConnectedDvices().size()>0){
+                    if(BleManager.getInstance().getAllConnectedDevice().size()>0){
                         if(!ServiceManageActivity.serviceInfo.isBtReceiveService()){
                             startService(ServiceManageActivity.sensorDataService);
                             ServiceManageActivity.serviceInfo.setBtReceiveService(true);

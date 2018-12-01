@@ -40,6 +40,7 @@ public class SecretListActivity extends AppCompatActivity {
 
         //设置ToolBar
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_secret_list);
+        toolbar.setTitle("通讯记录");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 

@@ -18,6 +18,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.clj.fastble.BleManager;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -164,6 +166,10 @@ public class IndexActivity extends AppCompatActivity {
 //        //TODO 开启数据融合服务
 //        fusionService = new Intent(this, FusionService.class);
 //        startService(fusionService);
+
+        //TODO 初始化蓝牙管理
+        BleManager bleManager = BleManager.getInstance();
+        bleManager.init(getApplication());
 
             Intent actionOriginService = new Intent(this, ActionOriginService.class);
             startService(actionOriginService);

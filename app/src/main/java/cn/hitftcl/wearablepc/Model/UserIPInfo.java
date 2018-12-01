@@ -25,6 +25,17 @@ public class UserIPInfo extends DataSupport {
 
     }
 
+    public UserIPInfo(int id, String username, String password, String ip, int port, String blueMac, int type, boolean isCaptain) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.ip = ip;
+        this.port = port;
+        BlueMac = blueMac;
+        this.type = type;
+        this.isCaptain = isCaptain?1:0;
+    }
+
     public UserIPInfo(String username, String ip, int port, String BlueMac, boolean isCaptain) {
         this.username = username;
         this.password = "";
