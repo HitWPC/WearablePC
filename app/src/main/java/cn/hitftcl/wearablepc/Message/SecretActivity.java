@@ -1,24 +1,13 @@
 package cn.hitftcl.wearablepc.Message;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,9 +23,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.amap.api.maps.model.LatLng;
-
-import org.json.JSONObject;
 import org.litepal.crud.DataSupport;
 
 import java.io.File;
@@ -53,7 +39,7 @@ import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
-import cn.hitftcl.wearablepc.NetWork.ReceiveService;
+import cn.hitftcl.wearablepc.Service.ReceiveService;
 import cn.hitftcl.wearablepc.NetWork.TransType;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.MediaTypeJudgeUtil;

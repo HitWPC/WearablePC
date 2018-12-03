@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/ble/ble.iml" filepath="$PROJECT_DIR$/ble/ble.iml" />
       <module fileurl="file://$PROJECT_DIR$/classicblue/classicblue.iml" filepath="$PROJECT_DIR$/classicblue/classicblue.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fastBle/fastBle.iml" filepath="$PROJECT_DIR$/fastBle/fastBle.iml" />
     </modules>
   </component>
 </project>

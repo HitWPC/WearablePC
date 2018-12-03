@@ -12,6 +12,8 @@ import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.SimpleCursorAdapter;
 
+import com.clj.fastble.BleManager;
+
 import java.util.ArrayList;
 
 import cn.hitftcl.wearablepc.R;
@@ -32,6 +34,9 @@ public class BluetoothActivity extends AppCompatActivity  {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         initView();
+
+        BleManager bleManager = BleManager.getInstance();
+        bleManager.init(getApplication());
 
     }
 

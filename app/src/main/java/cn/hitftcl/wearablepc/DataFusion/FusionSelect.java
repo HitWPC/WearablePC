@@ -10,7 +10,6 @@ import android.widget.TextView;
 import java.util.Map;
 
 import cn.hitftcl.wearablepc.IndexGrid.IndexActivity;
-import cn.hitftcl.wearablepc.NetWork.FusionService;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.Constant;
 import cn.hitftcl.wearablepc.Utils.ThreadPool;

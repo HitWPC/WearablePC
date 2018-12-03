@@ -52,7 +52,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
-import cn.hitftcl.wearablepc.Model.SynMessage;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.NetWork.TransType;
@@ -61,7 +60,7 @@ import cn.hitftcl.wearablepc.Utils.BitmapUtil;
 import cn.hitftcl.wearablepc.Utils.Constant;
 import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
-import static cn.hitftcl.wearablepc.NetWork.ReceiveService.ACTION_SYN_COMMAND;
+import static cn.hitftcl.wearablepc.Service.ReceiveService.ACTION_SYN_COMMAND;
 
 public class MapActivity extends AppCompatActivity {
     public static final String TAG = "debug001";

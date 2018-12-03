@@ -1,4 +1,4 @@
-package cn.hitftcl.wearablepc.Bluetooth;
+package cn.hitftcl.wearablepc.Service;
 
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 
 import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.UUIDs;
+import cn.hitftcl.wearablepc.Model.ActionTable;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
@@ -78,9 +79,9 @@ public class SensorDataService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            if (BleController.ACTION_DATA_AVAILABLE.equals(action)) {     //收到数据
-                final byte[]  data = intent.getByteArrayExtra(BleController.EXTRA_DATA);
-                final String uuid = intent.getStringExtra(BleController.EXTRA_UUID);
+            if (BroadCastUtil.notifyDataChanged.equals(action)) {     //收到数据
+                final byte[]  data = intent.getByteArrayExtra(BroadCastUtil.EXTRA_DATA);
+                final String uuid = intent.getStringExtra(BroadCastUtil.EXTRA_UUID);
                 if (data != null) {
                     ThreadPool.getInstance().execute(new Runnable() {
                         @RequiresApi(api = Build.VERSION_CODES.O)
@@ -129,9 +130,14 @@ public class SensorDataService extends Service {
                 deal_heart(data);
                 break;
             case UUIDs.UUID_Action_Char_Notify:
-                String sensor_data = byteToFloatAll(data);
-                BroadCastUtil.broadcastUpdate(MyApplication.getContext(),BroadCastUtil.sensorAction,"action_data",sensor_data);
-                Log.d(TAG, sensor_data);
+                BroadCastUtil.broadcastUpdate(BroadCastUtil.sensorAction, "sensorData", byteToFloatAll(data));
+                String[] temp = byteToFloatAll(data).split(" ");
+                float x = Float.parseFloat(temp[3]);
+                float y = Float.parseFloat(temp[4]);
+                float z = Float.parseFloat(temp[5]);
+
+                ActionTable actionTable  = new ActionTable(x, y, z, System.currentTimeMillis());
+                actionTable.save();
                 break;
 
         }
@@ -393,5 +399,4 @@ public class SensorDataService extends Service {
         Log.d(TAG, str);
 
     }
-
 }

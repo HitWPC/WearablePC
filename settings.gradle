@@ -1,1 +1,1 @@
-include ':app', ':ble', ':classicblue'
+include ':app', ':ble', ':classicblue', ':fastBle'

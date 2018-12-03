@@ -95,26 +95,29 @@
         <activity android:name=".Bluetooth.BTSettingActivity" />
 
         <service
-            android:name=".Bluetooth.SensorDataService"
+            android:name=".Service.SensorDataService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".NetWork.SendDataService"
+            android:name=".Service.SendDataService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".NetWork.ReceiveService"
+            android:name=".Service.ReceiveService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".NetWork.FusionService"
+            android:name=".Service.FusionService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".NetWork.BroadcastService"
+            android:name=".Service.BroadcastService"
             android:enabled="true"
             android:exported="true" />
-
+        <service
+            android:name=".Service.ActionOriginService"
+            android:enabled="true"
+            android:exported="true" />
         <activity android:name=".Bluetooth.BluetoothActivity" />
         <activity
             android:name=".Bluetooth.ClassicBluetoothActivity"
@@ -127,7 +130,11 @@
         <activity android:name=".ServiceManage.ServiceManageActivity" />
 
         <service
-            android:name=".NetWork.ServiceManageService"
+            android:name=".Service.ServiceManageService"
+            android:enabled="true"
+            android:exported="true"></service>
+        <service
+            android:name=".Service.ActionAdaptiveService"
             android:enabled="true"
             android:exported="true"></service>
     </application>

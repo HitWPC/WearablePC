@@ -1,4 +1,4 @@
-package cn.hitftcl.wearablepc.NetWork;
+package cn.hitftcl.wearablepc.Service;
 
 import android.app.Service;
 import android.content.Intent;
@@ -8,7 +8,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
-import org.json.JSONObject;
 import org.litepal.crud.DataSupport;
 
 import java.util.ArrayList;
@@ -19,6 +18,8 @@ import java.util.TimerTask;
 import cn.hitftcl.wearablepc.DataFusion.FusionState;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
+import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
+import cn.hitftcl.wearablepc.NetWork.TransType;
 
 public class SendDataService extends Service {
     private static final String TAG = "debug001";
@@ -54,7 +55,7 @@ public class SendDataService extends Service {
                 //向队长发送地理位置数据
                 String BD_Data_Json = LatestBDdata();
                 if (BD_Data_Json!=null && CaptainInfo!=null){
-                    NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.BD_TYPE,BD_Data_Json);
+                    NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(), TransType.BD_TYPE,BD_Data_Json);
                 }
                 //向队长发送体征环境融合数据
                 FusionState fusionState = LatestFusionResult();
