@@ -1,8 +1,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <android.support.v7.widget.Toolbar
@@ -11,7 +11,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,11 +26,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="环境数据"
+                android:text="动作识别结果"
                 android:textSize="15dp" />
 
             <TextView
-                android:id="@+id/envDataNumber"
+                android:id="@+id/heartDataNumberer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/title_unit"
@@ -38,16 +38,14 @@
                 android:textSize="15dp" />
 
             <Button
-                android:id="@+id/refresh_env_data_btn"
+                android:id="@+id/refresh_data_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginEnd="133dp"
+                android:layout_toLeftOf="@+id/clear_data_btn"
                 android:text="刷新" />
 
             <Button
-                android:id="@+id/clear_env_data_btn"
+                android:id="@+id/clear_data_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
@@ -58,78 +56,54 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_marginBottom="3dp"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="3dp">
 
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="温度(℃)"
+            android:layout_weight="1"
             android:gravity="center"
+            android:text="序号"
+            android:textColor="@color/colorPrimary"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"/>
+            android:textStyle="bold" />
+
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="压强(kpa)"
+            android:layout_weight="1"
             android:gravity="center"
+            android:text="动作"
+            android:textColor="@color/colorPrimary"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"/>
+            android:textStyle="bold" />
+
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="湿度(%rh)"
+            android:layout_weight="1"
             android:gravity="center"
+            android:text="开始时间"
+            android:textColor="@color/colorPrimary"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"/>
+            android:textStyle="bold" />
+
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="SO2(ppm)"
-            android:gravity="center"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"/>
-        <TextView
-            android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="NO(ppm)"
             android:gravity="center"
+            android:text="结束时间"
+            android:textColor="@color/colorPrimary"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"/>
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="电压(V)"
-            android:gravity="center"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"/>
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="日期"
-            android:gravity="center"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"/>
+            android:textStyle="bold" />
     </LinearLayout>
 
     <ListView
+        android:id="@+id/detail__listview"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/detail_env_listview"></ListView>
+        android:layout_height="wrap_content"></ListView>
 
 
 </LinearLayout>

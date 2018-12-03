@@ -7,7 +7,9 @@ import android.util.Log;
 import com.amap.api.maps.model.LatLng;
 
 import java.util.Date;
+import java.util.List;
 
+import cn.hitftcl.wearablepc.ActionRecognition.model.FeaVector;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnvironmentTable;
 import cn.hitftcl.wearablepc.Model.HeartTable;
@@ -31,7 +33,7 @@ public class DataFusionUtil {
      * @param bdTable
      * @return
      */
-    public static FusionState situation1Fusion(HeartTable heartTable, EnvironmentTable environmentTable, BDTable bdTable){
+    public static FusionState situation1Fusion(HeartTable heartTable, EnvironmentTable environmentTable, BDTable bdTable, List<FeaVector> feaVectors){
         if(heartTable==null && environmentTable==null) return null;
 
 
@@ -43,25 +45,69 @@ public class DataFusionUtil {
         //体征数据融合
         int heartrate;
         if(heartTable!=null &&  fusionDate.getTime()- heartTable.getDate().getTime()<=3000){
-            fusionState.heartAvailable = true;
-            IP = heartTable.getIP();
-            heartrate = heartTable.getRate();
-            if(heartrate<_MIN_HEART){
-                fusionState.setHeartState(0);  //偏低
-                fusionState.setBodyNormal(false);
-            }else if(heartrate>=_MIN_HEART && heartrate<MIN_HEART){
-                fusionState.setHeartState(1);  //正常偏低
-                fusionState.setBodyNormal(true);
-            }else if(heartrate>=MIN_HEART && heartrate<MAX_HEART ){
-                fusionState.setHeartState(2);  //正常
-                fusionState.setBodyNormal(true);
-            }else if(heartrate>=MAX_HEART && heartrate<_MAX_HEART ){
-                fusionState.setHeartState(3);  //正常偏高
-                fusionState.setBodyNormal(true);
-            }else{
-                fusionState.setHeartState(4);  //偏高
-                fusionState.setBodyNormal(false);
+            int level = judgeFeaVectors(feaVectors);
+            if(level==-1||level==0){
+                fusionState.heartAvailable = true;
+                IP = heartTable.getIP();
+                heartrate = heartTable.getRate();
+                if(heartrate<50){
+                    fusionState.setHeartState(0);  //偏低
+                    fusionState.setBodyNormal(false);
+                }else if(heartrate>=50 && heartrate<60){
+                    fusionState.setHeartState(1);  //正常偏低
+                    fusionState.setBodyNormal(true);
+                }else if(heartrate>=60 && heartrate<90 ){
+                    fusionState.setHeartState(2);  //正常
+                    fusionState.setBodyNormal(true);
+                }else if(heartrate>=90 && heartrate<110 ){
+                    fusionState.setHeartState(3);  //正常偏高
+                    fusionState.setBodyNormal(true);
+                }else{
+                    fusionState.setHeartState(4);  //偏高
+                    fusionState.setBodyNormal(false);
+                }
+            }else if(level==1){
+                fusionState.heartAvailable = true;
+                IP = heartTable.getIP();
+                heartrate = heartTable.getRate();
+                if(heartrate<50){
+                    fusionState.setHeartState(0);  //偏低
+                    fusionState.setBodyNormal(false);
+                }else if(heartrate>=50 && heartrate<60){
+                    fusionState.setHeartState(1);  //正常偏低
+                    fusionState.setBodyNormal(true);
+                }else if(heartrate>=60 && heartrate<100 ){
+                    fusionState.setHeartState(2);  //正常
+                    fusionState.setBodyNormal(true);
+                }else if(heartrate>=100 && heartrate<120 ){
+                    fusionState.setHeartState(3);  //正常偏高
+                    fusionState.setBodyNormal(true);
+                }else{
+                    fusionState.setHeartState(4);  //偏高
+                    fusionState.setBodyNormal(false);
+                }
+            }else if(level==2){
+                fusionState.heartAvailable = true;
+                IP = heartTable.getIP();
+                heartrate = heartTable.getRate();
+                if(heartrate<50){
+                    fusionState.setHeartState(0);  //偏低
+                    fusionState.setBodyNormal(false);
+                }else if(heartrate>=50 && heartrate<60){
+                    fusionState.setHeartState(1);  //正常偏低
+                    fusionState.setBodyNormal(true);
+                }else if(heartrate>=60 && heartrate<120 ){
+                    fusionState.setHeartState(2);  //正常
+                    fusionState.setBodyNormal(true);
+                }else if(heartrate>=120 && heartrate<150 ){
+                    fusionState.setHeartState(3);  //正常偏高
+                    fusionState.setBodyNormal(true);
+                }else{
+                    fusionState.setHeartState(4);  //偏高
+                    fusionState.setBodyNormal(false);
+                }
             }
+
         }
 
         //环境数据融合
@@ -74,16 +120,15 @@ public class DataFusionUtil {
             fusionState.envAvailable = true;
             IP = environmentTable.getIP();
             //温度
-            if(temperature>=-30.0 && temperature<40.0){
+            if(temperature>=-30.0 && temperature< 23.3){
                 fusionState.setTemperature(2); //正常
             }else if(temperature<-30.0){
                 fusionState.setTemperature(0); //偏低
-            }else if(temperature>=40.0){
+            }else if(temperature>=23.3){
                 fusionState.setTemperature(4); //偏高
             }
 
             //气压
-            Log.d("qiyayayayuau","  "+pressure);
             if(pressure>=86.0 && pressure<106.0){
                 fusionState.setPressure(2); //正常
             }else if(pressure<86.0){
@@ -108,13 +153,13 @@ public class DataFusionUtil {
 
             //NO
             if(no>=0 && no<25.0){
-                fusionState.setSo2(0);  //正常
+                fusionState.setNo(0);  //正常
             }else if(no>=25.0 && no<50){
-                fusionState.setSo2(1);  //正常偏高
+                fusionState.setNo(1);  //正常偏高
             }else if(no>=50.0 && no<150) {
-                fusionState.setSo2(2);  //偏高，对喉部刺激较大
+                fusionState.setNo(2);  //偏高，对喉部刺激较大
             }else if(no>=150) {
-                fusionState.setSo2(3);  //过高，短时间暴露容易引起死亡
+                fusionState.setNo(3);  //过高，短时间暴露容易引起死亡
             }
 
             if(fusionState.getTemperature()==2 && fusionState.getPressure()==2 && fusionState.getHumidity()==2
@@ -127,7 +172,7 @@ public class DataFusionUtil {
         }
 
         //地理位置信息融合
-        if(bdTable!=null && fusionDate.getTime()- bdTable.getRecordDate().getTime()<=3000){
+        if(bdTable!=null && fusionDate.getTime()- bdTable.getRecordDate().getTime()<=10000){
             fusionState.bdAvailable = true;
             IP = bdTable.getIP();
             fusionState.setBD_Position(new LatLng(bdTable.getLatitude(), bdTable.getLongitude()));
@@ -136,6 +181,29 @@ public class DataFusionUtil {
         fusionState.setFusionTime(fusionDate);
         fusionState.setIP(IP);
         return fusionState;
+    }
+
+    /**
+     *
+     * @param feaVectors
+     * @return  0->数据不可用
+     */
+    private static int judgeFeaVectors(List<FeaVector> feaVectors) {
+        if(feaVectors==null) return -1;
+        int level = 0;
+        for (FeaVector feaVector : feaVectors) {
+            switch (feaVector.getCategory()){
+                case 2: //standing
+                    break;
+                case 6: //walking
+                    level = Math.max(level, 1);
+                    break;
+                case 7: //running
+                    level = Math.max(level, 2);
+                    break;
+            }
+        }
+        return level;
     }
 
 

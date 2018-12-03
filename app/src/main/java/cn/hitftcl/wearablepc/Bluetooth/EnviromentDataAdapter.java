@@ -26,6 +26,7 @@ public class EnviromentDataAdapter extends BaseAdapter {
     private List<Double> SO2List;
     private List<Double> NOList;
     private List<Double> voltageList;
+    private List<Date> dateList;
 
     private LayoutInflater Inflater;
 
@@ -38,17 +39,18 @@ public class EnviromentDataAdapter extends BaseAdapter {
         NOList = new ArrayList<Double>();
         voltageList = new ArrayList<Double>();
         pressureList = new ArrayList<Double>();
-
+        dateList = new ArrayList<>();
         Inflater = parent.getLayoutInflater();
     }
 
-    public void addData(int id,double temperature, double pressure, double humidity, double SO2, double NO, double voltage){
+    public void addData(int id,double temperature, double pressure, double humidity, double SO2, double NO, double voltage, Date date){
         temperatureList.add(temperature);
         pressureList.add(pressure);
         humidityList.add(humidity);
         SO2List.add(SO2);
         NOList.add(NO);
         voltageList.add(voltage);
+        dateList.add(date);
 
     }
 
@@ -60,6 +62,7 @@ public class EnviromentDataAdapter extends BaseAdapter {
         SO2List.clear();
         NOList.clear();
         voltageList.clear();
+        dateList.clear();
 
 
     }
@@ -91,6 +94,7 @@ public class EnviromentDataAdapter extends BaseAdapter {
             fields.envSO2= (TextView)convertView.findViewById(R.id.env_SO2);
             fields.envNO= (TextView)convertView.findViewById(R.id.env_NO);
             fields.envVoltage= (TextView)convertView.findViewById(R.id.env_voltage);
+            fields.date = convertView.findViewById(R.id.env_date);
 
             convertView.setTag(fields);
         }else{
@@ -104,6 +108,9 @@ public class EnviromentDataAdapter extends BaseAdapter {
         double SO2 = SO2List.get(position);
         double NO = NOList.get(position);
         double voltage = voltageList.get(position);
+        Date envDate = dateList.get(position);
+        SimpleDateFormat formatter   =   new SimpleDateFormat("mm:ss");
+        String dateString = formatter.format(envDate);
 
 
         fields.envTemperature.setText(String.valueOf(temperature));
@@ -112,6 +119,7 @@ public class EnviromentDataAdapter extends BaseAdapter {
         fields.envSO2.setText(String.valueOf(SO2));
         fields.envNO.setText(String.valueOf(NO));
         fields.envVoltage.setText(String.valueOf(voltage));
+        fields.date.setText(dateString);
 
         return  convertView;
     }
@@ -124,6 +132,7 @@ public class EnviromentDataAdapter extends BaseAdapter {
         TextView envSO2;
         TextView envNO;
         TextView envVoltage;
+        TextView date;
 
     }
 }

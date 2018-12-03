@@ -122,4 +122,19 @@ public class EnvironmentTable extends DataSupport{
     public void setVoltage(double voltage) {
         this.voltage = voltage;
     }
+
+    @Override
+    public String toString() {
+        return "EnvironmentTable{" +
+                "id=" + id +
+                ", temperature=" + temperature +
+                ", pressure=" + pressure +
+                ", humidity=" + humidity +
+                ", SO2=" + SO2 +
+                ", NO=" + NO +
+                ", voltage=" + voltage +
+                ", date=" + date +
+                ", IP='" + IP + '\'' +
+                '}';
+    }
 }

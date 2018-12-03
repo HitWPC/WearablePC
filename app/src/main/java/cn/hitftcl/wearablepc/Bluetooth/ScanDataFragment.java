@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import cn.hitftcl.wearablepc.ActionRecognition.ActionDataActivity;
 import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
 import cn.hitftcl.wearablepc.IndexGrid.IndexActivity;
 import cn.hitftcl.wearablepc.R;
@@ -22,7 +23,7 @@ import cn.hitftcl.wearablepc.R;
 public class ScanDataFragment extends Fragment {
 
 
-    private static final String[] DATAITEM = new String[] {"环境值","北斗","心率值", "心率图", "环境图"};//定义一个String数组用来显示ListView的内容
+    private static final String[] DATAITEM = new String[] {"环境值","北斗","心率值", "心率图", "环境图", "动作识别结果"};//定义一个String数组用来显示ListView的内容
     private ListView sensorNameListView;
     private View view;
     private FragmentManager fragmentManager;
@@ -55,6 +56,10 @@ public class ScanDataFragment extends Fragment {
                     case 4:
                         Intent intent4 = new Intent(getActivity(), EnvLineActivity.class);   //环境图
                         startActivity(intent4);
+                        break;
+                    case 5:
+                        Intent intent5 = new Intent(getActivity(), ActionDataActivity.class);   //环境图
+                        startActivity(intent5);
                         break;
                     default:
                         break;

@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -49,6 +50,15 @@ public class FusionActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("数据融合结果");
 
+
+        Button testFusion = findViewById(R.id.testFusion);
+        testFusion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(FusionActivity.this, TestFusionActivity.class);
+                startActivity(intent);
+            }
+        });
 
 //        shownoti = findViewById(R.id.showniti);
 //        shownoti.setOnClickListener(new View.OnClickListener() {

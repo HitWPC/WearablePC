@@ -17,10 +17,16 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.clj.fastble.BleManager;
+import com.clj.fastble.callback.BleWriteCallback;
+import com.clj.fastble.data.BleDevice;
+import com.clj.fastble.exception.BleException;
+
 import org.litepal.crud.DataSupport;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -28,8 +34,10 @@ import java.util.TimerTask;
 import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.UUIDs;
 import cn.hitftcl.ble.callback.OnWriteCallback;
+import cn.hitftcl.wearablepc.ActionRecognition.model.FeaVector;
 import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.DataFusion.DataFusionUtil;
+import cn.hitftcl.wearablepc.DataFusion.FusionActivity;
 import cn.hitftcl.wearablepc.DataFusion.FusionState;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnvironmentTable;
@@ -56,6 +64,7 @@ public class FusionService extends Service {
     public static int ENV_SPEED_CURRENT = 1;
 
     public static int lastNotifyLevel = 0;
+    public static String lastNotifyString = "";
 
 //    private static UserIPInfo CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(true)).findFirst(UserIPInfo.class);
 
@@ -79,26 +88,39 @@ public class FusionService extends Service {
         timerTask = new TimerTask() {
             @Override
             public void run() {
+
                 HeartTable heartTable = DataSupport.findLast(HeartTable.class);
                 EnvironmentTable environmentTable = DataSupport.findLast(EnvironmentTable.class);
                 BDTable bdTable = DataSupport.findLast(BDTable.class);
-                fusionResult = DataFusionUtil.situation1Fusion(heartTable, environmentTable, bdTable);
+                List<FeaVector> feaVectors = DataSupport.select("*").where("startTime>?",""+(System.currentTimeMillis()-20000)).order("startTime desc").limit(10).find(FeaVector.class);
+                fusionResult = DataFusionUtil.situation1Fusion(heartTable, environmentTable, bdTable, feaVectors);
                 judgeAndShowNotification();
                 speedChange();
+                sendDataServiceRateChange();
             }
         };
+    }
+
+    private void sendDataServiceRateChange() {
+
+
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        timer.cancel();
+        if(timer!=null)
+            timer.cancel();
+        if(timerTask!=null)
+            timerTask.cancel();
     }
 
     private void judgeAndShowNotification() {
         int tempLevel = -1;
+        boolean available = false;
         StringBuilder sb = new StringBuilder();
         if(fusionResult!=null && fusionResult.envAvailable){
+            available = true;
             if(fusionResult.getSo2()==3 || fusionResult.getNo()==3){
                 tempLevel = Math.max(tempLevel, 3);
                 if(fusionResult.getSo2()==3){
@@ -107,38 +129,43 @@ public class FusionService extends Service {
                 if(fusionResult.getNo()==3){
                     sb.append("NO浓度过高，请尽快撤离！");
                 }
-            }else if(fusionResult.getSo2()==2 || fusionResult.getNo()==2 ){
+            }if(fusionResult.getSo2()==2 || fusionResult.getNo()==2 ){
                 tempLevel = Math.max(tempLevel, 2);
-                if(fusionResult.getSo2()==3){
+                if(fusionResult.getSo2()==2){
                     sb.append("SO2浓度偏高，请注意防护！");
                 }
-                if(fusionResult.getNo()==3){
+                if(fusionResult.getNo()==2){
                     sb.append("NO浓度偏高，请注意防护！");
                 }
-            }else if(fusionResult.getPressure()==4 || fusionResult.getPressure()==0 || fusionResult.getTemperature()==0 || fusionResult.getTemperature()==4 || fusionResult.getHumidity()==4){
+            }if(fusionResult.getPressure()==4 || fusionResult.getPressure()==0 || fusionResult.getTemperature()==0 || fusionResult.getTemperature()==4 || fusionResult.getHumidity()==4){
                 tempLevel = Math.max(tempLevel, 1);
-                sb.append("温湿度气压异常，请注意！");
+                sb.append("温湿度或气压异常，请注意！");
             }
         }
         if(fusionResult!=null && fusionResult.heartAvailable){
+            available = true;
             if(fusionResult.getHeartState()==0){
                 tempLevel = Math.max(tempLevel, 2);
                 sb.append("心率过低，请注意！");
             }else if(fusionResult.getHeartState()==4){
-                tempLevel = Math.max(tempLevel, 1);
+                tempLevel = Math.max(tempLevel, 3);
                 sb.append("心率过高，请注意！");
             }
         }
-        if(tempLevel!=-1 && tempLevel!=lastNotifyLevel){
+        if(available && tempLevel!=-1 && (tempLevel!=lastNotifyLevel||!lastNotifyString.equals(sb.toString()))){
             lastNotifyLevel = tempLevel;
-            showNotification(tempLevel, "体征/环境 异常", sb.toString());
+            lastNotifyString = sb.toString();
+            showNotification(tempLevel, "体征/环境 异常", lastNotifyString);
+        }else if(available && tempLevel == -1 && lastNotifyLevel!=tempLevel){
+            lastNotifyLevel = tempLevel;
+            lastNotifyString = "体征/环境 正常";
+            showNotification(tempLevel, "数据融合结果", lastNotifyString);
         }
     }
 
     private void showNotification(int level, String title, String content) {
-        Intent intent = new Intent(this, MapActivity.class);
+            Intent intent = new Intent(this, FusionActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
         NotificationManager notificationManager = (NotificationManager) getSystemService
                 (NOTIFICATION_SERVICE);
         String NOTIFICATION_CHANNEL_ID = "my_channel_id_01";
@@ -198,83 +225,30 @@ public class FusionService extends Service {
         }
     }
 
-    private void sendChangeInfo_ENV(String str, int speed) {
-        Log.d(TAG, str+"修改的速率为："+speed);
-        final byte[] buf = new byte[1];
-        switch (speed){
-            case 1:
-                buf[0] =0x01;
-                break;
-            case 2:
-                buf[0]  = 0x02;
-                break;
-            case 3:
-                buf[0] = 0x03;
-                break;
-            case 4:
-                buf[0] = 0x04;
-                break;
-            case 5:
-                buf[0] = 0x05;
-                break;
-            case 6:
-                buf[0] = 0x06;
-                break;
-            case 7:
-                buf[0] = 0x07;
-                break;
-            case 8:
-                buf[0] = 0x08;
-                break;
-            case 9:
-                buf[0] = 0x09;
-                break;
-            case 10:
-                buf[0] = 0x0a;
-                break;
-            case 11:
-                buf[0] = 0x0b;
-                break;
-            case 12:
-                buf[0] = 0x0c;
-                break;
-            case 13:
-                buf[0] = 0x0d;
-                break;
-            case 14:
-                buf[0] = 0x0e;
-                break;
-            case 15:
-                buf[0] = 0x0f;
-                break;
-            case 16:
-                buf[0] = 0x10;
-                break;
-            default:
-                buf[0] = 0x01;
-                break;
-        }
-        HashMap<BluetoothDevice, BluetoothGatt> map = bleController.getConnectedDvices();
-        BluetoothDevice device = null;
-        for(Map.Entry<BluetoothDevice, BluetoothGatt> entry:map.entrySet()){
-            BluetoothDevice temp = entry.getKey();
-            if(temp.getName().contains("BEAN")){//是环境传感器
-                device = temp;
+    private void sendChangeInfo_ENV(final String str, final int speed) {
+        List<BleDevice> devices = BleManager.getInstance().getAllConnectedDevice();
+        BleDevice device = null;
+        for(BleDevice device1 : devices){
+            if(device1.getName().contains("BEAN")){//是环境传感器
+                device = device1;
                 break;
             }
         }
         if(device!=null){
-            bleController.writeBuffer_Device(device, UUIDs.UUID_ENVIRONMENT_Service, UUIDs.UUID_ENVIRONMENT_Char_Write,buf, new OnWriteCallback() {
-                @Override
-                public void onSuccess() {
-                    Log.d(TAG, "修改速率="+buf[0]+"成功");
-                }
+            byte[] buf = {Byte.valueOf(speed+"", 10)};
+            BleManager.getInstance().write(device, com.clj.fastble.UUIDs.UUID_ENVIRONMENT_Service, com.clj.fastble.UUIDs.UUID_ENVIRONMENT_Char_Write, buf,
+                    new BleWriteCallback() {
+                        @Override
+                        public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                            Log.d(TAG, str+"修改速率成功-->"+speed);
+                        }
 
-                @Override
-                public void onFailed(int state) {
-                    Log.d(TAG, "修改速率失败");
-                }
-            });
+                        @Override
+                        public void onWriteFailure(BleException exception) {
+                            Log.d(TAG, str+"修改速率成功-->"+speed);
+                        }
+                    });
+
         }
     }
 

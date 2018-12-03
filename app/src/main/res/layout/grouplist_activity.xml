@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:layout_margin="5dp"
-            android:text="蓝牙mac"/>
+            android:text="是否在线"/>
 
     </LinearLayout>
 
@@ -79,6 +79,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="开启广播"/>
+        <Button
+            android:id="@+id/id_btn_online"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="在线确认"/>
     </LinearLayout>
 
 </LinearLayout>

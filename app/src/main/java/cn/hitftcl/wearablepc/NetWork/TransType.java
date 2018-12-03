@@ -8,7 +8,10 @@ public enum TransType {
     FILE_TYPE,
     SENSOR_TYPE,
     BD_TYPE,
+    BD_TYPES,
     TEXT_TYPE,
     SYN_COMMAND,
-    FUSION_RES
+    FUSION_RES,
+    ONLINE_ASK,
+    ONLINE_ACK
 }

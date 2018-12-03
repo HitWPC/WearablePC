@@ -30,9 +30,12 @@ import java.util.List;
 import cn.hitftcl.wearablepc.Message.SecretActivity;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.NetWork.TransType;
 import cn.hitftcl.wearablepc.Service.BroadcastService;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
+import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
 public class UserIPListActivity extends AppCompatActivity {
     private static final String TAG = "debug001";
@@ -42,9 +45,9 @@ public class UserIPListActivity extends AppCompatActivity {
 
 
     private UserIPAdapter mAdapter;
-    private List<UserIPInfo> mData = new ArrayList<>();
+    private List<UserState> mData = new ArrayList<>();
     private ListView mListView;
-    private Button mButton, sendIP,manageService;
+    private Button mButton, sendIP,manageService, online;
     private Boolean StartService=false;
 
     Intent broadcastService = null;
@@ -58,7 +61,13 @@ public class UserIPListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.grouplist_activity);
 
-        mData = DataSupport.findAll(UserIPInfo.class);
+        List<UserIPInfo> userIPInfos = DataSupport.findAll(UserIPInfo.class);
+        for (UserIPInfo userIPInfo : userIPInfos) {
+            if(userIPInfo.getType()!=UserIPInfo.TYPE_SELF)
+                mData.add(new UserState(userIPInfo, false));
+            else
+                mData.add(new UserState(userIPInfo, true));
+        }
         //设置ToolBar
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_userip_list);
 
@@ -74,6 +83,34 @@ public class UserIPListActivity extends AppCompatActivity {
         mButton = (Button) findViewById(R.id.id_btn_plus);
         sendIP = findViewById(R.id.id_btn_sendBroadcast);
         manageService=(Button)findViewById(R.id.id_btn_manageService);
+
+        ThreadPool.getInstance().execute(new Runnable() {
+            @Override
+            public void run() {
+                List<UserIPInfo> users = DataSupport.findAll(UserIPInfo.class);
+                for(UserIPInfo userIPInfo : users){
+                    if(userIPInfo.getType()!=UserIPInfo.TYPE_SELF){
+                        NetworkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), TransType.ONLINE_ASK, "ASK");
+                    }
+                }
+            }
+        });
+
+        online = findViewById(R.id.id_btn_online);
+        online.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                for(UserState userIPInfo : mData){
+                    if(userIPInfo.getType()!=UserIPInfo.TYPE_SELF){
+                        userIPInfo.setOnline(false);
+                        NetworkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), TransType.ONLINE_ASK, "ASK");
+                    }
+                }
+                mAdapter.notifyDataSetChanged();
+
+            }
+        });
 
         self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
         if(self.getIp()==null || self.getPort()<1024){
@@ -136,7 +173,7 @@ public class UserIPListActivity extends AppCompatActivity {
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                UserIPInfo clicked = mData.get(position);
+                UserState clicked = mData.get(position);
                 Intent intent = new Intent(UserIPListActivity.this, UserIPEditActivity.class);
                 intent.putExtra("user_id", clicked.getId());
                 intent.putExtra("position", position);
@@ -162,26 +199,39 @@ public class UserIPListActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction().toString()){
+                case BroadcastService.Broadcast_Service_Action:
+                    String content = intent.getStringExtra("personInfo");
+                    UserIPInfo user= new Gson().fromJson(content,UserIPInfo.class);
+                    Log.d(TAG,"before-add-size:---->"+mData.size());
+                    boolean flag = false;
+                    UserIPInfo oldUserInfo = null;
+                    for (UserIPInfo userIPInfo:mData){
+                        if (userIPInfo.getId()==user.getId()){
+                            flag=true;
+                            oldUserInfo = userIPInfo;
+                        }
+                    }
+                    if (flag){
+                        mData.remove(oldUserInfo);
+                    }
+                    mData.add(new UserState(user, true));
+                    //view更新数据
+                    mAdapter.notifyDataSetChanged();
+                    break;
+                case BroadCastUtil.onlineBroadcast:
 
-            String content = intent.getStringExtra("personInfo");
-            UserIPInfo user= new Gson().fromJson(content,UserIPInfo.class);
-            Log.d(TAG,"before-add-size:---->"+mData.size());
-            boolean flag = false;
-            UserIPInfo oldUserInfo = null;
-            for (UserIPInfo userIPInfo:mData){
-                if (userIPInfo.getId()==user.getId()){
-                    flag=true;
-                    oldUserInfo = userIPInfo;
-                }
+                    String ip = intent.getStringExtra("ip");
+                    Log.d(TAG,"))))))))"+ip);
+                    for (UserState mDatum : mData) {
+                        if(mDatum.getIp().equals(ip)){
+                            mDatum.setOnline(true);
+                            mAdapter.notifyDataSetChanged();
+                            break;
+                        }
+                    }
             }
-            System.out.println("*********"+flag);
-            if (flag){
-                mData.remove(oldUserInfo);
-            }
-            mData.add(user);
-            Log.d(TAG,"after-add-size:---->"+mData.size());
-            //view更新数据
-            mAdapter.notifyDataSetChanged();
+
 
         }
     }
@@ -192,6 +242,7 @@ public class UserIPListActivity extends AppCompatActivity {
         mBroadcastReceiver = new MyBroadcastReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BroadcastService.Broadcast_Service_Action);
+        intentFilter.addAction(BroadCastUtil.onlineBroadcast);
         registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
@@ -257,7 +308,7 @@ public class UserIPListActivity extends AppCompatActivity {
                     userIPInfo.setIp(ip);
                     userIPInfo.setPort(port);
                     userIPInfo.setBlueMac(blueMac);
-                    mData.add(userIPInfo);
+                    mData.add(new UserState(userIPInfo, false));
                     mAdapter.notifyDataSetChanged();
                 }
                 break;
@@ -265,17 +316,17 @@ public class UserIPListActivity extends AppCompatActivity {
 
     }
 
-    public class UserIPAdapter extends ArrayAdapter<UserIPInfo> {
+    public class UserIPAdapter extends ArrayAdapter<UserState> {
         private int resourceId;
 
-        public UserIPAdapter(Context context, int resource, List<UserIPInfo> objects) {
+        public UserIPAdapter(Context context, int resource, List<UserState> objects) {
             super(context, resource, objects);
             resourceId = resource;
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            UserIPInfo userIPInfo = getItem(position);
+            UserState userIPInfo = getItem(position);
             View view;
             ViewHolder viewHolder;
             if(convertView == null){
@@ -284,7 +335,7 @@ public class UserIPListActivity extends AppCompatActivity {
                 viewHolder.username = (TextView)view.findViewById(R.id.id_username);
                 viewHolder.ip = (TextView)view.findViewById(R.id.id_ip);
                 viewHolder.port = (TextView)view.findViewById(R.id.id_port);
-                viewHolder.blueMac = (TextView) view.findViewById(R.id.mac_adress);
+                viewHolder.online = (TextView) view.findViewById(R.id.mac_adress);
                 view.setTag(viewHolder);
             }else{
                 view = convertView;
@@ -301,10 +352,10 @@ public class UserIPListActivity extends AppCompatActivity {
             }else{
                 viewHolder.port.setText(String.valueOf(userIPInfo.getPort()));
             }
-            if(userIPInfo.getBlueMac() == null) {
-                viewHolder.blueMac.setText("未设置");
+            if(userIPInfo.isOnline() == false) {
+                viewHolder.online.setText("离线");
             }else{
-                viewHolder.blueMac.setText(String.valueOf(userIPInfo.getBlueMac()));
+                viewHolder.online.setText("在线");
             }
             if(userIPInfo.isCaptain()){
                 view.setBackgroundColor(Color.LTGRAY);
@@ -318,7 +369,7 @@ public class UserIPListActivity extends AppCompatActivity {
             TextView username;
             TextView ip;
             TextView port;
-            TextView blueMac;
+            TextView online;
         }
     }
 

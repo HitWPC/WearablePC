@@ -47,25 +47,27 @@ public class SendDataService extends Service {
     public void onCreate() {
         super.onCreate();
         timer = new Timer();
-        timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                Log.d(TAG, "数据融合123");
-                CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(1)).findFirst(UserIPInfo.class);
-                //向队长发送地理位置数据
-                String BD_Data_Json = LatestBDdata();
-                if (BD_Data_Json!=null && CaptainInfo!=null){
-                    NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(), TransType.BD_TYPE,BD_Data_Json);
-                }
-                //向队长发送体征环境融合数据
-                FusionState fusionState = LatestFusionResult();
-                if(fusionState!=null && CaptainInfo!=null && CaptainInfo.getType()!=0 && (fusionState.heartAvailable||fusionState.envAvailable||fusionState.bdAvailable)){
-                    String fusionStr = new Gson().toJson(fusionState);
-                    NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr);
-                    Log.d(TAG, "向队长发送融合数据成功");
-                }
+        timerTask = new MyTimerTask();
+    }
+
+    class MyTimerTask extends TimerTask{
+
+        @Override
+        public void run() {
+            CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(1)).findFirst(UserIPInfo.class);
+            //向队长发送地理位置数据
+            String BD_Data_Json = LatestBDdata();
+            if (BD_Data_Json!=null && CaptainInfo!=null){
+                NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(), TransType.BD_TYPE,BD_Data_Json);
             }
-        };
+            //向队长发送体征环境融合数据
+            FusionState fusionState = LatestFusionResult();
+            if(fusionState!=null && CaptainInfo!=null && CaptainInfo.getType()!=0 && (fusionState.heartAvailable||fusionState.envAvailable||fusionState.bdAvailable)){
+                String fusionStr = new Gson().toJson(fusionState);
+                if(NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr))
+                    Log.d(TAG, "向队长发送融合数据成功");
+            }
+        }
     }
 
     /**
@@ -98,7 +100,7 @@ public class SendDataService extends Service {
         BDTable data = DataSupport.findLast(BDTable.class);
         Date data_time = data.getRecordDate();
         Date current = new Date();
-        if (current.getTime() - data_time.getTime()<= Max_Interval_Seconds){
+        if (current.getTime() - data_time.getTime()<= 10000){
             Gson gson = new Gson();
             return gson.toJson(list.add(data));
         }

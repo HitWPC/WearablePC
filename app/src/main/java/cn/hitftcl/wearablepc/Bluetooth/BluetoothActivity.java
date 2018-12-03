@@ -35,9 +35,6 @@ public class BluetoothActivity extends AppCompatActivity  {
 
         initView();
 
-        BleManager bleManager = BleManager.getInstance();
-        bleManager.init(getApplication());
-
     }
 
     public void initView() {

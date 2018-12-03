@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.amap.api.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -39,7 +40,9 @@ import cn.hitftcl.wearablepc.Model.Msg;
 import cn.hitftcl.wearablepc.Model.Secret;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
+import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.NetWork.TransType;
+import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
 import cn.hitftcl.wearablepc.Utils.Constant;
 import cn.hitftcl.wearablepc.Utils.EncryptUtil;
 import cn.hitftcl.wearablepc.Utils.MediaTypeJudgeUtil;
@@ -123,7 +126,14 @@ public class ReceiveService extends Service {
                             Log.d(TAG, content);
 
                         }else if(type.equals(TransType.BD_TYPE.name())){
-                            //TODO 接收到北斗数据
+                            //TODO 队长收到队员发送过来的北斗数据
+                            String content = EncryptUtil.decryptPassword(dataInputStream.readUTF());
+                            Gson gson = new Gson();
+                            BDTable bdTable=  gson.fromJson(content, BDTable.class);
+                            BD_Partner_Singleton.getInstance().setBD_Map(bdTable.getIP(), new LatLng(bdTable.getLatitude(), bdTable.getLongitude())); //将队友北斗数据存入缓存
+
+                        }else if(type.equals(TransType.BD_TYPES.name())){
+                            //TODO 队员接收到队长发送过来的北斗数据
                             String content = EncryptUtil.decryptPassword(dataInputStream.readUTF());
                             Gson gson = new Gson();
                             ArrayList<BDTable> BD_list =  gson.fromJson(content, new TypeToken<ArrayList<BDTable>>(){}.getType());
@@ -148,7 +158,15 @@ public class ReceiveService extends Service {
                                 IndexActivity.fusionStateMap.put(sender.getIp(),fusionState);
                             }
 
-                        } else if(type.equals(TransType.FILE_TYPE.name())){
+                        } else if(type.equals(TransType.ONLINE_ASK.name())){
+                            //TODO 接收到在线请求消息
+                            Log.d(TAG,"接收到在线请求消息");
+                            NetworkUtil.sendByTCP(sender.getIp(), sender.getPort(), TransType.ONLINE_ACK,"ACK");
+                        }else if(type.equals(TransType.ONLINE_ACK.name())){
+                            //TODO 接收到在线确认消息
+                            BroadCastUtil.broadcastUpdate(BroadCastUtil.onlineBroadcast, "ip", sender.getIp());
+                            Log.d(TAG,"fasong 接收到在线请求消息");
+                        }else if(type.equals(TransType.FILE_TYPE.name())){
                             //TODO 接收到文件类型数据
                             String fileName = EncryptUtil.decryptPassword(dataInputStream.readUTF());
 //                            Log.d(TAG, "接收到文件类型数据 "+ fileName);
@@ -272,7 +290,6 @@ public class ReceiveService extends Service {
 
                     } catch (IOException e) {
                         e.printStackTrace();
-                        Log.d(TAG,"RecieveService:error########################");
                     }  finally {
                         try {
                             if (bufferedReader != null) {

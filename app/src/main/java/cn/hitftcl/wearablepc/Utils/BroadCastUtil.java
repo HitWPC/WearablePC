@@ -17,6 +17,10 @@ public class BroadCastUtil {
     public final static String EXTRA_UUID =
             "com.example.bluetooth.le.EXTRA_UUID";
 
+    /**
+     * 动作传感器相关
+     */
+    public static final String onlineBroadcast = "BROADCAST.ONLINEACK.ACTION";
 
     /**
      * 动作传感器相关

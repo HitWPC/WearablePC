@@ -29,6 +29,7 @@ import com.clj.fastble.UUIDs;
 import com.clj.fastble.callback.BleGattCallback;
 import com.clj.fastble.callback.BleNotifyCallback;
 import com.clj.fastble.callback.BleScanCallback;
+import com.clj.fastble.callback.BleWriteCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
 import com.clj.fastble.utils.HexUtil;
@@ -41,6 +42,7 @@ import java.util.Map;
 import cn.hitftcl.ble.BleController;
 import cn.hitftcl.ble.callback.ConnectCallback;
 import cn.hitftcl.ble.callback.ScanCallback;
+import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
 
@@ -160,7 +162,7 @@ public class ScanFragment extends Fragment {
         BleManager.getInstance().connect(bleDevice, new BleGattCallback() {
             @Override
             public void onStartConnect() {
-                showProgressDialog("请稍后", "正在连接设备");
+                showProgressDialog("请稍后", "正在连接"+bleDevice.getName());
             }
 
             @Override
@@ -171,19 +173,47 @@ public class ScanFragment extends Fragment {
 
             @Override
             public void onConnectSuccess(BleDevice bleDevice, BluetoothGatt gatt, int status) {
+                final  BleDevice bleDevice1 = bleDevice;
                 hideProgressDialog();
                 Toast.makeText(getActivity(), bleDevice.getName()+"连接成功", Toast.LENGTH_LONG).show();
                 mDeviceAdapter.removeDevice(bleDevice);
                 mDeviceAdapter.notifyDataSetChanged();
                 BroadCastUtil.broadcastUpdate(BroadCastUtil.btDeviceConnAction);
                 OpenNotify(bleDevice);
+                if(bleDevice.getName().contains("Ring")){
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            byte[] buf = {0x01,0x01,0x02,0x00,0x03,0x00,0x00,0x0a};
+                            BleManager.getInstance().write(bleDevice1, UUIDs.UUID_Action_Char_Service, UUIDs.UUID_Action_Char_Write, buf,
+                                    new BleWriteCallback(){
+                                        @Override
+                                        public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                            Log.d(TAG, "write success");
+                                        }
+
+                                        @Override
+                                        public void onWriteFailure(BleException exception) {
+                                            Log.d(TAG, "write fail");
+                                        }
+                                    });
+                        }
+                    }).start();
+
+                }
             }
 
             @Override
             public void onDisConnected(boolean isActiveDisConnected, BleDevice bleDevice, BluetoothGatt gatt, int status) {
                 mDeviceAdapter.removeDevice(bleDevice);
                 mDeviceAdapter.notifyDataSetChanged();
-                Toast.makeText(getActivity(), bleDevice.getName()+"断开连接："+BleManager.getInstance().isConnected(bleDevice),Toast.LENGTH_SHORT).show();
+                Toast.makeText(MyApplication.getContext(), bleDevice.getName()+"断开连接："+BleManager.getInstance().isConnected(bleDevice),Toast.LENGTH_SHORT).show();
                 BroadCastUtil.broadcastUpdate(BroadCastUtil.btDeviceConnAction);
 
 //                if (isActiveDisConnected) {

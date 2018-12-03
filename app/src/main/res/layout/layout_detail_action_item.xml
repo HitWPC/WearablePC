@@ -5,7 +5,7 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:id="@+id/env_temperature"
+        android:id="@+id/query_id"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
@@ -13,8 +13,9 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="@color/colorPrimary"/>
+
     <TextView
-        android:id="@+id/env_humidity"
+        android:id="@+id/query_action"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
@@ -22,8 +23,9 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="@color/colorPrimary"/>
+
     <TextView
-        android:id="@+id/env_pressure"
+        android:id="@+id/start_date"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
@@ -31,8 +33,9 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="@color/colorPrimary"/>
+
     <TextView
-        android:id="@+id/env_SO2"
+        android:id="@+id/stop_date"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
@@ -40,31 +43,5 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="@color/colorPrimary"/>
-    <TextView
-        android:id="@+id/env_NO"
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@color/colorPrimary"/>
-    <TextView
-        android:id="@+id/env_voltage"
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@color/colorPrimary"/>
-    <TextView
-        android:id="@+id/env_date"
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@color/colorPrimary"/>
+
 </LinearLayout>
