@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.amap.api.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -125,7 +126,14 @@ public class ReceiveService extends Service {
                             Log.d(TAG, content);
 
                         }else if(type.equals(TransType.BD_TYPE.name())){
-                            //TODO 接收到北斗数据
+                            //TODO 队长收到队员发送过来的北斗数据
+                            String content = EncryptUtil.decryptPassword(dataInputStream.readUTF());
+                            Gson gson = new Gson();
+                            BDTable bdTable=  gson.fromJson(content, BDTable.class);
+                            BD_Partner_Singleton.getInstance().setBD_Map(bdTable.getIP(), new LatLng(bdTable.getLatitude(), bdTable.getLongitude())); //将队友北斗数据存入缓存
+
+                        }else if(type.equals(TransType.BD_TYPES.name())){
+                            //TODO 队员接收到队长发送过来的北斗数据
                             String content = EncryptUtil.decryptPassword(dataInputStream.readUTF());
                             Gson gson = new Gson();
                             ArrayList<BDTable> BD_list =  gson.fromJson(content, new TypeToken<ArrayList<BDTable>>(){}.getType());
@@ -282,7 +290,6 @@ public class ReceiveService extends Service {
 
                     } catch (IOException e) {
                         e.printStackTrace();
-                        Log.d(TAG,"RecieveService:error########################");
                     }  finally {
                         try {
                             if (bufferedReader != null) {

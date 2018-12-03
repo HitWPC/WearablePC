@@ -20,13 +20,13 @@
         android:orientation="horizontal">
         <Button
             android:id="@+id/startSave"
-            android:text="开始保存"
+            android:text="开始模拟"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content" />
         <Button
             android:id="@+id/stopSave"
-            android:text="停止保存"
+            android:text="停止模拟"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content" />
@@ -46,6 +46,7 @@
                     android:text="心率"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:layout_weight="3"/>
                 <NumberPicker
                     android:id="@+id/heart"
@@ -74,6 +75,7 @@
                     android:text="温度"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:layout_weight="3"/>
                 <NumberPicker
                     android:id="@+id/temperature1"
@@ -86,6 +88,8 @@
                     android:text="."
                     android:layout_width="0dp"
                     android:layout_weight="1"
+                    android:textSize="20sp"
+                    android:layout_gravity="center"
                     android:layout_height="wrap_content" />
                 <NumberPicker
                     android:id="@+id/temperature2"
@@ -108,7 +112,8 @@
                     android:text="湿度"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"/>
+                    android:layout_weight="3"
+                    android:layout_gravity="center"/>
                 <NumberPicker
                     android:id="@+id/humi1"
                     android:layout_width="0dp"
@@ -120,7 +125,9 @@
                     android:text="."
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:layout_gravity="center"/>
                 <NumberPicker
                     android:id="@+id/humi2"
                     android:layout_width="0dp"
@@ -141,7 +148,8 @@
                     android:text="气压"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"/>
+                    android:layout_weight="3"
+                    android:layout_gravity="center"/>
                 <NumberPicker
                     android:id="@+id/pressure"
                     android:layout_width="0dp"
@@ -153,7 +161,9 @@
                     android:text="."
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:layout_gravity="center"/>
                 <NumberPicker
                     android:id="@+id/pressure2"
                     android:layout_width="0dp"
@@ -174,7 +184,8 @@
                     android:text="二氧化硫"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"/>
+                    android:layout_weight="3"
+                    android:layout_gravity="center"/>
                 <NumberPicker
                     android:id="@+id/SO2"
                     android:layout_width="0dp"
@@ -186,7 +197,9 @@
                     android:text="."
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:layout_gravity="center"/>
                 <NumberPicker
                     android:id="@+id/SO22"
                     android:layout_width="0dp"
@@ -207,7 +220,8 @@
                     android:text="一氧化氮"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"/>
+                    android:layout_weight="3"
+                    android:layout_gravity="center"/>
                 <NumberPicker
                     android:id="@+id/NO1"
                     android:layout_width="0dp"
@@ -219,7 +233,9 @@
                     android:text="."
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:layout_gravity="center"/>
                 <NumberPicker
                     android:id="@+id/NO2"
                     android:layout_width="0dp"
@@ -240,7 +256,8 @@
                     android:text="活动识别"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"/>
+                    android:layout_weight="3"
+                    android:layout_gravity="center"/>
                 <NumberPicker
                     android:id="@+id/actionResult"
                     android:layout_width="0dp"

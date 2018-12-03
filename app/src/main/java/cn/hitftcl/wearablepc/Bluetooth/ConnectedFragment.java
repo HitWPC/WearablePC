@@ -18,10 +18,12 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.clj.fastble.BleManager;
+import com.clj.fastble.UUIDs;
 import com.clj.fastble.callback.BleWriteCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
@@ -32,10 +34,10 @@ import java.util.List;
 import java.util.Map;
 
 import cn.hitftcl.ble.BleController;
-import cn.hitftcl.ble.UUIDs;
 import cn.hitftcl.ble.callback.OnWriteCallback;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.Service.FusionService;
 import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
 import cn.hitftcl.wearablepc.Utils.PickerView;
 import cn.hitftcl.wearablepc.Utils.ThreadPool;
@@ -50,6 +52,8 @@ public class ConnectedFragment extends Fragment{
     private List<BleDevice> conn_device = new ArrayList<>();
 
     private ListView connnectedLv;
+
+    public int transRate = 1;
 
 //    private SimpleAdapter adapter;
 
@@ -68,6 +72,7 @@ public class ConnectedFragment extends Fragment{
         connnectedLv.setAdapter(deviceListAdapter);
 
         send = v.findViewById(R.id.sendBtn);
+        send.setVisibility(View.GONE);
 
         send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,8 +105,8 @@ public class ConnectedFragment extends Fragment{
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                 final int j= i;
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-
-                builder.setMessage("确认断开连接吗");
+                final BleDevice bleDevice = deviceListAdapter.getItem(j);
+                builder.setMessage("确认与"+bleDevice.getName()+"断开连接吗?");
                 builder.setTitle("提示");
                 builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
 
@@ -112,11 +117,9 @@ public class ConnectedFragment extends Fragment{
                     }
                 });
                 builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    final int k =j;
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         // TODO Auto-generated method stub
-                        BleDevice bleDevice = deviceListAdapter.getItem(j);
                         BleManager.getInstance().disconnect(bleDevice);
                     }
                 });
@@ -125,14 +128,26 @@ public class ConnectedFragment extends Fragment{
             }
         });
 
-//        connnectedLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//                final String []numbers = new String[1];
-//                numbers[0] = "08";//预防不选择时返回0
-//                final int j= i;
-////                final EditText et = new EditText(view.getContext());
+        connnectedLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                final String []numbers = new String[1];
+                numbers[0] = "08";//预防不选择时返回0
+                final int j= i;
+//                final EditText et = new EditText(view.getContext());
 //                final PickerView et = new PickerView(view.getContext());
+                final NumberPicker numberPicker = new NumberPicker(view.getContext());
+                numberPicker.setMaxValue(60);
+                numberPicker.setMinValue(1);
+                numberPicker.setValue(1);
+                numberPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+                    @Override
+                    public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                        transRate = i1;
+                    }
+                });
+
+
 //                List<String> data = new ArrayList<String>();
 //                for (int s = 1; s <= 15; s++)
 //                {
@@ -145,23 +160,39 @@ public class ConnectedFragment extends Fragment{
 //                        numbers[0] = text;
 //                    }
 //                });
-//                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-//                builder.setView(et);
-//                builder.setTitle("请选择速率(单位：s)");
-//                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-//
-//                    @Override
-//                    public void onClick(DialogInterface arg0, int arg1) {
-//                        arg0.dismiss();
-//                    }
-//                });
-//                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-//                    final int k =j;
-//                    @Override
-//                    public void onClick(DialogInterface arg0, int arg1) {
-//                        // TODO Auto-generated method stub
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                builder.setView(numberPicker);
+                builder.setTitle("请选择速率(单位：s)");
+                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        arg0.dismiss();
+                    }
+                });
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    final int k =j;
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        // TODO Auto-generated method stub
 //                        Toast.makeText(MyApplication.getContext(), numbers[0]+"s",Toast.LENGTH_LONG).show();
-//                        final String address = conn_btDevices.get(k).get("地址");
+                        final BleDevice selectedDevice = conn_device.get(k);
+//                        Toast.makeText(MyApplication.getContext(), selectedDevice.getName()+" "+transRate,Toast.LENGTH_LONG).show();
+                        byte[] buf = {Byte.valueOf(transRate+"", 10)};
+                        BleManager.getInstance().write(selectedDevice, UUIDs.UUID_ENVIRONMENT_Service, UUIDs.UUID_ENVIRONMENT_Char_Write,buf,
+                                new BleWriteCallback() {
+                                    @Override
+                                    public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                        FusionService.ENV_SPEED_CURRENT = transRate;
+                                        Toast.makeText(MyApplication.getContext(), "修改"+selectedDevice.getName()+"速率为"+transRate+"成功",Toast.LENGTH_SHORT).show();
+                                    }
+
+                                    @Override
+                                    public void onWriteFailure(BleException exception) {
+                                        Toast.makeText(MyApplication.getContext(), "修改"+selectedDevice.getName()+"速率为"+transRate+"失败",Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
 //                        for(Map.Entry<BluetoothDevice, BluetoothGatt> entry : conn_device_hashmap.entrySet()){
 //                            BluetoothDevice device = entry.getKey();
 //                            if(device.getAddress().equals(address)){
@@ -221,27 +252,29 @@ public class ConnectedFragment extends Fragment{
 ////                                byte[] buf =numbers[0].getBytes();
 //                                final byte[] buf = new byte[1];
 //                                buf[0] = temp;
-////                                byte[] buf = ;
-////                                mBleController.writeBuffer_Device(device, UUIDs.UUID_ENVIRONMENT_Service, UUIDs.UUID_ENVIRONMENT_Char_Write,buf, new OnWriteCallback() {
-////                                    @Override
-////                                    public void onSuccess() {
-////                                        Log.d(TAG, "修改速率="+numbers[0]+"  "+buf[0]+"成功");
-////                                    }
-////
-////                                    @Override
-////                                    public void onFailed(int state) {
-////                                        Log.d(TAG, "修改速率="+numbers[0]+"失败");
-////                                    }
-////                                });
+//                                byte[] buf = ;
+//                                mBleController.writeBuffer_Device(device, UUIDs.UUID_ENVIRONMENT_Service, UUIDs.UUID_ENVIRONMENT_Char_Write,buf, new OnWriteCallback() {
+//                                    @Override
+//                                    public void onSuccess() {
+//                                        Log.d(TAG, "修改速率="+numbers[0]+"  "+buf[0]+"成功");
+//                                    }
+//
+//                                    @Override
+//                                    public void onFailed(int state) {
+//                                        Log.d(TAG, "修改速率="+numbers[0]+"失败");
+//                                    }
+//                                });
 //                                break;
 //                            }
 //                        }
-//
-//                    }
-//                });
-//                builder.create().show();
-//            }
-//        });
+
+                    }
+                });
+                builder.create().show();
+            }
+        });
+
+
         //TODO 注册广播， 当蓝牙设备连接状态变化进行相应操作
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BroadCastUtil.btDeviceConnAction);
@@ -286,9 +319,7 @@ public class ConnectedFragment extends Fragment{
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BroadCastUtil.btDeviceConnAction.equals(action)) {
-                Log.d(TAG, "shoudao");
                 getConnected();
-
                 deviceListAdapter.notifyDataSetChanged();
             }
         }

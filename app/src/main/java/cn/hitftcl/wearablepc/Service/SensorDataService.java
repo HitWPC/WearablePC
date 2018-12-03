@@ -130,14 +130,15 @@ public class SensorDataService extends Service {
                 deal_heart(data);
                 break;
             case UUIDs.UUID_Action_Char_Notify:
-                BroadCastUtil.broadcastUpdate(BroadCastUtil.sensorAction, "sensorData", byteToFloatAll(data));
-                String[] temp = byteToFloatAll(data).split(" ");
-                float x = Float.parseFloat(temp[3]);
-                float y = Float.parseFloat(temp[4]);
-                float z = Float.parseFloat(temp[5]);
-
-                ActionTable actionTable  = new ActionTable(x, y, z, System.currentTimeMillis());
-                actionTable.save();
+//                BroadCastUtil.broadcastUpdate(BroadCastUtil.sensorAction, "sensorData", byteToFloatAll(data));
+//                String[] temp = byteToFloatAll(data).split(" ");
+//                float x = Float.parseFloat(temp[3]);
+//                float y = Float.parseFloat(temp[4]);
+//                float z = Float.parseFloat(temp[5]);
+//
+//                ActionTable actionTable  = new ActionTable(x, y, z, System.currentTimeMillis());
+//                actionTable.save();
+                Log.d(TAG, "接收到动作数据:"+byteToFloatAll(data));
                 break;
 
         }
@@ -182,7 +183,7 @@ public class SensorDataService extends Service {
                 info = matcher.group();
                 int end = matcher.end();
                 sb.delete(0,end);
-                Log.d(TAG, "leftsb: "+sb);
+//                Log.d(TAG, "leftsb: "+sb);
             }
         }
         return info;
@@ -226,7 +227,7 @@ public class SensorDataService extends Service {
         String lat="",NorS="",lng="",EorW="",Times="";
 
         boolean flag = false;  //标志该数据是否有效
-        Log.d(TAG, "getFormatLatlng-------: "+strArr);
+//        Log.d(TAG, "getFormatLatlng-------: "+strArr);
         if (strArr.get(0).equals("GNRMC") && strArr.size()>7 && strArr.get(2).equals("A")){
             flag = true;
             lat = strArr.get(3);
@@ -254,11 +255,10 @@ public class SensorDataService extends Service {
             Times = strArr.get(1);
 
         }
-        Log.d(TAG, "flag****************: "+flag);
         if (flag){
             Double lat_double = Double.parseDouble(lat.substring(0,2))+(Double.parseDouble(lat.substring(2,lat.length()))/60.0);
             Double lng_double = Double.parseDouble(lng.substring(0,3))+(Double.parseDouble(lng.substring(3,lng.length()))/60.0);
-            Log.d(TAG, "+++++++="+lat_double + "   "+lng_double);
+//            Log.d(TAG, "+++++++="+lat_double + "   "+lng_double);
             if(NorS.equals("S"))
                 lat_double = -lat_double;
             if(EorW.equals("W"))
@@ -393,10 +393,7 @@ public class SensorDataService extends Service {
         double NO = Double.parseDouble(datas[4]);
         double voltage = Double.parseDouble(datas[5]);
         if(EnviromentTableOperation.SaveEnviromentTable(temperature,pressure,humidity,SO2,NO,voltage,MyIP)){
-            Log.d(TAG, "deal_environment: 环境数据保存成功！     "+pressure);
+            Log.d(TAG, "环境数据保存成功"+str);
         }
-        
-        Log.d(TAG, str);
-
     }
 }

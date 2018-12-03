@@ -58,4 +58,13 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="@color/colorPrimary"/>
+    <TextView
+        android:id="@+id/env_date"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimary"/>
 </LinearLayout>

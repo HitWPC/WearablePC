@@ -79,7 +79,7 @@ public class EnviromentDataActivity extends AppCompatActivity {
             Log.d("结果数目",""+queryResultSum);
 
             for (EnvironmentTable unit: environmentTableArrayList){
-                enviromentDataAdapter.addData(index,unit.getTemperature(), unit.getHumidity(),unit.getPressure(),unit.getSO2(),unit.getNO(),unit.getVoltage());
+                enviromentDataAdapter.addData(index,unit.getTemperature(), unit.getHumidity(),unit.getPressure(),unit.getSO2(),unit.getNO(),unit.getVoltage(),unit.getDate());
                 index++;
                 enviromentDataAdapter.notifyDataSetChanged();
             }

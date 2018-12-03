@@ -2,7 +2,9 @@ package cn.hitftcl.wearablepc.DataFusion;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.NumberPicker;
@@ -39,10 +41,18 @@ public class TestFusionActivity extends AppCompatActivity {
     private Timer timer= null;
     private TimerTask timerTask = null;
 
+    static boolean flagStartSave = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test_fusion);
+
+        //设置ToolBar
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_testFusion);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("数据融合测试配置");
 
         final UserIPInfo self = DataSupport.where("type = ?", String.valueOf(UserIPInfo.TYPE_SELF)).findFirst(UserIPInfo.class);
         final String IP = self.getIp();
@@ -59,7 +69,6 @@ public class TestFusionActivity extends AppCompatActivity {
 
                 EnvironmentTable environmentTable = new EnvironmentTable(_temp, _pressure, _humi, _so2, _no, 3.3, new Date(), IP);
                 environmentTable.save();
-                Log.d("SSS"," "+Constant.actionTcategory2.get(_actionResult));
                 FeaVector feaVector = new FeaVector(null,System.currentTimeMillis()-2000,System.currentTimeMillis(), Constant.actionTcategory2.get(_actionResult),0);
                 feaVector.save();
             }
@@ -71,16 +80,37 @@ public class TestFusionActivity extends AppCompatActivity {
         startSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(timer== null) timer = new Timer(true);
-                timer.schedule(timerTask, 0, 1000);
+                if(!flagStartSave){
+                    if(timer==null){
+                        timer = new Timer(true);
+                    }
+                    timerTask = new TimerTask() {
+                        @Override
+                        public void run() {
+                            HeartTable heartTable = new HeartTable(_heart, new Date(), IP);
+                            heartTable.save();
+
+                            EnvironmentTable environmentTable = new EnvironmentTable(_temp, _pressure, _humi, _so2, _no, 3.3, new Date(), IP);
+                            environmentTable.save();
+                            FeaVector feaVector = new FeaVector(null,System.currentTimeMillis()-2000,System.currentTimeMillis(), Constant.actionTcategory2.get(_actionResult),0);
+                            feaVector.save();
+                        }
+                    };
+                    timer.schedule(timerTask, 0, 1000);
+                    flagStartSave = true;
+                }
             }
         });
 
         stopSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                timer.cancel();
-                timer = null;
+                if(timer!=null){
+                    timer.cancel();
+                    timer = null;
+                }
+                flagStartSave = false;
+
             }
         });
 
@@ -93,7 +123,7 @@ public class TestFusionActivity extends AppCompatActivity {
             @Override
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _heart = i1;
-                Toast.makeText(MyApplication.getContext(),"心率"+_heart,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"心率"+_heart,Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -111,7 +141,7 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _temp1 = i1;
                 _temp = _temp1+0.1*_temp2;
-                Toast.makeText(MyApplication.getContext(),"温度"+_temp,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"温度"+_temp,Toast.LENGTH_SHORT).show();
             }
         });
         temp2.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
@@ -119,7 +149,7 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _temp2 = i1;
                 _temp = _temp1+0.1*_temp2;
-                Toast.makeText(MyApplication.getContext(),"温度"+_temp,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"温度"+_temp,Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -137,7 +167,7 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _humi1 = i1;
                 _humi = _humi1+0.1*_humi2;
-                Toast.makeText(MyApplication.getContext(),"湿度"+_humi,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"湿度"+_humi,Toast.LENGTH_SHORT).show();
             }
         });
         humi2.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
@@ -145,10 +175,11 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _humi2 = i1;
                 _humi = _humi1+0.1*_humi2;
-                Toast.makeText(MyApplication.getContext(),"湿度"+_humi,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"湿度"+_humi,Toast.LENGTH_SHORT).show();
             }
         });
 
+        //TODO 获取气压控件
         pressure1 = findViewById(R.id.pressure);
         pressure2 = findViewById(R.id.pressure2);
         pressure1.setMaxValue(120);
@@ -162,7 +193,7 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _pressure1 = i1;
                 _pressure = _pressure1+0.1*_pressure2;
-                Toast.makeText(MyApplication.getContext(),"气压"+_pressure,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"气压"+_pressure,Toast.LENGTH_SHORT).show();
             }
         });
         pressure2.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
@@ -170,13 +201,14 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _pressure2 = i1;
                 _pressure = _pressure1+0.1*_pressure2;
-                Toast.makeText(MyApplication.getContext(),"气压"+_pressure,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"气压"+_pressure,Toast.LENGTH_SHORT).show();
             }
         });
 
+        //TODO 获取SO2控件
         SO21= findViewById(R.id.SO2);
         SO22 = findViewById(R.id.SO22);
-        SO21.setMaxValue(60);
+        SO21.setMaxValue(99);
         SO21.setMinValue(0);
         SO21.setValue(0);
         SO22.setMaxValue(9);
@@ -187,7 +219,7 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _so21 = i1;
                 _so2 = _so21+0.1*_so22;
-                Toast.makeText(MyApplication.getContext(),"SO2 "+_so2,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"SO2 "+_so2,Toast.LENGTH_SHORT).show();
             }
         });
         SO22.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
@@ -195,12 +227,14 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _so22 = i1;
                 _so2 = _so21+0.1*_so22;
-                Toast.makeText(MyApplication.getContext(),"SO2 "+_so2,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"SO2 "+_so2,Toast.LENGTH_SHORT).show();
             }
         });
-        NO1= findViewById(R.id.SO2);
-        NO2 = findViewById(R.id.SO22);
-        NO1.setMaxValue(60);
+
+        //TODO 获取NO控件
+        NO1= findViewById(R.id.NO1);
+        NO2 = findViewById(R.id.NO2);
+        NO1.setMaxValue(199);
         NO1.setMinValue(0);
         NO1.setValue(0);
         NO2.setMaxValue(9);
@@ -211,7 +245,7 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _no1 = i1;
                 _no = _no1+0.1*_no2;
-                Toast.makeText(MyApplication.getContext(),"no "+_no,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"no "+_no,Toast.LENGTH_SHORT).show();
             }
         });
         NO2.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
@@ -219,9 +253,11 @@ public class TestFusionActivity extends AppCompatActivity {
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _no2 = i1;
                 _no = _no1+0.1*_no2;
-                Toast.makeText(MyApplication.getContext(),"no "+_no,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"no "+_no,Toast.LENGTH_SHORT).show();
             }
         });
+
+        //TODO 获取动作控件
         actionResult = findViewById(R.id.actionResult);
         actionResult.setDisplayedValues(actionType);
         //设置最大最小值
@@ -234,7 +270,7 @@ public class TestFusionActivity extends AppCompatActivity {
             @Override
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 _actionResult = actionType[i1-1];
-                Toast.makeText(MyApplication.getContext(),"actionResult "+_actionResult,Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MyApplication.getContext(),"actionResult "+_actionResult,Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -246,5 +282,20 @@ public class TestFusionActivity extends AppCompatActivity {
         if (timer!=null)
             timer.cancel();
         super.onDestroy();
+    }
+
+    /**
+     * toolbar返回按钮响应事件
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return true;
     }
 }
