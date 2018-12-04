@@ -52,6 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import cn.hitftcl.wearablepc.Group.UserIPListActivity;
 import cn.hitftcl.wearablepc.Message.SecretListActivity;
+import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.NetWork.TransType;
@@ -176,6 +177,7 @@ public class MapActivity extends AppCompatActivity {
         locationBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//                BDTable myLocation=
                 Log.d(TAG, "SIZE:"+ listSymbol.size());
 
             }
@@ -198,7 +200,14 @@ public class MapActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         for (UserIPInfo user : group){
-                            NetworkUtil.sendByTCP(user.getIp(),user.getPort(),TransType.SYN_COMMAND, content);
+                            final UserIPInfo userIPInfo = user;
+                            ThreadPool.getInstance().execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    NetworkUtil.sendByTCP(userIPInfo.getIp(),userIPInfo.getPort(),TransType.SYN_COMMAND, content);
+                                }
+                            });
+
                         }
                     }
                 });
@@ -293,6 +302,7 @@ public class MapActivity extends AppCompatActivity {
     }
 
     private void initDraw() {
+        Log.d(TAG, "initDraw");
         if(listPts.size()>0){
             drawLine(listPts, true, true);
         }
@@ -309,6 +319,8 @@ public class MapActivity extends AppCompatActivity {
         INI_ZOOM = initMapInfo.getZoom();
         INIT_TILE = initMapInfo.getTilt();
         INIT_BEARING = initMapInfo.getBearing();
+
+        Log.d(TAG , "INI_LATLNG:  "+INI_LATLNG);
         HashMap<String,ArrayList<Mlatlng>> symbolRouteMap = initMapInfo.getMapMessage();
         if (symbolRouteMap.containsKey("路线")){
             List<Mlatlng> path = symbolRouteMap.get("路线");
@@ -656,7 +668,7 @@ public class MapActivity extends AppCompatActivity {
             switch(intent.getAction()){
                 case ACTION_SYN_COMMAND:
                     String synContent = intent.getStringExtra("Syn_Content");
-                    Log.d(TAG, synContent);
+                    Log.d(TAG, "接收到同步消息："+synContent);
                     MapInfo mapInfo = new Gson().fromJson(synContent, new TypeToken<MapInfo>(){}.getType());
                     parseMapInfo(mapInfo);
                     aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(

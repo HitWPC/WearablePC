@@ -4,6 +4,7 @@ import com.amap.api.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cn.hitftcl.wearablepc.Model.BDTable;
@@ -43,5 +44,13 @@ public class BD_Partner_Singleton {
 
     public ConcurrentHashMap<String, LatLng> getBD_Map(){
         return BD_Map;
+    }
+
+    public ArrayList<BDTable> getBDArrayList(){
+        ArrayList<BDTable> res = new ArrayList<>();
+        for(Map.Entry<String, LatLng> temp : BD_Map.entrySet()){
+            res.add(new BDTable(temp.getValue().latitude, temp.getValue().longitude, temp.getKey()));
+        }
+        return res;
     }
 }

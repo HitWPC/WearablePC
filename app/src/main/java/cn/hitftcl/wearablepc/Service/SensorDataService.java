@@ -223,6 +223,7 @@ public class SensorDataService extends Service {
         Log.d(TAG,"receieve data:"+recv_info);
 
         List<String> strArr = splitInfo(recv_info);
+        Log.d(TAG, "&&&  "+strArr);
 
         String lat="",NorS="",lng="",EorW="",Times="";
 
