@@ -2,6 +2,7 @@ package cn.hitftcl.wearablepc.Service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -12,24 +13,31 @@ import org.litepal.crud.DataSupport;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.hitftcl.wearablepc.BDMap.BD_Partner_Singleton;
 import cn.hitftcl.wearablepc.DataFusion.FusionState;
 import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.NetWork.TransType;
+import cn.hitftcl.wearablepc.Utils.Constant;
+import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
 public class SendDataService extends Service {
     private static final String TAG = "debug001";
 
-    private Timer timer = null;
-    private TimerTask timerTask = null;
+    public static Timer timer = null;
+    public  static TimerTask timerTask = null;
     private  static int Max_Interval_Seconds = 2000;
     private static int Timer_Interval = 1000;
 
-    private UserIPInfo CaptainInfo = null;
+    public static int SLEEP_TIME = 1000;
+
+    private SendDataThread sendDataThread= null;
+
 
     @Nullable
     @Override
@@ -39,33 +47,71 @@ public class SendDataService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        timer.schedule(timerTask,0, Timer_Interval);
+//        timer.schedule(timerTask,0, Timer_Interval);
+        if(sendDataThread==null){
+            sendDataThread = new SendDataThread();
+            sendDataThread.start();
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        timer = new Timer();
-        timerTask = new MyTimerTask();
+//        timer = new Timer();
+//        timerTask = new SendDataTask();
     }
 
-    class MyTimerTask extends TimerTask{
-
+    class SendDataThread extends Thread{
         @Override
         public void run() {
-            CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(1)).findFirst(UserIPInfo.class);
-            //向队长发送地理位置数据
-            String BD_Data_Json = LatestBDdata();
-            if (BD_Data_Json!=null && CaptainInfo!=null){
-                NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(), TransType.BD_TYPE,BD_Data_Json);
-            }
-            //向队长发送体征环境融合数据
-            FusionState fusionState = LatestFusionResult();
-            if(fusionState!=null && CaptainInfo!=null && CaptainInfo.getType()!=0 && (fusionState.heartAvailable||fusionState.envAvailable||fusionState.bdAvailable)){
-                String fusionStr = new Gson().toJson(fusionState);
-                if(NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr))
-                    Log.d(TAG, "向队长发送融合数据成功");
+            while(true){
+                Log.d(TAG, "态势上报  "+ Constant.dateFormat.format(new Date()));
+                if (Thread.currentThread().isInterrupted()){
+                    break;
+                }
+
+                UserIPInfo CaptainInfo = null;
+                CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(1)).findFirst(UserIPInfo.class);
+                if(CaptainInfo!=null && CaptainInfo.getType()!=0){  //我不是队长
+                    //向队长发送地理位置数据
+                    String BD_Data_Json = LatestBDdata();
+                    if (BD_Data_Json!=null){
+                        NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(), TransType.BD_TYPE,BD_Data_Json);
+                    }
+                    //向队长发送体征环境融合数据
+                    FusionState fusionState = LatestFusionResult();
+                    if(fusionState!=null && (fusionState.heartAvailable||fusionState.envAvailable||fusionState.bdAvailable)){
+                        String fusionStr = new Gson().toJson(fusionState);
+                        if(NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr))
+                            Log.d(TAG, "向队长发送融合数据成功");
+                    }
+                }else if(CaptainInfo!=null && CaptainInfo.getType()==0){  //我是队长
+                    //给队员发送所有成员地理位置
+                    final List<UserIPInfo> userIPInfos = DataSupport.where("type!=?","0").find(UserIPInfo.class);
+                    ArrayList<BDTable> bdList = BD_Partner_Singleton.getInstance().getBDArrayList();
+                    BDTable cap = DataSupport.findLast(BDTable.class);
+                    if(cap!=null){
+                        bdList.add(cap);
+                    }
+                    final String bdJson = new Gson().toJson(bdList);
+    //                Log.d(TAG, "Send bdJson:"+bdJson);
+                    ThreadPool.getInstance().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (UserIPInfo userIPInfo : userIPInfos){
+                                NetworkUtil.sendByTCP(userIPInfo.getIp(), userIPInfo.getPort(), TransType.BD_TYPES, bdJson);
+                            }
+
+                        }
+                    });
+                }
+                try {
+                    Thread.sleep(SLEEP_TIME);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
     }
@@ -82,7 +128,6 @@ public class SendDataService extends Service {
     }
 
     public String LatestBDdata (){
-        ArrayList<BDTable> list = new ArrayList<>();
         BDTable data = DataSupport.findLast(BDTable.class);
         if(data==null)
             return null;
@@ -90,10 +135,35 @@ public class SendDataService extends Service {
         Date current = new Date();
         if (current.getTime() - data_time.getTime()<= Max_Interval_Seconds){
             Gson gson = new Gson();
-            return gson.toJson(list.add(data));
+            return gson.toJson(data);
         }
         return null;
     }
+
+//
+//    /**
+//     * 获取最新的数据融合结果
+//     * @return
+//     */
+//    private FusionState LatestFusionResult() {
+//        FusionState state = FusionService.getFusionResult();
+//        if(state!=null && new Date().getTime()-state.getFusionTime().getTime()<5000)
+//            return state;
+//        return null;
+//    }
+//
+//    public String LatestBDdata (){
+//        BDTable data = DataSupport.findLast(BDTable.class);
+//        if(data==null)
+//            return null;
+//        Date data_time = data.getRecordDate();
+//        Date current = new Date();
+//        if (current.getTime() - data_time.getTime()<= Max_Interval_Seconds){
+//            Gson gson = new Gson();
+//            return gson.toJson(data);
+//        }
+//        return null;
+//    }
 
     public String LatestHeartdata (){
         ArrayList<BDTable> list = new ArrayList<>();
@@ -109,7 +179,7 @@ public class SendDataService extends Service {
 
     @Override
     public void onDestroy() {
-        timer.cancel();
+        sendDataThread.interrupt();
         super.onDestroy();
     }
 }

@@ -43,6 +43,7 @@ import cn.hitftcl.wearablepc.Model.BDTable;
 import cn.hitftcl.wearablepc.Model.EnvironmentTable;
 import cn.hitftcl.wearablepc.Model.HeartTable;
 import cn.hitftcl.wearablepc.R;
+import cn.hitftcl.wearablepc.ServiceManage.ServiceManageActivity;
 
 /**
  * Created by Administrator on 2018/11/1.
@@ -56,6 +57,9 @@ public class FusionService extends Service {
     private Timer timer = null;
     private TimerTask timerTask = null;
     private static int Timer_Interval = 3000;
+
+    private static int CurrentSendDataInterval = 1000;
+    private static int SendDataMaxInterval = 10000;
 
     public static FusionState fusionResult = null;
 
@@ -85,25 +89,38 @@ public class FusionService extends Service {
         super.onCreate();
         bleController = BleController.getInstance().init(this);
         timer = new Timer();
-        timerTask = new TimerTask() {
-            @Override
-            public void run() {
-
-                HeartTable heartTable = DataSupport.findLast(HeartTable.class);
-                EnvironmentTable environmentTable = DataSupport.findLast(EnvironmentTable.class);
-                BDTable bdTable = DataSupport.findLast(BDTable.class);
-                List<FeaVector> feaVectors = DataSupport.select("*").where("startTime>?",""+(System.currentTimeMillis()-20000)).order("startTime desc").limit(10).find(FeaVector.class);
-                fusionResult = DataFusionUtil.situation1Fusion(heartTable, environmentTable, bdTable, feaVectors);
-                judgeAndShowNotification();
-                speedChange();
-                sendDataServiceRateChange();
-            }
-        };
+        timerTask = new MyTimerTask();
     }
 
+    class MyTimerTask extends TimerTask{
+
+        @Override
+        public void run() {
+            HeartTable heartTable = DataSupport.findLast(HeartTable.class);
+            EnvironmentTable environmentTable = DataSupport.findLast(EnvironmentTable.class);
+            BDTable bdTable = DataSupport.findLast(BDTable.class);
+            List<FeaVector> feaVectors = DataSupport.select("*").where("startTime>?",""+(System.currentTimeMillis()-20000)).order("startTime desc").limit(10).find(FeaVector.class);
+            fusionResult = DataFusionUtil.situation1Fusion(heartTable, environmentTable, bdTable, feaVectors);
+            judgeAndShowNotification();
+            speedChange();
+            sendDataServiceRateChange();
+        }
+    }
+
+    /**
+     * 修改态势上报服务的速率
+     */
     private void sendDataServiceRateChange() {
-
-
+        if(fusionResult!=null && ServiceManageActivity.serviceInfo.isDataSendService() &&(fusionResult.envAvailable || fusionResult.heartAvailable)){  //存在数据可用
+            if((fusionResult.envAvailable && !fusionResult.isEnvNormal())
+                  ||  (fusionResult.heartAvailable && !fusionResult.isBodyNormal())){   //存在异常
+                SendDataService.SLEEP_TIME = 1000;
+            }else{   //完全正常
+                if(SendDataService.SLEEP_TIME + 1000<=SendDataMaxInterval){
+                    SendDataService.SLEEP_TIME += 1000;
+                }
+            }
+        }
     }
 
     @Override
@@ -159,7 +176,7 @@ public class FusionService extends Service {
         }else if(available && tempLevel == -1 && lastNotifyLevel!=tempLevel){
             lastNotifyLevel = tempLevel;
             lastNotifyString = "体征/环境 正常";
-            showNotification(tempLevel, "数据融合结果", lastNotifyString);
+            showNotification(0, "数据融合结果", lastNotifyString);
         }
     }
 
@@ -190,6 +207,10 @@ public class FusionService extends Service {
                 .setAutoCancel(true)
                 .setDefaults(Notification.DEFAULT_SOUND);
         switch (level){
+            case 0: //正常
+                builder.setSmallIcon(R.drawable.healty);
+                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_zero));
+                break;
             case 1: //较严重
                 builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.level_one));
                 break;

@@ -135,14 +135,15 @@ public class ReceiveService extends Service {
                         }else if(type.equals(TransType.BD_TYPES.name())){
                             //TODO 队员接收到队长发送过来的北斗数据
                             String content = EncryptUtil.decryptPassword(dataInputStream.readUTF());
+//                            Log.d(TAG, "Receive bdJson:"+content);
                             Gson gson = new Gson();
                             ArrayList<BDTable> BD_list =  gson.fromJson(content, new TypeToken<ArrayList<BDTable>>(){}.getType());
-                            Log.d(TAG, content);
+//                            Log.d(TAG, content);
                             BD_Partner_Singleton.getInstance().setBD_Map(BD_list); //将队友北斗数据存入缓存
 
                         }else if(type.equals(TransType.FUSION_RES.name())){
                             //TODO 接收到融合数据
-                            Log.d(TAG, "接收到融合数据");
+//                            Log.d(TAG, "接收到融合数据");
                             String content=EncryptUtil.decryptPassword(dataInputStream.readUTF());
                             Gson gson=new Gson();
                             FusionState fusionState=gson.fromJson(content,FusionState.class);

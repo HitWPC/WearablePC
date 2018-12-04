@@ -46,6 +46,13 @@ public class BDTable extends DataSupport {
         this.IP = IP;
     }
 
+    public BDTable( double longitude, double latitude, String IP) {
+
+        this.longitude = longitude;
+        this.latitude = latitude;
+        this.IP = IP;
+    }
+
 
 
     public void setLongitude(double longitude){

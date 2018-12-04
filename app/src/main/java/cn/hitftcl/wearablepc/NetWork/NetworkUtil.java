@@ -86,9 +86,9 @@ public class NetworkUtil {
             SocketAddress socketAddress = new InetSocketAddress(addr, port);
             // 设置连接超时时间
             try {
-                Log.d(TAG, "addr:" + addr);
+//                Log.d(TAG, "addr:" + addr);
                 mSocket.connect(socketAddress, CONNECT_TIMEOUT);
-                Log.d(TAG, "connected...");
+//                Log.d(TAG, "connected...");
 
                 // 设置读流超时时间，必须在获取流之前设置
                 mSocket.setSoTimeout(INPUT_STREAM_READ_TIMEOUT);
