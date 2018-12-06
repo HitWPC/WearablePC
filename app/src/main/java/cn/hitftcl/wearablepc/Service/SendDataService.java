@@ -66,32 +66,37 @@ public class SendDataService extends Service {
         @Override
         public void run() {
             while(true){
-                Log.d(TAG, "态势上报  "+ Constant.dateFormat.format(new Date()));
+                System.out.println("发送数据服务开始运行");
+                Log.d(TAG, "android:layout_below=\"@+id/synBtn\" "+ Constant.dateFormat.format(new Date()));
                 if (Thread.currentThread().isInterrupted()){
                     break;
                 }
 
                 UserIPInfo CaptainInfo = null;
                 CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(1)).findFirst(UserIPInfo.class);
-                if(CaptainInfo!=null && CaptainInfo.getType()!=0){  //我不是队长
-                    //向队长发送地理位置数据
+                System.out.println("队长*********"+(CaptainInfo!=null && CaptainInfo.getType()==0));
+                if(CaptainInfo!=null && CaptainInfo.getType()!=0){  //TODO 我不是队长……
+                    //TODO 向队长发送地理位置数据
                     String BD_Data_Json = LatestBDdata();
                     if (BD_Data_Json!=null){
                         NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(), TransType.BD_TYPE,BD_Data_Json);
                     }
-                    //向队长发送体征环境融合数据
+                    //TODO 向队长发送体征环境融合数据
                     FusionState fusionState = LatestFusionResult();
                     if(fusionState!=null && (fusionState.heartAvailable||fusionState.envAvailable||fusionState.bdAvailable)){
                         String fusionStr = new Gson().toJson(fusionState);
                         if(NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr))
                             Log.d(TAG, "向队长发送融合数据成功");
                     }
-                }else if(CaptainInfo!=null && CaptainInfo.getType()==0){  //我是队长
-                    //给队员发送所有成员地理位置
+                }else if(CaptainInfo!=null && CaptainInfo.getType()==0){  //TODO 我是队长……
+                    //TODO 给队员发送所有成员地理位置  + 包括指挥端
                     final List<UserIPInfo> userIPInfos = DataSupport.where("type!=?","0").find(UserIPInfo.class);
                     ArrayList<BDTable> bdList = BD_Partner_Singleton.getInstance().getBDArrayList();
                     BDTable cap = DataSupport.findLast(BDTable.class);
+                    Log.d(TAG, "run: **************************");
                     if(cap!=null){
+                        System.out.println("添加自己位置信息");
+                        Log.d(TAG,  "添加自己位置信息");
                         bdList.add(cap);
                     }
                     final String bdJson = new Gson().toJson(bdList);
@@ -105,6 +110,9 @@ public class SendDataService extends Service {
 
                         }
                     });
+
+                    //TODO 给指挥端发送队员融合数据
+
                 }
                 try {
                     Thread.sleep(SLEEP_TIME);
@@ -155,7 +163,7 @@ public class SendDataService extends Service {
 //    public String LatestBDdata (){
 //        BDTable data = DataSupport.findLast(BDTable.class);
 //        if(data==null)
-//            return null;
+//            return null;f
 //        Date data_time = data.getRecordDate();
 //        Date current = new Date();
 //        if (current.getTime() - data_time.getTime()<= Max_Interval_Seconds){

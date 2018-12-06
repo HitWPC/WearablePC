@@ -234,6 +234,7 @@ public class ScanFragment extends Fragment {
                 if((bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_BD_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_BD_Char))
                         || (bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char_Notify))
                         || (bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_Heart_Char_Notify))
+                        || (bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_ECG_Char_Notify))
                         || (bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_Action_Char_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_Action_Char_Notify))){
                     BleManager.getInstance().notify(bleDevice, bluetoothGattService.getUuid().toString(), bluetoothGattCharacteristic.getUuid().toString(),
                            new MyNotifyCallback(bleDevice, bluetoothGattCharacteristic));

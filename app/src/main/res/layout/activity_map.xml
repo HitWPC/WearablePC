@@ -40,7 +40,6 @@
             android:layout_alignParentRight="true"
             android:text="定位" />
 
-
         <Button
             android:id="@+id/messageBtn"
             android:layout_width="wrap_content"
@@ -50,11 +49,19 @@
 
             android:text="通信" />
         <Button
+            android:id="@+id/clear_marks"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/messageBtn"
+            android:layout_alignParentEnd="true"
+            android:onClick="clearMarks"
+            android:text="标记清空" />
+        <Button
             android:id="@+id/groupBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_below="@+id/messageBtn"
+            android:layout_below="@+id/clear_marks"
 
             android:text="成员信息" />
     </RelativeLayout>

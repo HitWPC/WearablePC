@@ -230,6 +230,20 @@ public class UserIPListActivity extends AppCompatActivity {
                             break;
                         }
                     }
+                    break;
+                case BroadCastUtil.deleteCommander:
+                    boolean flag1 = false;
+                    UserIPInfo comm = null;
+                    for (UserIPInfo userIPInfo:mData){
+                        if (userIPInfo.getUsername().equals("commander")){
+                            flag1=true;
+                            comm = userIPInfo;
+                        }
+                    }
+                    if (flag1){
+                        mData.remove(comm);
+                    }
+                    mAdapter.notifyDataSetChanged();
             }
 
 
@@ -243,6 +257,7 @@ public class UserIPListActivity extends AppCompatActivity {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BroadcastService.Broadcast_Service_Action);
         intentFilter.addAction(BroadCastUtil.onlineBroadcast);
+        intentFilter.addAction(BroadCastUtil.deleteCommander);
         registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
@@ -361,6 +376,9 @@ public class UserIPListActivity extends AppCompatActivity {
                 view.setBackgroundColor(Color.LTGRAY);
             }else{
                 view.setBackgroundColor(Color.parseColor("#d8e0e8"));
+            }
+            if(userIPInfo.getUsername().equals("commander")){
+                view.setBackgroundColor(Color.GREEN);
             }
             return view;
         }

@@ -84,26 +84,27 @@ public class ReceiveService extends Service {
                 BufferedReader bufferedReader = null;
 
                 try {
-                    serverSocket = new ServerSocket(self.getPort());
+                    while (serverSocket==null){
+                        serverSocket = new ServerSocket(self.getPort());
+                    }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 //TODO 等待接收网络传输数据
                 while(true){
+
                     try {
                         //建立连接
-//                        serverSocket.setReuseAddress(true);
+                        serverSocket.setReuseAddress(true);
                         while(serverSocket == null){
-                            try {
-                                serverSocket = new ServerSocket(self.getPort());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            serverSocket = new ServerSocket(self.getPort());
                         }
                         socket = serverSocket.accept();
                         //发送者信息
                         String senderAddr = socket.getInetAddress().getHostAddress();
                         UserIPInfo sender = DataSupport.where("ip = ?", senderAddr).findFirst(UserIPInfo.class);
+                        if(sender==null) continue;
                         Log.d(TAG,"New connection accepted " + socket.getInetAddress()+":" + socket.getPort());
                         //获取输入流
                         DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
@@ -161,7 +162,7 @@ public class ReceiveService extends Service {
 
                         } else if(type.equals(TransType.ONLINE_ASK.name())){
                             //TODO 接收到在线请求消息
-                            Log.d(TAG,"接收到在线请求消息");
+                            Log.d(TAG,"接收到"+sender.getIp()+"的在线请求消息");
                             NetworkUtil.sendByTCP(sender.getIp(), sender.getPort(), TransType.ONLINE_ACK,"ACK");
                         }else if(type.equals(TransType.ONLINE_ACK.name())){
                             //TODO 接收到在线确认消息
@@ -170,32 +171,6 @@ public class ReceiveService extends Service {
                         }else if(type.equals(TransType.FILE_TYPE.name())){
                             //TODO 接收到文件类型数据
                             String fileName = EncryptUtil.decryptPassword(dataInputStream.readUTF());
-//                            Log.d(TAG, "接收到文件类型数据 "+ fileName);
-//                            String prefix=fileName.substring(fileName.lastIndexOf(".")+1);
-//                            Log.d(TAG, "prefix of received file: "+ prefix);
-//                            int catagory = 0;
-//                            String content = "";
-//                            String dirName = "";
-//                            switch(prefix){
-//                                case "amr":
-//                                    catagory = Msg.CATAGORY_VOICE;
-//                                    content = "[语音]";
-//                                    dirName = "/voice";
-//                                    break;
-//                                case "jpg":
-//                                    catagory = Msg.CATAGORY_IMAGE;
-//                                    content = "[图片]";
-//                                    dirName = "/image";
-//                                    break;
-//                                case "mp4":
-//                                case "avi":
-//                                    catagory = Msg.CATAGORY_VIDEO;
-//                                    content = "[视频]";
-//                                    dirName = "/video";
-//                                    break;
-//                                default:
-//                                    break;
-//                            }
                             int catagory = 0;
                             String content = "";
                             String dirName = "";
@@ -310,7 +285,9 @@ public class ReceiveService extends Service {
                         }
                     }
                 }
+
             }
+
         });
         thread.start();
         return super.onStartCommand(intent, flags, startId);
@@ -341,10 +318,11 @@ public class ReceiveService extends Service {
 
     @Override
     public void onDestroy() {
+        if(thread!=null){
+            thread.interrupt();
+        }
         stopSelf();
-//        if(thread!=null){
-//            thread.interrupt();
-//        }
+//
         super.onDestroy();
         stopSelf();
     }

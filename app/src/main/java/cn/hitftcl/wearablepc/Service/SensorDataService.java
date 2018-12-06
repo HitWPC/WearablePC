@@ -14,6 +14,7 @@ import android.util.Log;
 import com.amap.api.maps.CoordinateConverter;
 import com.amap.api.maps.model.LatLng;
 import com.autonavi.ae.pos.LocGSVData;
+import com.clj.fastble.UUIDs;
 
 import org.litepal.crud.DataSupport;
 
@@ -24,8 +25,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import cn.hitftcl.ble.BleController;
-import cn.hitftcl.ble.UUIDs;
-import cn.hitftcl.wearablepc.Model.ActionTable;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
@@ -79,8 +78,10 @@ public class SensorDataService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            if (BroadCastUtil.notifyDataChanged.equals(action)) {     //收到数据
+            //TODO 收到ScanFragment发送的广播数据
+            if (BroadCastUtil.notifyDataChanged.equals(action)) {
                 final byte[]  data = intent.getByteArrayExtra(BroadCastUtil.EXTRA_DATA);
+
                 final String uuid = intent.getStringExtra(BroadCastUtil.EXTRA_UUID);
                 if (data != null) {
                     ThreadPool.getInstance().execute(new Runnable() {
@@ -101,7 +102,8 @@ public class SensorDataService extends Service {
 
     private static IntentFilter makeGattUpdateIntentFilter() {                        //注册接收的事件
         final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(BleController.ACTION_DATA_AVAILABLE);
+//        intentFilter.addAction(BleController.ACTION_DATA_AVAILABLE);
+        intentFilter.addAction(BroadCastUtil.notifyDataChanged);
         intentFilter.addAction(BluetoothDevice.ACTION_UUID);
         return intentFilter;
     }
@@ -115,9 +117,12 @@ public class SensorDataService extends Service {
             case UUIDs.UUID_BD_Char:
 //                Log.d(TAG, new String(data));
                 temp_bd_data.append(new String(data));
+                Log.d(TAG, "char6_store: "+temp_bd_data);
                 String info=ifHasDataNeeded(temp_bd_data);
+                System.out.println(temp_bd_data.toString());
                 if(info!=null){
                     Log.d(TAG,temp_bd_data.toString());
+
                     getFormatLatlng(info);
 
                 }
@@ -127,7 +132,7 @@ public class SensorDataService extends Service {
                 Log.d(TAG, "char6_store: 接受到薄膜键盘----"+new String(data));
                 break;
             case UUIDs.UUID_Heart_Char_Notify:
-                deal_heart(data);
+//                deal_heart(data);
                 break;
             case UUIDs.UUID_Action_Char_Notify:
 //                BroadCastUtil.broadcastUpdate(BroadCastUtil.sensorAction, "sensorData", byteToFloatAll(data));
@@ -139,6 +144,9 @@ public class SensorDataService extends Service {
 //                ActionTable actionTable  = new ActionTable(x, y, z, System.currentTimeMillis());
 //                actionTable.save();
                 Log.d(TAG, "接收到动作数据:"+byteToFloatAll(data));
+                break;
+            case UUIDs.UUID_ECG_Char_Notify:
+                Log.d(TAG, "接收到心电数据:"+data);
                 break;
 
         }

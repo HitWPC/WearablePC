@@ -36,7 +36,10 @@ public class BroadCastUtil {
      * 收到蓝牙数据
      */
     public static final String notifyDataChanged = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
-
+    /**
+     * 删除指挥端的广播
+     */
+    public static final String deleteCommander = "BROADCAST.DELETE.COMMANDER.ACTION";
 
     public static void broadcastUpdate(final String action, String name, String content){
         final Intent intent = new Intent(action);

@@ -80,6 +80,12 @@ public class FusionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if(timer==null){
+            timer = new Timer();
+        }
+        if(timerTask==null){
+            timerTask = new MyTimerTask();
+        }
         timer.schedule(timerTask,0, Timer_Interval);
         return super.onStartCommand(intent, flags, startId);
     }
@@ -125,11 +131,17 @@ public class FusionService extends Service {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        if(timer!=null)
-            timer.cancel();
-        if(timerTask!=null)
+        if(timerTask!=null){
             timerTask.cancel();
+            timerTask = null;
+        }
+        if(timer!=null){
+            timer.cancel();
+            timer = null;
+        }
+
+
+        super.onDestroy();
     }
 
     private void judgeAndShowNotification() {

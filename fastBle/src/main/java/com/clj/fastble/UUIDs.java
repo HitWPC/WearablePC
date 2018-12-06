@@ -49,6 +49,16 @@ public class UUIDs {
     public static final String UUID_Heart_Char_Notify = "00002a37-0000-1000-8000-00805f9b34fb";
 
     /**
+     * ECG NOTIFY Characteristic
+     */
+    public static final String UUID_ECG_Char_Notify = "0000fff3-0000-1000-8000-00805f9b34fb";
+
+    /**
+     * ECG Write Characteristic
+     */
+    public static final String UUID_ECG_Char_Write = "0000fff5-0000-1000-8000-00805f9b34fb";
+
+    /**
      * 动作NOTIFY Service
      */
     public static final String UUID_Action_Char_Service = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";

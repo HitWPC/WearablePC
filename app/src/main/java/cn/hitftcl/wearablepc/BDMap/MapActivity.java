@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.nfc.cardemulation.HostApduService;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -65,6 +66,8 @@ import static cn.hitftcl.wearablepc.Service.ReceiveService.ACTION_SYN_COMMAND;
 
 public class MapActivity extends AppCompatActivity {
     public static final String TAG = "debug001";
+
+
 
     public float INI_ZOOM = 18.5f;
     public float INIT_TILE = 30;
@@ -660,6 +663,24 @@ public class MapActivity extends AppCompatActivity {
         final Marker marker =  aMap.addMarker(markerOption);
         marker.setObject(object);
         return marker;
+    }
+
+    //TODO 清除标记
+    public void clearMarks(View view) {
+        for (Marker marker : listSymbol) {
+            marker.remove();
+        }
+        listSymbol.clear();
+        symbolMap.clear();
+        listPts.clear();
+        if(polyline!=null)
+            polyline.remove();
+        for(Marker marker : aMap.getMapScreenMarkers()){
+            if(marker.getObject().equals("起点") || marker.getObject().equals("终点")){
+                marker.remove();
+            }
+        }
+        initDraw();
     }
 
     class mBroadcastReceiver extends BroadcastReceiver{

@@ -23,7 +23,7 @@ import cn.hitftcl.wearablepc.R;
 public class ScanDataFragment extends Fragment {
 
 
-    private static final String[] DATAITEM = new String[] {"环境值","北斗","心率值", "心率图", "环境图", "动作识别结果"};//定义一个String数组用来显示ListView的内容
+    private static final String[] DATAITEM = new String[] {"环境值","北斗","心率值", "心率图", "环境图", "动作识别结果","心电图"};//定义一个String数组用来显示ListView的内容
     private ListView sensorNameListView;
     private View view;
     private FragmentManager fragmentManager;
@@ -58,8 +58,12 @@ public class ScanDataFragment extends Fragment {
                         startActivity(intent4);
                         break;
                     case 5:
-                        Intent intent5 = new Intent(getActivity(), ActionDataActivity.class);   //环境图
+                        Intent intent5 = new Intent(getActivity(), ActionDataActivity.class);   //环境值
                         startActivity(intent5);
+                        break;
+                    case 6:
+                        Intent intent6 = new Intent(getActivity(), ECGActivity.class);   //心电图
+                        startActivity(intent6);
                         break;
                     default:
                         break;
