@@ -35,6 +35,7 @@ import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
 import cn.hitftcl.wearablepc.Bluetooth.BluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.ClassicBluetoothActivity;
 import cn.hitftcl.wearablepc.Service.ActionAdaptiveService;
+import cn.hitftcl.wearablepc.Service.CommandService;
 import cn.hitftcl.wearablepc.Service.SensorDataService;
 import cn.hitftcl.wearablepc.DataFusion.FusionActivity;
 import cn.hitftcl.wearablepc.DataFusion.FusionState;
@@ -53,7 +54,7 @@ import cn.hitftcl.wearablepc.Utils.Constant;
 public class IndexActivity extends AppCompatActivity {
     public static Map<String,FusionState> fusionStateMap=new HashMap<String,FusionState>();
     private final static String TAG = "debug001";
-    private Intent sensorDataService = null, netService = null, sendDataService =null, fusionService=null, serviceManageService=null;
+    private Intent sensorDataService = null, netService = null, sendDataService =null, fusionService=null, serviceManageService=null,commandService=null;
 
     public static boolean isServiceInit=false;
 
@@ -107,53 +108,53 @@ public class IndexActivity extends AppCompatActivity {
                         Intent intent5 = new Intent(IndexActivity.this, UserIPListActivity.class);
                         startActivity(intent5);
                         break;
-                    case 4:
-                        Intent intent6 = new Intent();
-                        intent6.setClassName("cn.edu.hit.ftcl.wearablepc.UVCCamera", "cn.edu.hit.ftcl.wearablepc.UVCCamera.MainActivity");
-                        startActivity(intent6);
-                        break;
-                    case 5:
-                        Intent intent7 = new Intent();
-                        intent7.setClassName("cn.edu.hit.ftcl.wearablepc.wificamera", "cn.edu.hit.ftcl.wearablepc.wificamera.thecamhi.main.MainActivity");
-                        startActivity(intent7);
-                        break;
+//                    case 4:
+//                        Intent intent6 = new Intent();
+//                        intent6.setClassName("cn.edu.hit.ftcl.wearablepc.UVCCamera", "cn.edu.hit.ftcl.wearablepc.UVCCamera.MainActivity");
+//                        startActivity(intent6);
+//                        break;
+//                    case 5:
+//                        Intent intent7 = new Intent();
+//                        intent7.setClassName("cn.edu.hit.ftcl.wearablepc.wificamera", "cn.edu.hit.ftcl.wearablepc.wificamera.thecamhi.main.MainActivity");
+//                        startActivity(intent7);
+//                        break;
                 }
             }
         });
 
-        checkBLE();
+//        checkBLE();
 
 
-        //TODO 初始化服务
-        if(!isServiceInit){
-            File file = new File(Constant.serviceInfoPath, "service.temp");
-            if (file.exists()){
-                try {
-                    ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file));
-                    ServiceInfo serviceInfo = (ServiceInfo)objectInputStream.readObject();
-                    System.out.println(serviceInfo);
-                    parseServiceInfo(serviceInfo);
-                    isServiceInit = true;
+//        //TODO 初始化服务
+//        if(!isServiceInit){
+//            File file = new File(Constant.serviceInfoPath, "service.temp");
+//            if (file.exists()){
+//                try {
+//                    ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file));
+//                    ServiceInfo serviceInfo = (ServiceInfo)objectInputStream.readObject();
+//                    System.out.println(serviceInfo);
+//                    parseServiceInfo(serviceInfo);
+//                    isServiceInit = true;
+//
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                } catch (ClassNotFoundException e) {
+//                    e.printStackTrace();
+//                }
+//            }else{
+//                Log.d(TAG, "开启服务管理……");
+//                if (!ServiceManageActivity.serviceInfo.isAuto()){
+//                    serviceManageService =new Intent(IndexActivity.this, ServiceManageService.class);
+//                    startService(serviceManageService);
+//                    ServiceManageActivity.serviceInfo.setAuto(true);
+//                }
+//
+//            }
+//        }
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }else{
-                Log.d(TAG, "开启服务管理……");
-                if (!ServiceManageActivity.serviceInfo.isAuto()){
-                    serviceManageService =new Intent(IndexActivity.this, ServiceManageService.class);
-                    startService(serviceManageService);
-                    ServiceManageActivity.serviceInfo.setAuto(true);
-                }
-
-            }
-        }
-
-//        //TODO 开启接收网络数据的服务
-//        netService = new Intent(this, ReceiveService.class);
-//        startService(netService);
+        //TODO 开启接收网络数据的服务
+        netService = new Intent(this, ReceiveService.class);
+        startService(netService);
 //
 //        //TODO 开启传感器数据接收服务
 //        sensorDataService = new Intent(this, SensorDataService.class);
@@ -167,12 +168,15 @@ public class IndexActivity extends AppCompatActivity {
 //        fusionService = new Intent(this, FusionService.class);
 //        startService(fusionService);
 
-        //TODO 初始化蓝牙管理
-        BleManager bleManager = BleManager.getInstance();
-        bleManager.init(getApplication());
+//        //TODO 初始化蓝牙管理
+//        BleManager bleManager = BleManager.getInstance();
+//        bleManager.init(getApplication());
+//
+//            Intent actionOriginService = new Intent(this, ActionOriginService.class);
+//            startService(actionOriginService);
 
-            Intent actionOriginService = new Intent(this, ActionOriginService.class);
-            startService(actionOriginService);
+        commandService=new Intent(this, CommandService.class);
+        startService(commandService);
     }
 
     private void parseServiceInfo(ServiceInfo serviceInfo) {

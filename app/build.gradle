@@ -34,10 +34,12 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     compile 'org.litepal.android:core:1.5.1'
     compile 'net.vidageek:mirror:1.6.1'
+
     //to get bluetooth mac address
     compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'com.android.support:support-v4:26.0.2'
     compile 'de.hdodenhof:circleimageview:2.1.0'
+    compile 'com.squareup.okhttp3:okhttp:3.8.0'
     //to deal with circle image
     compile 'com.android.support:recyclerview-v7:26.0.0'
     implementation files('libs/AMap3DMap_6.2.0_AMapSearch_6.1.0_20180427.jar')

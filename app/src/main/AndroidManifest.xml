@@ -118,6 +118,10 @@
             android:name=".Service.ActionOriginService"
             android:enabled="true"
             android:exported="true" />
+        <service
+            android:name=".Service.CommandService"
+            android:enabled="true"
+            android:exported="true" />
 
         <activity android:name=".Bluetooth.BluetoothActivity" />
         <activity
