@@ -30,6 +30,7 @@ import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.NetWork.NetworkUtil;
 import cn.hitftcl.wearablepc.R;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
+import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
 import cn.hitftcl.wearablepc.Utils.Constant;
 
 public class UserIPEditActivity extends AppCompatActivity {
@@ -136,6 +137,14 @@ public class UserIPEditActivity extends AppCompatActivity {
                 userIPInfo.setPort(port);
                 userIPInfo.setCaptain(isCaptain);
                 if(userIPInfo.save()){
+                    if(!userIPInfo.isCaptain()){  //非队长，删除数据库中commander信息
+                        UserIPInfo comm= DataSupport.where("username=?","commander").findFirst(UserIPInfo.class);
+                        if(comm!=null){
+                            DataSupport.delete(UserIPInfo.class, comm.getId());
+                            BroadCastUtil.broadcastUpdate(BroadCastUtil.deleteCommander);
+                        }
+                    }
+
                     if(userIPInfo.getType()==0){
                         Constant.MY_IP = ip;
                         Constant.MY_PORT = port;
