@@ -20,6 +20,8 @@ import android.widget.Toast;
 
 import com.clj.fastble.BleManager;
 
+import org.litepal.crud.DataSupport;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,6 +36,7 @@ import cn.hitftcl.wearablepc.BDMap.MapActivity;
 import cn.hitftcl.wearablepc.BDMap.offlinemap.OfflineMapActivity;
 import cn.hitftcl.wearablepc.Bluetooth.BluetoothActivity;
 import cn.hitftcl.wearablepc.Bluetooth.ClassicBluetoothActivity;
+import cn.hitftcl.wearablepc.Model.ActionTable;
 import cn.hitftcl.wearablepc.Service.ActionAdaptiveService;
 import cn.hitftcl.wearablepc.Service.SensorDataService;
 import cn.hitftcl.wearablepc.DataFusion.FusionActivity;
@@ -67,7 +70,7 @@ public class IndexActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.index);
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("哈工大可穿戴计算机");
+        actionBar.setTitle("数字单兵侦察系统");
 
         grid = (MyGridLayout) findViewById(R.id.list);
         grid.setGridAdapter(new MyGridLayout.GridAdatper() {
@@ -171,8 +174,17 @@ public class IndexActivity extends AppCompatActivity {
         BleManager bleManager = BleManager.getInstance();
         bleManager.init(getApplication());
 
-            Intent actionOriginService = new Intent(this, ActionOriginService.class);
-            startService(actionOriginService);
+//            Intent actionOriginService = new Intent(this, ActionOriginService.class);
+//            startService(actionOriginService);
+    }
+
+    public void openService(View view){
+        Intent actionOriginService = new Intent(this, ActionOriginService.class);
+        startService(actionOriginService);
+    }
+
+    public void clearActionTable(View view){
+        DataSupport.deleteAll(ActionTable.class);
     }
 
     private void parseServiceInfo(ServiceInfo serviceInfo) {

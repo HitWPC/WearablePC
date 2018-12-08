@@ -13,21 +13,28 @@ import android.util.Log;
 
 import com.amap.api.maps.CoordinateConverter;
 import com.amap.api.maps.model.LatLng;
-import com.autonavi.ae.pos.LocGSVData;
+import com.clj.fastble.BleManager;
 import com.clj.fastble.UUIDs;
+import com.clj.fastble.callback.BleWriteCallback;
+import com.clj.fastble.exception.BleException;
 
 import org.litepal.crud.DataSupport;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import cn.hitftcl.ble.BleController;
+import cn.hitftcl.wearablepc.Bluetooth.ECGLinkedList;
+import cn.hitftcl.wearablepc.Bluetooth.Utils;
+import cn.hitftcl.wearablepc.Model.ActionTable;
+import cn.hitftcl.wearablepc.Model.ECGModel;
 import cn.hitftcl.wearablepc.Model.UserIPInfo;
 import cn.hitftcl.wearablepc.MyApplication;
 import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
+import cn.hitftcl.wearablepc.Utils.Constant;
 import cn.hitftcl.wearablepc.Utils.ModelOperation.BDOperation;
 
 import cn.hitftcl.wearablepc.Utils.ModelOperation.EnviromentTableOperation;
@@ -35,6 +42,7 @@ import cn.hitftcl.wearablepc.Utils.ModelOperation.HeartOperation;
 import cn.hitftcl.wearablepc.Utils.ThreadPool;
 
 import static com.defqx.classic.BluetoothSerial.bytes2HexString;
+
 
 public class SensorDataService extends Service {
     public final static  String TAG = "debug001";
@@ -45,6 +53,9 @@ public class SensorDataService extends Service {
     public final static String BeiDouInfo_regex =  "\\$.+\\r\\n";
 
     public static StringBuffer temp_bd_data = new StringBuffer();
+
+    public static short RECEIVED_RELIABLE_TAG_TEST = -1;
+
 //    ThreadPoolExecutor ThreadExecutor = null;
     @Override
     public IBinder onBind(Intent intent) {
@@ -135,21 +146,93 @@ public class SensorDataService extends Service {
 //                deal_heart(data);
                 break;
             case UUIDs.UUID_Action_Char_Notify:
-//                BroadCastUtil.broadcastUpdate(BroadCastUtil.sensorAction, "sensorData", byteToFloatAll(data));
-//                String[] temp = byteToFloatAll(data).split(" ");
-//                float x = Float.parseFloat(temp[3]);
-//                float y = Float.parseFloat(temp[4]);
-//                float z = Float.parseFloat(temp[5]);
-//
-//                ActionTable actionTable  = new ActionTable(x, y, z, System.currentTimeMillis());
-//                actionTable.save();
+                BroadCastUtil.broadcastUpdate(BroadCastUtil.sensorAction, "sensorData", byteToFloatAll(data));
+                String[] temp = byteToFloatAll(data).split(" ");
+                float x = Float.parseFloat(temp[3]);
+                float y = Float.parseFloat(temp[4]);
+                float z = Float.parseFloat(temp[5]);
+
+                ActionTable actionTable  = new ActionTable(x, y, z, System.currentTimeMillis());
+                actionTable.save();
                 Log.d(TAG, "接收到动作数据:"+byteToFloatAll(data));
                 break;
             case UUIDs.UUID_ECG_Char_Notify:
-                Log.d(TAG, "接收到心电数据:"+data);
+                Log.d(TAG, "接收到心电数据:"+data.length);
+                dealECG(data);
                 break;
+            case UUIDs.UUID_Reliable_Char_Notify:
+                short receive = byte2int(data);
 
+                if(RECEIVED_RELIABLE_TAG_TEST==-1){
+                    byte[] buf = int2byte(receive);
+                    BleManager.getInstance().write(BleManager.getInstance().getAllConnectedDevice().get(0),
+                            UUIDs.UUID_Reliable_Service, UUIDs.UUID_Reliable_Char_Write, buf, new BleWriteCallback() {
+                                @Override
+                                public void onWriteSuccess(int current, int total, byte[] justWrite) {
+//                                    Log.d(TAG, "1-1");
+                                }
+
+                                @Override
+                                public void onWriteFailure(BleException exception) {
+//                                    Log.d(TAG, "1-2");
+                                }
+                            });
+                    RECEIVED_RELIABLE_TAG_TEST = receive;
+                }else if(RECEIVED_RELIABLE_TAG_TEST+1==receive){
+                    byte[] buf = int2byte(receive);
+                    BleManager.getInstance().write(BleManager.getInstance().getAllConnectedDevice().get(0),
+                            UUIDs.UUID_Reliable_Service, UUIDs.UUID_Reliable_Char_Write, buf, new BleWriteCallback() {
+                                @Override
+                                public void onWriteSuccess(int current, int total, byte[] justWrite) {
+//                                    Log.d(TAG, "2-1");
+                                }
+
+                                @Override
+                                public void onWriteFailure(BleException exception) {
+//                                    Log.d(TAG, "2-2");
+                                }
+                            });
+                    RECEIVED_RELIABLE_TAG_TEST = receive;
+                }else{
+                    byte[] buf = int2byte(RECEIVED_RELIABLE_TAG_TEST);
+                    BleManager.getInstance().write(BleManager.getInstance().getAllConnectedDevice().get(0),
+                            UUIDs.UUID_Reliable_Service, UUIDs.UUID_Reliable_Char_Write, buf, new BleWriteCallback() {
+                                @Override
+                                public void onWriteSuccess(int current, int total, byte[] justWrite) {
+//                                    Log.d(TAG, "3-1:");
+                                }
+
+                                @Override
+                                public void onWriteFailure(BleException exception) {
+//                                    Log.d(TAG, "3-2");
+                                }
+                            });
+                }
+                Log.d(TAG, "接收到可靠测试数据->"+ Utils.bytesTo10String(data)+" TAG->"+byte2int(data));
+                break;
         }
+    }
+
+    public static short byte2int(byte[] arr){
+        if(arr.length>=2){
+            return (short)((arr[0]&0xff) | ((arr[1]&0xff)<<8));
+        }
+        return -1;
+    }
+
+    public static byte[] int2byte(short a){
+        return new byte[]{(byte)(a&0xff), (byte)((a>>8)&0xff)};
+    }
+
+    private static void dealECG(byte[] data) {
+        if(data.length<20){
+            Log.d(TAG, "心电数据不完整");
+            return ;
+        }
+        for(byte t:data){
+            ECGLinkedList.add(new ECGModel(new Date(), t, Constant.MY_IP));
+        }
+        BroadCastUtil.broadcastUpdate(BroadCastUtil.drawECGAction);
     }
 
     /**
@@ -298,7 +381,7 @@ public class SensorDataService extends Service {
             return;
         }
         if(data[1]==0x00){
-            System.out.println("心率数据异常，请检查设备或佩戴人员");
+            Log.d(TAG, "心率数据异常，请检查设备或佩戴人员");
             return;
         }
         String heart_str = bytes2HexString(data);

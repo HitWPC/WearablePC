@@ -170,6 +170,23 @@ public class Utils {
 		return stringBuilder.toString();
 	}
 
+	public static String bytesTo10String(byte[] src) {
+		StringBuilder stringBuilder = new StringBuilder("");
+		if (src == null || src.length <= 0) {
+			return null;
+		}
+		for (int i = 0; i < src.length; i++) {
+			int v = src[i] & 0xFF;
+			String hv = Integer.toHexString(v);
+			if (hv.length() < 2) {
+				stringBuilder.append(0);
+			}
+			stringBuilder.append(v);
+			stringBuilder.append(" ");
+		}
+		return stringBuilder.toString();
+	}
+
 	public static String bytesToString(byte[] src) {
 		// byte[] ת string
 		String res = new String(src);

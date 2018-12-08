@@ -33,6 +33,11 @@ public class BroadCastUtil {
     public static final String btDeviceConnAction = "BROADCAST.BTDEVICECONN.ACTION";
 
     /**
+     * 解析到心电数据
+     */
+    public static final String drawECGAction = "BROADCAST.ECG.ACTION";
+
+    /**
      * 收到蓝牙数据
      */
     public static final String notifyDataChanged = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";

@@ -72,4 +72,17 @@ public class UUIDs {
      * 动作WRITE Characteristic
      */
     public static final String UUID_Action_Char_Write = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+
+    /**
+     * 可靠传输 Service
+     */
+    public static final String UUID_Reliable_Service = "19b10040-e8f2-537e-4f6c-d104768a1214";
+    /**
+     * 可靠传输Write Characteristic
+     */
+    public static final String UUID_Reliable_Char_Write = "19b10041-e8f2-537e-4f6c-d104768a1214";
+    /**
+     * 可靠传输Notify Characteristic
+     */
+    public static final String UUID_Reliable_Char_Notify = "19b10042-e8f2-537e-4f6c-d104768a1214";
 }
