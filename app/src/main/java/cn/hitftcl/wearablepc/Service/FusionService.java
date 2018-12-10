@@ -59,7 +59,7 @@ public class FusionService extends Service {
     private static int Timer_Interval = 3000;
 
     private static int CurrentSendDataInterval = 1000;
-    private static int SendDataMaxInterval = 10000;
+    private static int SendDataMaxInterval = 12000;
 
     public static FusionState fusionResult = null;
 
@@ -107,9 +107,11 @@ public class FusionService extends Service {
             BDTable bdTable = DataSupport.findLast(BDTable.class);
             List<FeaVector> feaVectors = DataSupport.select("*").where("startTime>?",""+(System.currentTimeMillis()-20000)).order("startTime desc").limit(10).find(FeaVector.class);
             fusionResult = DataFusionUtil.situation1Fusion(heartTable, environmentTable, bdTable, feaVectors);
+
             judgeAndShowNotification();
             speedChange();
             sendDataServiceRateChange();
+
         }
     }
 
@@ -146,6 +148,7 @@ public class FusionService extends Service {
         int tempLevel = -1;
         boolean available = false;
         StringBuilder sb = new StringBuilder();
+        Log.d(TAG, "   "+fusionResult.envAvailable);
         if(fusionResult!=null && fusionResult.envAvailable){
             available = true;
             if(fusionResult.getSo2()==3 || fusionResult.getNo()==3){
@@ -168,6 +171,9 @@ public class FusionService extends Service {
                 tempLevel = Math.max(tempLevel, 1);
                 sb.append("温湿度或气压异常，请注意！");
             }
+        }
+        if(available && fusionResult.isEnvNormal()){
+            DataSupport.deleteAll(EnvironmentTable.class);
         }
         if(fusionResult!=null && fusionResult.heartAvailable){
             available = true;

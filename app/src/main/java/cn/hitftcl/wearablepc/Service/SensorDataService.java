@@ -126,11 +126,11 @@ public class SensorDataService extends Service {
                 deal_environment(data);
                 break;
             case UUIDs.UUID_BD_Char:
+                System.out.println(new String (data));
 //                Log.d(TAG, new String(data));
                 temp_bd_data.append(new String(data));
                 Log.d(TAG, "char6_store: "+temp_bd_data);
                 String info=ifHasDataNeeded(temp_bd_data);
-                System.out.println(temp_bd_data.toString());
                 if(info!=null){
                     Log.d(TAG,temp_bd_data.toString());
 
@@ -320,7 +320,9 @@ public class SensorDataService extends Service {
 
         boolean flag = false;  //标志该数据是否有效
 //        Log.d(TAG, "getFormatLatlng-------: "+strArr);
-        if (strArr.get(0).equals("GNRMC") && strArr.size()>7 && strArr.get(2).equals("A")){
+        if (strArr.get(0).equals("GNRMC") && strArr.size()>7 && strArr.get(2).equals("A") &&
+                (strArr.get(4).equalsIgnoreCase("N") || strArr.get(4).equalsIgnoreCase("S")) &&
+                (strArr.get(6).equalsIgnoreCase("W") || strArr.get(6).equalsIgnoreCase("E"))){
             flag = true;
             lat = strArr.get(3);
             NorS = strArr.get(4);
@@ -329,7 +331,9 @@ public class SensorDataService extends Service {
             Times = strArr.get(1);
 
         }
-        if(strArr.get(0).equals("GNGLL") && strArr.size()>=7 && strArr.get(6).equals("A")){
+        if(strArr.get(0).equals("GNGLL") && strArr.size()>=7 && strArr.get(6).equals("A") &&
+                (strArr.get(2).equalsIgnoreCase("N") || strArr.get(2).equalsIgnoreCase("S")) &&
+                (strArr.get(4).equalsIgnoreCase("W") || strArr.get(4).equalsIgnoreCase("E"))){
             flag = true;
             lat = strArr.get(1);
             NorS = strArr.get(2);
@@ -338,7 +342,9 @@ public class SensorDataService extends Service {
             Times = strArr.get(5);
 
         }
-        if(strArr.get(0).equals("GNGGA") && strArr.size()>=7 && !strArr.get(6).equals("0")){
+        if(strArr.get(0).equals("GNGGA") && strArr.size()>=7 && !strArr.get(6).equals("0") &&
+                (strArr.get(3).equalsIgnoreCase("N") || strArr.get(3).equalsIgnoreCase("S")) &&
+                (strArr.get(5).equalsIgnoreCase("W") || strArr.get(5).equalsIgnoreCase("E"))){
             flag = true;
             lat = strArr.get(2);
             NorS = strArr.get(3);

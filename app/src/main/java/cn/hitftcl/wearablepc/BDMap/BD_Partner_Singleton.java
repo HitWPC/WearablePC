@@ -1,5 +1,7 @@
 package cn.hitftcl.wearablepc.BDMap;
 
+import android.util.Log;
+
 import com.amap.api.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -36,7 +38,8 @@ public class BD_Partner_Singleton {
     public void setBD_Map(ArrayList<BDTable> list){
         for(BDTable bdTable : list){
             if(!bdTable.getIP().equals(Constant.MY_IP)){
-                BD_Map.put(bdTable.getIP(), new LatLng(bdTable.getLongitude(), bdTable.getLatitude()));
+                Log.d("debug001",bdTable.getLatitude() + "  "+ bdTable.getLongitude());
+                BD_Map.put(bdTable.getIP(), new LatLng(bdTable.getLatitude(), bdTable.getLongitude()));
             }
 
         }
@@ -49,7 +52,7 @@ public class BD_Partner_Singleton {
     public ArrayList<BDTable> getBDArrayList(){
         ArrayList<BDTable> res = new ArrayList<>();
         for(Map.Entry<String, LatLng> temp : BD_Map.entrySet()){
-            res.add(new BDTable(temp.getValue().latitude, temp.getValue().longitude, temp.getKey()));
+            res.add(new BDTable(temp.getValue().longitude, temp.getValue().latitude, temp.getKey()));
         }
         return res;
     }

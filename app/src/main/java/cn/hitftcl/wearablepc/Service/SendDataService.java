@@ -31,7 +31,7 @@ public class SendDataService extends Service {
 
     public static Timer timer = null;
     public  static TimerTask timerTask = null;
-    private  static int Max_Interval_Seconds = 2000;
+    private  static int Max_Interval_Seconds = 20000;  //定位数据有效间隔
     private static int Timer_Interval = 1000;
 
     public static int SLEEP_TIME = 1000;
@@ -66,7 +66,6 @@ public class SendDataService extends Service {
         @Override
         public void run() {
             while(true){
-//                System.out.println("发送数据服务开始运行");
 //                Log.d(TAG, "android:layout_below=\"@+id/synBtn\" "+ Constant.dateFormat.format(new Date()));
                 if (Thread.currentThread().isInterrupted()){
                     break;
@@ -76,24 +75,29 @@ public class SendDataService extends Service {
                 CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(1)).findFirst(UserIPInfo.class);
 //                System.out.println("队长*********"+(CaptainInfo!=null && CaptainInfo.getType()==0));
                 if(CaptainInfo!=null && CaptainInfo.getType()!=0){  //TODO 我不是队长……
+
                     //TODO 向队长发送地理位置数据
                     String BD_Data_Json = LatestBDdata();
                     if (BD_Data_Json!=null){
-                        NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(), TransType.BD_TYPE,BD_Data_Json);
+                        if(NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(), TransType.BD_TYPE,BD_Data_Json)){
+//                            Log.d(TAG, "上报地理成功");
+                        }
                     }
                     //TODO 向队长发送体征环境融合数据
                     FusionState fusionState = LatestFusionResult();
                     if(fusionState!=null && (fusionState.heartAvailable||fusionState.envAvailable||fusionState.bdAvailable)){
                         String fusionStr = new Gson().toJson(fusionState);
-                        if(NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr))
-                            Log.d(TAG, "向队长发送融合数据成功");
+                        if(NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr)){
+                            Log.d("SoldierState:", "态势上报"+Constant.dateFormat.format(new Date()));
+                        }
+//                            Log.d(TAG, "向队长发送融合数据成功");
                     }
                 }else if(CaptainInfo!=null && CaptainInfo.getType()==0){  //TODO 我是队长……
                     //TODO 给队员发送所有成员地理位置  + 包括指挥端
                     final List<UserIPInfo> userIPInfos = DataSupport.where("type!=?","0").find(UserIPInfo.class);
                     ArrayList<BDTable> bdList = BD_Partner_Singleton.getInstance().getBDArrayList();
                     BDTable cap = DataSupport.findLast(BDTable.class);
-                    if(cap!=null){
+                    if(cap!=null && (new Date().getTime()-cap.getRecordDate().getTime()<Max_Interval_Seconds)){
                         Log.d(TAG,  "添加自己位置信息");
                         bdList.add(cap);
                     }
