@@ -157,7 +157,7 @@ public class ActionOriginService extends Service{
 //    public void recg(ActionData actionData){
     public void recg(){
         try {
-            Thread.sleep(1000);
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

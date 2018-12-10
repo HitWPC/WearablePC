@@ -87,7 +87,7 @@ public class MapActivity extends AppCompatActivity {
     private Timer timer = new Timer();
     private TimerTask task = null;
 
-    private Bitmap selfBitmap;
+    private Bitmap selfBitmap, sodier;
     private Menu mMenu=null;
     private static mBroadcastReceiver mBroadcastReceiver = null;
     private static IntentFilter intentFilter = null;
@@ -172,7 +172,8 @@ public class MapActivity extends AppCompatActivity {
                 INI_LATLNG, INI_ZOOM, INIT_TILE, INIT_BEARING)));
 
         //获取表示自己头像的Bitmap
-        selfBitmap = BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.self_location_icon),80,80);
+        selfBitmap = BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.self_location_icon),110,110);
+        sodier = BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.sodier),110,110);
 
 
         //TODO 获取定位按钮
@@ -252,7 +253,7 @@ public class MapActivity extends AppCompatActivity {
                             );
                             aMap.addMarker(markerOptions).setObject("队员");
                         }else{
-                            aMap.addMarker(new MarkerOptions().position(latlng).title(IP)).setObject("队员");
+                            aMap.addMarker(new MarkerOptions().position(latlng).title(IP).icon(BitmapDescriptorFactory.fromBitmap(sodier))).setObject("队员");
                         }
                     }
                 }
@@ -551,15 +552,15 @@ public class MapActivity extends AppCompatActivity {
     private void drawMarker(LatLng latLng, String typeName){
         if(typeName.equals(SYMBOL_TYPE.TANC.name())){
             BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
-                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.tanc),75,60));
+                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.tanc),100,80));
             listSymbol.add(drawMarker(latLng, typeName, icon, null, null, true));
         }else if(typeName.equals(SYMBOL_TYPE.HELICOPTER.name())){
             BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
-                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.helicopter),115,115));
+                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.helicopter),130,130));
             listSymbol.add(drawMarker(latLng, typeName, icon, null, null, true));
         }else if(typeName.equals(SYMBOL_TYPE.CAMP.name())){
             BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(
-                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.camp),90,80));
+                    BitmapUtil.getAdaptBitMap(BitmapFactory.decodeResource(getResources(),R.drawable.camp),110,95));
             listSymbol.add(drawMarker(latLng, typeName, icon, null, null, true));
         }
     }

@@ -96,30 +96,8 @@ public class ScanFragment extends Fragment {
         scanDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//                showProgressDialog("请稍后", "正在连接设备");
-
                 // TODO 点击条目后,获取地址，根据地址连接设备
                 connect(mDeviceAdapter.getItem(i));
-//                final int position = i;
-//                mBleController.connect(0, address, new ConnectCallback() {
-//                    @Override
-//                    public void onConnSuccess() {
-//                        hideProgressDialog();
-//                        Toast.makeText(getActivity(), "连接成功", Toast.LENGTH_SHORT).show();
-//                        Log.d(TAG, "连接成功---position----->"+address+"  "+position);
-//                        Log.d(TAG, "bluetoothDevices---size----->"+bluetoothDevices.size());
-//                        Log.d(TAG, "btDevices---size----->"+btDevices.size());
-//                        bluetoothDevices.remove(position);
-//                        btDevices.remove(position);
-//                        adapter.notifyDataSetChanged();
-//                    }
-//
-//                    @Override
-//                    public void onConnFailed() {
-////                        hideProgressDialog();
-////                        Toast.makeText(getContext(), "连接超时，请重试", Toast.LENGTH_SHORT).show();
-//                    }
-//                });
             }
         });
         return v;
@@ -132,6 +110,9 @@ public class ScanFragment extends Fragment {
     }
 
     private void startScan() {
+        if(!BleManager.getInstance().isBlueEnable()){
+            BleManager.getInstance().enableBluetooth();
+        }
         BleManager.getInstance().scan(new BleScanCallback() {
             @Override
             public void onScanStarted(boolean success) {
@@ -159,7 +140,17 @@ public class ScanFragment extends Fragment {
     }
 
     private void connect(final BleDevice bleDevice) {
-        BleManager.getInstance().connect(bleDevice, new BleGattCallback() {
+        BleManager.getInstance().connect(bleDevice, new MyBleGattCallback(bleDevice));
+    }
+
+    class MyBleGattCallback extends BleGattCallback{
+
+        private BleDevice bleDevice;
+
+        public MyBleGattCallback(BleDevice bleDevice){
+            this.bleDevice = bleDevice;
+        }
+
             @Override
             public void onStartConnect() {
                 showProgressDialog("请稍后", "正在连接"+bleDevice.getName());
@@ -180,33 +171,7 @@ public class ScanFragment extends Fragment {
                 mDeviceAdapter.notifyDataSetChanged();
                 BroadCastUtil.broadcastUpdate(BroadCastUtil.btDeviceConnAction);
                 OpenNotify(bleDevice);
-                if(bleDevice.getName().contains("Ring")){
-
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            byte[] buf = {0x01,0x01,0x02,0x00,0x03,0x00,0x00,0x0a};
-                            BleManager.getInstance().write(bleDevice1, UUIDs.UUID_Action_Char_Service, UUIDs.UUID_Action_Char_Write, buf,
-                                    new BleWriteCallback(){
-                                        @Override
-                                        public void onWriteSuccess(int current, int total, byte[] justWrite) {
-                                            Log.d(TAG, "write success");
-                                        }
-
-                                        @Override
-                                        public void onWriteFailure(BleException exception) {
-                                            Log.d(TAG, "write fail");
-                                        }
-                                    });
-                        }
-                    }).start();
-
-                }
+                sendInsToAction(bleDevice);
             }
 
             @Override
@@ -215,29 +180,9 @@ public class ScanFragment extends Fragment {
                 mDeviceAdapter.notifyDataSetChanged();
                 Toast.makeText(MyApplication.getContext(), bleDevice.getName()+"断开连接："+BleManager.getInstance().isConnected(bleDevice),Toast.LENGTH_SHORT).show();
                 BroadCastUtil.broadcastUpdate(BroadCastUtil.btDeviceConnAction);
-                if(bleDevice.getName().contains("Ring-Node")){
-                    BleManager.getInstance().connect(bleDevice, new BleGattCallback() {
-                        @Override
-                        public void onStartConnect() {
-                            Log.d(TAG, "准备重连");
-                        }
-
-                        @Override
-                        public void onConnectFail(BleDevice bleDevice, BleException exception) {
-                            Log.d(TAG, "重连失败");
-                        }
-
-                        @Override
-                        public void onConnectSuccess(BleDevice bleDevice, BluetoothGatt gatt, int status) {
-                            Log.d(TAG, "准备成功");
-                        }
-
-                        @Override
-                        public void onDisConnected(boolean isActiveDisConnected, BleDevice device, BluetoothGatt gatt, int status) {
-                            Log.d(TAG, "重连断开");
-                        }
-                    });
-                }
+//                if(bleDevice.getName().contains("Ring-Node")){
+//                    BleManager.getInstance().connect(bleDevice, new MyBleGattCallback(bleDevice));
+//                }
 
 //                if (isActiveDisConnected) {
 //                    Toast.makeText(MainActivity.this, getString(R.string.active_disconnected), Toast.LENGTH_LONG).show();
@@ -246,7 +191,36 @@ public class ScanFragment extends Fragment {
 //                    ObserverManager.getInstance().notifyObserver(bleDevice);
 //                }
             }
-        });
+    }
+
+    private void sendInsToAction(final BleDevice bleDevice) {
+        if(bleDevice.getName().contains("Ring")){
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    byte[] buf = {0x01,0x01,0x02,0x00,0x03,0x00,0x00,0x0a};
+                    BleManager.getInstance().write(bleDevice, UUIDs.UUID_Action_Char_Service, UUIDs.UUID_Action_Char_Write, buf,
+                            new BleWriteCallback(){
+                                @Override
+                                public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                    Log.d(TAG, "write success");
+                                }
+
+                                @Override
+                                public void onWriteFailure(BleException exception) {
+                                    Log.d(TAG, "write fail");
+                                }
+                            });
+                }
+            }).start();
+
+        }
     }
 
     private void OpenNotify(final BleDevice bleDevice) {

@@ -33,7 +33,7 @@ public class DeviceListAdapter extends BaseAdapter {
     }
 
     public DeviceListAdapter(Context context, List<BleDevice> bluetoothDevices) {
-        Log.d(TAG, "DeviceListAdapter的构造函数");
+//        Log.d(TAG, "DeviceListAdapter的构造函数");
         mContext = context;
         this.bleDeviceList = bluetoothDevices;
     }
