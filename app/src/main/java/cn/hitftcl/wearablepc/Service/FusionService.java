@@ -139,8 +139,6 @@ public class FusionService extends Service {
             timer.cancel();
             timer = null;
         }
-
-
         super.onDestroy();
     }
 

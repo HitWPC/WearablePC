@@ -14,13 +14,17 @@ import android.os.PowerManager;
 import android.util.Log;
 
 
+import org.litepal.crud.DataSupport;
+
 import java.util.ArrayList;
+import java.util.List;
 
 import cn.hitftcl.wearablepc.ActionRecognition.common.FileOperateUtil;
 import cn.hitftcl.wearablepc.ActionRecognition.common.Preprocess;
 import cn.hitftcl.wearablepc.ActionRecognition.common.RecognitionType;
 import cn.hitftcl.wearablepc.ActionRecognition.classifier.SVM;
 import cn.hitftcl.wearablepc.ActionRecognition.feature.FeatureCore;
+import cn.hitftcl.wearablepc.Model.ActionTable;
 import cn.hitftcl.wearablepc.Utils.BroadCastUtil;
 
 /**
@@ -99,11 +103,18 @@ public class ActionOriginService extends Service{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BroadCastUtil.sensorAction);
-        mReceiver = new MyBroadcastReceive();
-        registerReceiver(mReceiver, filter);
-
+//        IntentFilter filter = new IntentFilter();
+//        filter.addAction(BroadCastUtil.sensorAction);
+//        mReceiver = new MyBroadcastReceive();
+//        registerReceiver(mReceiver, filter);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true){
+                    recg();
+                }
+            }
+        }).start();
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -126,7 +137,7 @@ public class ActionOriginService extends Service{
                     String content = intent.getStringExtra("sensorData");
                     Log.d(TAG, content);
                     ActionData value = parseContent(content);
-                    recg(value);
+//                    recg(value);
                     break;
                 default:
                     break;
@@ -143,38 +154,59 @@ public class ActionOriginService extends Service{
         return new ActionData(x,y,z);
     }
 
-    public void recg(ActionData actionData){
-        float[] values = actionData.getAcc();
-        //当前时间
-        long time = System.currentTimeMillis();
-        //一次活动识别的运行时间 = peakCount * 2
-        if(count >= peakCount){
-
-            final int lastIdBackup = lastIndex;
-            SVM.exec.execute(new Runnable() {
-                @Override
-                public void run() {
-                    FileOperateUtil.saveMemoryAndTime(lastIdBackup, RecognitionType.ALGORITHM_ORIGIN);
-                }
-            });
-            count = 0;
-        }else {
-            if (accX.size() == windowLength) {
-                Log.d(ActionOriginService.class.getSimpleName(), "startTime = " + timeList.get(0) + ",endTime = " + timeList.get(timeList.size() - 1));
-                lastIndex = FeatureCore.calculateFeature(true, RecognitionType.ALGORITHM_ORIGIN,
-                        Preprocess.medFilt(accX), Preprocess.medFilt(accY), Preprocess.medFilt(accZ), timeList.get(0), timeList.get(timeList.size() - 1));
-
-                clearAllList();
-                count++;
-                Log.d(ActionOriginService.class.getSimpleName(), "count = " + count);
-            } else {
-                accX.add((double) values[0]);
-                accY.add((double) values[1]);
-                accZ.add((double) values[2]);
-                timeList.add(time);
-
-            }
+//    public void recg(ActionData actionData){
+    public void recg(){
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        List<ActionTable> actinDataList = DataSupport.select("*").order("date desc").limit(100).find(ActionTable.class);
+        while(actinDataList.size()<100){
+            actinDataList = DataSupport.select("*").limit(100).find(ActionTable.class);
+        }
+        for(int i=0; i<100; i++){
+            accX.add(actinDataList.get(i).getX());
+            accY.add(actinDataList.get(i).getY());
+            accZ.add(actinDataList.get(i).getZ());
+            timeList.add(actinDataList.get(i).getDate());
+        }
+        Log.d(TAG,actinDataList.size() +"  大小");
+        lastIndex = FeatureCore.calculateFeature(true, RecognitionType.ALGORITHM_ORIGIN,
+                        Preprocess.medFilt(accX), Preprocess.medFilt(accY), Preprocess.medFilt(accZ), timeList.get(0), timeList.get(timeList.size() - 1));
+        clearAllList();
+
+//        float[] values = actionData.getAcc();
+//        //当前时间
+//        long time = System.currentTimeMillis();
+//        //一次活动识别的运行时间 = peakCount * 2
+//        if(count >= peakCount){
+//
+//            final int lastIdBackup = lastIndex;
+//            SVM.exec.execute(new Runnable() {
+//                @Override
+//                public void run() {
+//                    FileOperateUtil.saveMemoryAndTime(lastIdBackup, RecognitionType.ALGORITHM_ORIGIN);
+//                }
+//            });
+//            count = 0;
+//        }else {
+//            if (accX.size() == windowLength) {
+//                Log.d(ActionOriginService.class.getSimpleName(), "startTime = " + timeList.get(0) + ",endTime = " + timeList.get(timeList.size() - 1));
+//                lastIndex = FeatureCore.calculateFeature(true, RecognitionType.ALGORITHM_ORIGIN,
+//                        Preprocess.medFilt(accX), Preprocess.medFilt(accY), Preprocess.medFilt(accZ), timeList.get(0), timeList.get(timeList.size() - 1));
+//
+//                clearAllList();
+//                count++;
+//                Log.d(ActionOriginService.class.getSimpleName(), "count = " + count);
+//            } else {
+//                accX.add((double) values[0]);
+//                accY.add((double) values[1]);
+//                accZ.add((double) values[2]);
+//                timeList.add(time);
+//
+//            }
+//        }
     }
 
     class ActionData{

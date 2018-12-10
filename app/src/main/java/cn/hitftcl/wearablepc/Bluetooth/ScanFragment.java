@@ -215,6 +215,29 @@ public class ScanFragment extends Fragment {
                 mDeviceAdapter.notifyDataSetChanged();
                 Toast.makeText(MyApplication.getContext(), bleDevice.getName()+"断开连接："+BleManager.getInstance().isConnected(bleDevice),Toast.LENGTH_SHORT).show();
                 BroadCastUtil.broadcastUpdate(BroadCastUtil.btDeviceConnAction);
+                if(bleDevice.getName().contains("Ring-Node")){
+                    BleManager.getInstance().connect(bleDevice, new BleGattCallback() {
+                        @Override
+                        public void onStartConnect() {
+                            Log.d(TAG, "准备重连");
+                        }
+
+                        @Override
+                        public void onConnectFail(BleDevice bleDevice, BleException exception) {
+                            Log.d(TAG, "重连失败");
+                        }
+
+                        @Override
+                        public void onConnectSuccess(BleDevice bleDevice, BluetoothGatt gatt, int status) {
+                            Log.d(TAG, "准备成功");
+                        }
+
+                        @Override
+                        public void onDisConnected(boolean isActiveDisConnected, BleDevice device, BluetoothGatt gatt, int status) {
+                            Log.d(TAG, "重连断开");
+                        }
+                    });
+                }
 
 //                if (isActiveDisConnected) {
 //                    Toast.makeText(MainActivity.this, getString(R.string.active_disconnected), Toast.LENGTH_LONG).show();
@@ -231,11 +254,12 @@ public class ScanFragment extends Fragment {
         for (BluetoothGattService bluetoothGattService : bluetoothGattServices) {
             List<BluetoothGattCharacteristic> bluetoothGattCharacteristics = bluetoothGattService.getCharacteristics();
             for (final BluetoothGattCharacteristic bluetoothGattCharacteristic : bluetoothGattCharacteristics) {
-                if((bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_BD_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_BD_Char))
-                        || (bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_ENVIRONMENT_Char_Notify))
-                        || (bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_Heart_Char_Notify))
-                        || (bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_ECG_Char_Notify))
-                        || (bluetoothGattService.getUuid().toString().equals(UUIDs.UUID_Action_Char_Service) && bluetoothGattCharacteristic.getUuid().toString().equals(UUIDs.UUID_Action_Char_Notify))){
+                if((bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_BD_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_BD_Char))
+                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_ENVIRONMENT_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_ENVIRONMENT_Char_Notify))
+//                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Char_Notify))
+                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_ECG_Char_Notify))
+                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Action_Char_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Action_Char_Notify))
+                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Reliable_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Reliable_Char_Notify))){
                     BleManager.getInstance().notify(bleDevice, bluetoothGattService.getUuid().toString(), bluetoothGattCharacteristic.getUuid().toString(),
                            new MyNotifyCallback(bleDevice, bluetoothGattCharacteristic));
                 }
@@ -273,12 +297,12 @@ public class ScanFragment extends Fragment {
 
         @Override
         public void onNotifySuccess() {
-            Log.d(TAG, bleDevice.getName()+" notify success");
+            Log.d(TAG, bleDevice.getName()+" notify success"+" "+bluetoothGattCharacteristic.getUuid().toString());
         }
 
         @Override
         public void onNotifyFailure(final BleException exception) {
-            Log.d(TAG, bleDevice.getName()+" notify fail");
+            Log.d(TAG, bleDevice.getName()+" notify fail"+" "+bluetoothGattCharacteristic.getUuid().toString());
         }
 
         @Override

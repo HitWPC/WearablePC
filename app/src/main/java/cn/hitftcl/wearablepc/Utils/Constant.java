@@ -25,6 +25,8 @@ public class Constant {
     public static final String serviceInfoPath    = Environment.getExternalStorageDirectory() + "/HitWearable/serviceInfo";
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss");
+    public static final SimpleDateFormat dateFormat2 = new SimpleDateFormat(
+            "ss:SSSSS");
     public static final HashMap<Integer,String> actionTcategory = new HashMap<>();
     public static final HashMap<String,Integer> actionTcategory2 = new HashMap<>();
     static {

@@ -66,15 +66,15 @@ public class SendDataService extends Service {
         @Override
         public void run() {
             while(true){
-                System.out.println("发送数据服务开始运行");
-                Log.d(TAG, "android:layout_below=\"@+id/synBtn\" "+ Constant.dateFormat.format(new Date()));
+//                System.out.println("发送数据服务开始运行");
+//                Log.d(TAG, "android:layout_below=\"@+id/synBtn\" "+ Constant.dateFormat.format(new Date()));
                 if (Thread.currentThread().isInterrupted()){
                     break;
                 }
 
                 UserIPInfo CaptainInfo = null;
                 CaptainInfo = DataSupport.where("isCaptain = ?", String.valueOf(1)).findFirst(UserIPInfo.class);
-                System.out.println("队长*********"+(CaptainInfo!=null && CaptainInfo.getType()==0));
+//                System.out.println("队长*********"+(CaptainInfo!=null && CaptainInfo.getType()==0));
                 if(CaptainInfo!=null && CaptainInfo.getType()!=0){  //TODO 我不是队长……
                     //TODO 向队长发送地理位置数据
                     String BD_Data_Json = LatestBDdata();
@@ -93,9 +93,7 @@ public class SendDataService extends Service {
                     final List<UserIPInfo> userIPInfos = DataSupport.where("type!=?","0").find(UserIPInfo.class);
                     ArrayList<BDTable> bdList = BD_Partner_Singleton.getInstance().getBDArrayList();
                     BDTable cap = DataSupport.findLast(BDTable.class);
-                    Log.d(TAG, "run: **************************");
                     if(cap!=null){
-                        System.out.println("添加自己位置信息");
                         Log.d(TAG,  "添加自己位置信息");
                         bdList.add(cap);
                     }
