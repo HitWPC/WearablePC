@@ -88,10 +88,11 @@ public class TestFusionActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             HeartTable heartTable = new HeartTable(_heart, new Date(), IP);
-                            heartTable.save();
-
+                            boolean s1 = heartTable.save();
+                            Log.d("TAg", s1+"%%%%%%");
                             EnvironmentTable environmentTable = new EnvironmentTable(_temp, _pressure, _humi, _so2, _no, 3.3, new Date(), IP);
-                            environmentTable.save();
+                            boolean suc = environmentTable.save();
+                            Log.d("TAg", suc+"%%%%%%%%%%%%%%%%%%%");
                             FeaVector feaVector = new FeaVector(null,System.currentTimeMillis()-2000,System.currentTimeMillis(), Constant.actionTcategory2.get(_actionResult),0);
                             feaVector.save();
                         }

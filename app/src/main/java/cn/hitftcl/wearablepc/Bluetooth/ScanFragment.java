@@ -230,8 +230,8 @@ public class ScanFragment extends Fragment {
             for (final BluetoothGattCharacteristic bluetoothGattCharacteristic : bluetoothGattCharacteristics) {
                 if((bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_BD_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_BD_Char))
                         || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_ENVIRONMENT_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_ENVIRONMENT_Char_Notify))
-//                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Char_Notify))
-                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_ECG_Char_Notify))
+                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Char_Notify))
+//                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_ECG_Char_Notify))
                         || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Action_Char_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Action_Char_Notify))
                         || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Reliable_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Reliable_Char_Notify))
                         || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Sync_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Sync_Char_Notify))){

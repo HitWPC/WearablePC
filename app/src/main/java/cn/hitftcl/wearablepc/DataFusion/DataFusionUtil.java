@@ -120,11 +120,11 @@ public class DataFusionUtil {
             fusionState.envAvailable = true;
             IP = environmentTable.getIP();
             //温度
-            if(temperature>=-30.0 && temperature< 23.3){
+            if(temperature>=-30.0 && temperature< 24.7){
                 fusionState.setTemperature(2); //正常
             }else if(temperature<-30.0){
                 fusionState.setTemperature(0); //偏低
-            }else if(temperature>=23.3){
+            }else if(temperature>=24.7){
                 fusionState.setTemperature(4); //偏高
             }
 

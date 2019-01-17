@@ -90,6 +90,10 @@ public class SendDataService extends Service {
                         if(NetworkUtil.sendByTCP(CaptainInfo.getIp(),CaptainInfo.getPort(),TransType.FUSION_RES,fusionStr)){
                             Log.d("SoldierState:", "态势上报"+Constant.dateFormat.format(new Date()));
                         }
+//                        else{
+//                            Log.d("SoldierState:", "态势上报"+Constant.dateFormat.format(new Date()));
+//                        }
+
 //                            Log.d(TAG, "向队长发送融合数据成功");
                     }
                 }else if(CaptainInfo!=null && CaptainInfo.getType()==0){  //TODO 我是队长……

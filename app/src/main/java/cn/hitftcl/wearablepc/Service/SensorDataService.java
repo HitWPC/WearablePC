@@ -143,7 +143,7 @@ public class SensorDataService extends Service {
                 Log.d(TAG, "char6_store: 接受到薄膜键盘----"+new String(data));
                 break;
             case UUIDs.UUID_Heart_Char_Notify:
-//                deal_heart(data);
+                deal_heart(data);
                 break;
             case UUIDs.UUID_Action_Char_Notify:
                 BroadCastUtil.broadcastUpdate(BroadCastUtil.sensorAction, "sensorData", byteToFloatAll(data));

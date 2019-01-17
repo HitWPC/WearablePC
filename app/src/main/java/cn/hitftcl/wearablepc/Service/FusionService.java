@@ -110,7 +110,7 @@ public class FusionService extends Service {
 
             judgeAndShowNotification();
             speedChange();
-            sendDataServiceRateChange();
+            sendDataServiceRateChange();  //上报服务速率改变
 
         }
     }
@@ -148,7 +148,7 @@ public class FusionService extends Service {
         int tempLevel = -1;
         boolean available = false;
         StringBuilder sb = new StringBuilder();
-
+        Log.d(TAG, "   "+fusionResult.envAvailable);
         if(fusionResult!=null && fusionResult.envAvailable){
             available = true;
             if(fusionResult.getSo2()==3 || fusionResult.getNo()==3){
