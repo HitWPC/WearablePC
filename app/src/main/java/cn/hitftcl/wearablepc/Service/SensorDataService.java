@@ -160,6 +160,25 @@ public class SensorDataService extends Service {
                 Log.d(TAG, "接收到心电数据:"+data.length);
                 dealECG(data);
                 break;
+            case UUIDs.UUID_Sync_Char_Notify:
+                String receiveInfo = new String(data);
+                Log.d(TAG, "char6_store: 接受到收据->"+receiveInfo);
+                long time = System.currentTimeMillis();
+                byte[] buf1 = LongToBytes(time);
+                BleManager.getInstance().write(BleManager.getInstance().getAllConnectedDevice().get(0),
+                        UUIDs.UUID_Sync_Service, UUIDs.UUID_Sync_Char_Write, buf1, new BleWriteCallback() {
+                            @Override
+                            public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                Log.d(TAG, "3-1:");
+                            }
+
+                            @Override
+                            public void onWriteFailure(BleException exception) {
+
+                                Log.d(TAG, "3-2");
+                            }
+                        });
+                break;
             case UUIDs.UUID_Reliable_Char_Notify:
                 short receive = byte2int(data);
 
@@ -212,7 +231,19 @@ public class SensorDataService extends Service {
                 break;
         }
     }
-
+    public static byte[] LongToBytes(long values) {
+        byte[] buffer = new byte[4];
+        for (int i = 0; i < 4; i++) {
+            int offset = i*8;
+            buffer[i] = (byte) ((values >> offset) & 0xff);
+        }
+        System.out.println("时间：");
+        for (byte b : buffer) {
+            System.out.print(b+" ");
+        }
+        System.out.println();
+        return buffer;
+    }
     public static short byte2int(byte[] arr){
         if(arr.length>=2){
             return (short)((arr[0]&0xff) | ((arr[1]&0xff)<<8));

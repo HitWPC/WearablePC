@@ -85,4 +85,18 @@ public class UUIDs {
      * 可靠传输Notify Characteristic
      */
     public static final String UUID_Reliable_Char_Notify = "19b10042-e8f2-537e-4f6c-d104768a1214";
+
+    /**
+     *同步 Service
+     */
+    public static final String UUID_Sync_Service = "19b10050-e8f2-537e-4f6c-d104768a1214";
+    /**
+     * 同步Write Characteristic
+     */
+    public static final String UUID_Sync_Char_Write = "19b10051-e8f2-537e-4f6c-d104768a1214";
+    /**
+     * 同步Notify Characteristic
+     */
+    public static final String UUID_Sync_Char_Notify = "19b10052-e8f2-537e-4f6c-d104768a1214";
+
 }

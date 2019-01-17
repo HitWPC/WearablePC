@@ -233,7 +233,8 @@ public class ScanFragment extends Fragment {
 //                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Char_Notify))
                         || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Heart_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_ECG_Char_Notify))
                         || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Action_Char_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Action_Char_Notify))
-                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Reliable_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Reliable_Char_Notify))){
+                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Reliable_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Reliable_Char_Notify))
+                        || (bluetoothGattService.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Sync_Service) && bluetoothGattCharacteristic.getUuid().toString().equalsIgnoreCase(UUIDs.UUID_Sync_Char_Notify))){
                     BleManager.getInstance().notify(bleDevice, bluetoothGattService.getUuid().toString(), bluetoothGattCharacteristic.getUuid().toString(),
                            new MyNotifyCallback(bleDevice, bluetoothGattCharacteristic));
                 }

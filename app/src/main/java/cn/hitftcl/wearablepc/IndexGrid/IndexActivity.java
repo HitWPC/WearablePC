@@ -20,6 +20,8 @@ import android.widget.Toast;
 
 import com.clj.fastble.BleManager;
 
+import org.litepal.crud.DataSupport;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

@@ -67,7 +67,7 @@ public class CommandService extends Service {
                     fusionVoList.add(fusionVo);
                     fusionVo=new FusionVo("234","偏低","正常","正常","正常","正常","正常");
                     fusionVoList.add(fusionVo);
-                    PostData(locationlist,fusionVoList,"192.168.1.152");
+                                   PostData(locationlist,fusionVoList,"192.168.1.152");
 
             }
         };
